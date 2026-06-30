@@ -1,0 +1,100 @@
+import React from "react";
+import {
+  ActivityIndicator,
+  GestureResponderEvent,
+  Pressable,
+  StyleSheet,
+  Text,
+  View
+} from "react-native";
+import { LucideIcon } from "lucide-react-native";
+import { colors } from "../constants/colors";
+
+type ButtonTone = "primary" | "secondary" | "quiet";
+
+type PrimaryButtonProps = {
+  label: string;
+  onPress: (event: GestureResponderEvent) => void;
+  icon?: LucideIcon;
+  tone?: ButtonTone;
+  disabled?: boolean;
+  loading?: boolean;
+};
+
+export function PrimaryButton({
+  label,
+  onPress,
+  icon: Icon,
+  tone = "primary",
+  disabled = false,
+  loading = false
+}: PrimaryButtonProps) {
+  const isPrimary = tone === "primary";
+  const iconColor = isPrimary ? colors.surface : colors.primary;
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      disabled={disabled || loading}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.button,
+        tone === "primary" && styles.primary,
+        tone === "secondary" && styles.secondary,
+        tone === "quiet" && styles.quiet,
+        (pressed || disabled) && styles.pressed
+      ]}
+    >
+      <View style={styles.content}>
+        {loading ? (
+          <ActivityIndicator color={iconColor} />
+        ) : (
+          Icon && <Icon color={iconColor} size={18} strokeWidth={2.2} />
+        )}
+        <Text style={[styles.label, isPrimary ? styles.primaryLabel : styles.secondaryLabel]}>
+          {label}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  button: {
+    minHeight: 50,
+    borderRadius: 8,
+    justifyContent: "center",
+    paddingHorizontal: 16
+  },
+  content: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "center"
+  },
+  primary: {
+    backgroundColor: colors.primary
+  },
+  secondary: {
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.border,
+    borderWidth: StyleSheet.hairlineWidth
+  },
+  quiet: {
+    backgroundColor: "transparent"
+  },
+  pressed: {
+    opacity: 0.76
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: 0
+  },
+  primaryLabel: {
+    color: colors.surface
+  },
+  secondaryLabel: {
+    color: colors.primary
+  }
+});

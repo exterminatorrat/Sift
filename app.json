@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Trace",
+    "slug": "trace",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#FAFAF7"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.trace.mvp"
+    },
+    "android": {
+      "package": "app.trace.mvp"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

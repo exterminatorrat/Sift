@@ -1,0 +1,42 @@
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { ShieldAlert } from "lucide-react-native";
+import { colors } from "../constants/colors";
+import { safetyCopy } from "../constants/copy";
+
+type DisclaimerBannerProps = {
+  compact?: boolean;
+};
+
+export function DisclaimerBanner({ compact = false }: DisclaimerBannerProps) {
+  return (
+    <View style={[styles.banner, compact && styles.compact]}>
+      <ShieldAlert color={colors.primary} size={18} strokeWidth={2.1} />
+      <Text style={styles.text}>{safetyCopy}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  banner: {
+    alignItems: "flex-start",
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.border,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: "row",
+    gap: 10,
+    padding: 14
+  },
+  compact: {
+    padding: 12
+  },
+  text: {
+    color: colors.primary,
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0,
+    lineHeight: 19
+  }
+});
