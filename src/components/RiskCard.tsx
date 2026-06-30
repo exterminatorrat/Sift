@@ -64,8 +64,8 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 20,
+    borderWidth: 1,
     padding: 16
   },
   pressed: {
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
   status: {
     alignItems: "center",
-    borderRadius: 8,
+    borderRadius: 999,
     flexDirection: "row",
     gap: 6,
     paddingHorizontal: 9,
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   title: {
     color: colors.ink,
     fontSize: 20,
-    fontWeight: "800",
+    fontWeight: "600",
     letterSpacing: 0,
     marginTop: 14
   },

@@ -86,7 +86,7 @@ export function ProfileScreen({ profile, onChangeProfile, onDone }: ProfileScree
           </View>
           <View style={styles.headerText}>
             <Text style={styles.kicker}>Allergy profile</Text>
-            <Text style={styles.title}>Tell Trace what to watch for.</Text>
+            <Text style={styles.title}>Tell Sift what to watch for.</Text>
           </View>
         </View>
 
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   },
   content: {
     gap: 22,
-    padding: 24,
+    padding: 20,
     paddingBottom: 110
   },
   header: {
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   headerIcon: {
     alignItems: "center",
     backgroundColor: colors.primarySoft,
-    borderRadius: 8,
+    borderRadius: 999,
     height: 46,
     justifyContent: "center",
     width: 46
@@ -226,8 +226,8 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.ink,
-    fontSize: 25,
-    fontWeight: "900",
+    fontSize: 24,
+    fontWeight: "600",
     letterSpacing: 0,
     lineHeight: 31
   },
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
     color: colors.ink,
     fontSize: 16,
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   allergyCard: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth,
     gap: 14,
     padding: 14

@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   backButton: {
     alignItems: "center",
     backgroundColor: colors.primarySoft,
-    borderRadius: 8,
+    borderRadius: 999,
     height: 42,
     justifyContent: "center",
     width: 42
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   content: {
     gap: 16,
-    padding: 24,
+    padding: 20,
     paddingTop: 8
   },
   hero: {
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   },
   badge: {
     alignSelf: "flex-start",
-    borderRadius: 8,
+    borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 7
   },
@@ -210,8 +210,8 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.ink,
-    fontSize: 30,
-    fontWeight: "900",
+    fontSize: 32,
+    fontWeight: "700",
     letterSpacing: 0,
     lineHeight: 36
   },
@@ -231,8 +231,8 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 20,
+    borderWidth: 1,
     gap: 12,
     padding: 16
   },
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   },
   token: {
     backgroundColor: colors.surfaceMuted,
-    borderRadius: 8,
+    borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 7
   },
@@ -314,8 +314,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: colors.primarySoft,
     borderColor: colors.border,
-    borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 16,
+    borderWidth: 1,
     flexDirection: "row",
     gap: 9,
     padding: 13

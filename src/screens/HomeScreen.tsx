@@ -30,7 +30,7 @@ export function HomeScreen({
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.brand}>Trace</Text>
+            <Text style={styles.brand}>Sift</Text>
             <Text style={styles.subtitle}>Checking for: {formatAllergySummary(profile.allergies)}</Text>
           </View>
           <Pressable accessibilityRole="button" onPress={onOpenProfile} style={styles.iconButton}>
@@ -52,7 +52,7 @@ export function HomeScreen({
           <EmptyState
             icon={UserRound}
             title="Create an allergy profile"
-            body="Trace needs your allergies and severity before it can structure menu risks."
+            body="Sift needs your allergies and severity before it can structure menu risks."
             actionLabel="Edit profile"
             onAction={onOpenProfile}
           />
@@ -61,7 +61,7 @@ export function HomeScreen({
         <View style={styles.scanPanel}>
           <Text style={styles.scanTitle}>Scan a menu</Text>
           <Text style={styles.scanBody}>
-            Take a clear photo of one menu page. Trace will return likely risks, uncertainty, and
+            Take a clear photo of one menu page. Sift will return likely risks, uncertainty, and
             staff questions.
           </Text>
           <View style={styles.scanActions}>
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   },
   content: {
     gap: 22,
-    padding: 24
+    padding: 20
   },
   header: {
     alignItems: "center",
@@ -123,8 +123,8 @@ const styles = StyleSheet.create({
   },
   brand: {
     color: colors.ink,
-    fontSize: 34,
-    fontWeight: "900",
+    fontSize: 32,
+    fontWeight: "700",
     letterSpacing: 0
   },
   subtitle: {
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   iconButton: {
     alignItems: "center",
     backgroundColor: colors.primarySoft,
-    borderRadius: 8,
+    borderRadius: 999,
     height: 44,
     justifyContent: "center",
     width: 44
@@ -168,15 +168,15 @@ const styles = StyleSheet.create({
   scanPanel: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth,
     gap: 14,
     padding: 18
   },
   scanTitle: {
     color: colors.ink,
-    fontSize: 25,
-    fontWeight: "900",
+    fontSize: 24,
+    fontWeight: "600",
     letterSpacing: 0
   },
   scanBody: {
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   linkIcon: {
     alignItems: "center",
     backgroundColor: colors.primarySoft,
-    borderRadius: 8,
+    borderRadius: 999,
     height: 38,
     justifyContent: "center",
     width: 38

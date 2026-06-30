@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AllergySafe - Scan Results</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#2e3132",
+                    "on-surface-variant": "#44474c",
+                    "inverse-on-surface": "#f0f1f2",
+                    "on-primary-fixed-variant": "#3d4757",
+                    "on-secondary-fixed": "#002113",
+                    "tertiary-container": "#543d00",
+                    "secondary": "#006c49",
+                    "on-primary-container": "#a3adc0",
+                    "primary-container": "#374151",
+                    "on-primary-fixed": "#121c2a",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-tertiary-fixed": "#261a00",
+                    "surface-bright": "#f8f9fa",
+                    "on-secondary-container": "#00714d",
+                    "on-secondary-fixed-variant": "#005236",
+                    "background": "#f8f9fa",
+                    "secondary-container": "#6cf8bb",
+                    "outline-variant": "#c5c6cc",
+                    "tertiary-fixed": "#ffdf9f",
+                    "primary": "#212b3a",
+                    "secondary-fixed": "#6ffbbe",
+                    "on-error": "#ffffff",
+                    "on-tertiary-container": "#dba400",
+                    "surface-container-low": "#f3f4f5",
+                    "surface": "#f8f9fa",
+                    "primary-fixed": "#d9e3f7",
+                    "inverse-primary": "#bdc7db",
+                    "primary-fixed-dim": "#bdc7db",
+                    "on-secondary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed-variant": "#5c4300",
+                    "secondary-fixed-dim": "#4edea3",
+                    "on-background": "#191c1d",
+                    "tertiary": "#392800",
+                    "on-tertiary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-tint": "#555f70",
+                    "outline": "#75777d",
+                    "on-primary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed-dim": "#f9bd22",
+                    "surface-container": "#edeeef",
+                    "surface-dim": "#d9dadb",
+                    "error-container": "#ffdad6",
+                    "surface-variant": "#e1e3e4",
+                    "surface-container-high": "#e7e8e9",
+                    "on-surface": "#191c1d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-gap-sm": "8px",
+                    "card-padding": "16px",
+                    "touch-target": "44px",
+                    "stack-gap-md": "16px",
+                    "container-margin": "20px",
+                    "stack-gap-lg": "24px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Inter"],
+                    "label-md": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "display": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md antialiased pb-[100px] md:pb-0 min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 bg-surface z-40 border-b border-outline-variant shadow-sm shadow-black/5">
+<div class="flex items-center px-container-margin h-touch-target w-full max-w-md mx-auto justify-between">
+<div class="flex items-center gap-stack-gap-sm hover:bg-surface-container-low transition-colors duration-200 p-1 rounded-full cursor-pointer -ml-2 text-on-surface">
+<span class="material-symbols-outlined text-primary" data-icon="arrow_back">arrow_back</span>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary truncate px-2">Scan Results - Sakura Sushi</h1>
+<div class="w-[32px]"></div> <!-- Spacer for centering -->
+</div>
+</header>
+<main class="flex-1 w-full max-w-md mx-auto px-container-margin py-stack-gap-lg flex flex-col gap-stack-gap-lg">
+<!-- Summary Card -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden relative shadow-sm">
+<div class="h-1.5 w-full bg-tertiary-fixed absolute top-0 left-0"></div>
+<div class="p-card-padding pt-6 flex flex-col gap-stack-gap-sm">
+<div class="flex justify-between items-start">
+<div>
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Overall Risk</h2>
+<p class="font-headline-lg-mobile text-headline-lg-mobile text-tertiary mt-1">Ask Staff</p>
+</div>
+<span class="material-symbols-outlined text-tertiary icon-fill text-[32px]" data-icon="warning">warning</span>
+</div>
+<p class="font-body-md text-on-surface mt-2">3 dishes analyzed. Possible hidden risks found.</p>
+</div>
+</section>
+<!-- Dish Cards -->
+<section class="flex flex-col gap-stack-gap-md">
+<!-- Dish 1 -->
+<article class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden relative shadow-sm">
+<div class="h-1.5 w-full bg-tertiary-fixed absolute top-0 left-0"></div>
+<div class="p-card-padding pt-5">
+<div class="flex justify-between items-center cursor-pointer group">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Tonkotsu Ramen</h3>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" data-icon="expand_more">expand_more</span>
+</div>
+<div class="mt-3 flex flex-wrap gap-2">
+<span class="inline-flex items-center gap-1 bg-tertiary-fixed text-on-tertiary-fixed px-3 py-1 rounded-full font-label-md text-label-md">
+<span class="material-symbols-outlined text-[14px]" data-icon="help">help</span>
+                            Ask Staff
+                        </span>
+<span class="inline-flex items-center bg-surface-container text-on-surface px-3 py-1 rounded-full font-label-md text-label-md">Sesame</span>
+<span class="inline-flex items-center bg-surface-container text-on-surface px-3 py-1 rounded-full font-label-md text-label-md">Wheat</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-3">Ramen often contains sesame oil or wheat noodles.</p>
+</div>
+</article>
+<!-- Dish 2 -->
+<article class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden relative shadow-sm">
+<div class="h-1.5 w-full bg-error-container absolute top-0 left-0"></div>
+<div class="p-card-padding pt-5">
+<div class="flex justify-between items-center cursor-pointer group">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Chicken Gyoza</h3>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" data-icon="expand_more">expand_more</span>
+</div>
+<div class="mt-3 flex flex-wrap gap-2">
+<span class="inline-flex items-center gap-1 bg-error-container text-on-error-container px-3 py-1 rounded-full font-label-md text-label-md">
+<span class="material-symbols-outlined text-[14px] icon-fill" data-icon="error">error</span>
+                            High Risk
+                        </span>
+<span class="inline-flex items-center bg-error-container/50 text-on-error-container px-3 py-1 rounded-full font-label-md text-label-md">Soy</span>
+<span class="inline-flex items-center bg-error-container/50 text-on-error-container px-3 py-1 rounded-full font-label-md text-label-md">Wheat</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-3">Directly listed as containing soy sauce.</p>
+</div>
+</article>
+<!-- Dish 3 -->
+<article class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden relative shadow-sm">
+<div class="h-1.5 w-full bg-secondary-fixed absolute top-0 left-0"></div>
+<div class="p-card-padding pt-5">
+<div class="flex justify-between items-center cursor-pointer group">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Salmon Nigiri</h3>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors" data-icon="expand_more">expand_more</span>
+</div>
+<div class="mt-3 flex flex-wrap gap-2">
+<span class="inline-flex items-center gap-1 bg-secondary-fixed text-on-secondary-fixed px-3 py-1 rounded-full font-label-md text-label-md">
+<span class="material-symbols-outlined text-[14px]" data-icon="check_circle">check_circle</span>
+                            Low Risk
+                        </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-3">No obvious risks found from visible text.</p>
+</div>
+</article>
+</section>
+<!-- Action Area -->
+<section class="mt-4">
+<button class="w-full bg-primary-container text-on-primary hover:bg-primary-container/90 transition-colors h-touch-target rounded-xl font-label-caps text-label-caps flex items-center justify-center gap-2 uppercase tracking-wider">
+<span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
+                Save Scan
+            </button>
+</section>
+<!-- Disclaimer -->
+<section class="bg-surface-container-low rounded-lg p-3 flex gap-3 items-start border border-outline-variant/50">
+<span class="material-symbols-outlined text-outline mt-0.5 text-[20px]" data-icon="info">info</span>
+<p class="font-label-md text-label-md text-on-surface-variant">
+                This analysis is based on standard recipes and visible text. Always inform restaurant staff of severe allergies before ordering.
+            </p>
+</section>
+</main>
+<!-- BottomNavBar (Hidden on md and above as per semantic rules, but included for mobile context) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 bg-surface border-t border-outline-variant md:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.02)]">
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:opacity-80 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-secondary" data-icon="home">home</span>
+<span class="font-label-md text-label-md mt-1">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-xl px-4 py-1 hover:opacity-80 active:scale-95 transition-transform">
+<span class="material-symbols-outlined icon-fill" data-icon="history">history</span>
+<span class="font-label-md text-label-md mt-1 font-semibold">History</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:opacity-80 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-secondary" data-icon="person">person</span>
+<span class="font-label-md text-label-md mt-1">Profile</span>
+</button>
+</nav>
+</body></html>

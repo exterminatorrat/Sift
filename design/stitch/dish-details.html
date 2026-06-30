@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dish Details - Tonkotsu Ramen</title>
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#2e3132",
+                        "on-surface-variant": "#44474c",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-primary-fixed-variant": "#3d4757",
+                        "on-secondary-fixed": "#002113",
+                        "tertiary-container": "#543d00",
+                        "secondary": "#006c49",
+                        "on-primary-container": "#a3adc0",
+                        "primary-container": "#374151",
+                        "on-primary-fixed": "#121c2a",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-tertiary-fixed": "#261a00",
+                        "surface-bright": "#f8f9fa",
+                        "on-secondary-container": "#00714d",
+                        "on-secondary-fixed-variant": "#005236",
+                        "background": "#f8f9fa",
+                        "secondary-container": "#6cf8bb",
+                        "outline-variant": "#c5c6cc",
+                        "tertiary-fixed": "#ffdf9f",
+                        "primary": "#212b3a",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#dba400",
+                        "surface-container-low": "#f3f4f5",
+                        "surface": "#f8f9fa",
+                        "primary-fixed": "#d9e3f7",
+                        "inverse-primary": "#bdc7db",
+                        "primary-fixed-dim": "#bdc7db",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#5c4300",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-background": "#191c1d",
+                        "tertiary": "#392800",
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#555f70",
+                        "outline": "#75777d",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#f9bd22",
+                        "surface-container": "#edeeef",
+                        "surface-dim": "#d9dadb",
+                        "error-container": "#ffdad6",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container-high": "#e7e8e9",
+                        "on-surface": "#191c1d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-gap-sm": "8px",
+                        "card-padding": "16px",
+                        "touch-target": "44px",
+                        "stack-gap-md": "16px",
+                        "container-margin": "20px",
+                        "stack-gap-lg": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "display": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "display": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e1e3e4;
+            border-radius: 4px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed pb-[100px]">
+<!-- TopAppBar Shared Component Execution -->
+<header class="bg-surface font-headline-lg-mobile text-headline-lg-mobile w-full sticky top-0 border-b border-outline-variant transition-colors duration-200 z-40">
+<div class="flex items-center px-container-margin h-touch-target w-full max-w-md mx-auto justify-between">
+<button aria-label="Go back" class="text-on-surface hover:bg-surface-container-low rounded-full w-touch-target h-touch-target flex items-center justify-center transition-colors -ml-3">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</button>
+<div class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary flex-1 text-center pr-touch-target">
+                AllergySafe
+            </div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full max-w-md mx-auto flex flex-col">
+<!-- Hero Image & Title -->
+<div class="relative w-full h-56 bg-surface-container-highest">
+<img alt="Tonkotsu Ramen" class="w-full h-full object-cover absolute inset-0" data-alt="A top-down, high-quality photograph of a steaming bowl of Tonkotsu ramen. The rich, creamy pork broth is visible, topped with perfectly arranged slices of chashu pork, a soft-boiled egg, and green onions. The lighting is bright and appetizing, fitting a premium modern food application interface. The background is a clean, neutral surface to make the dish pop." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHlwBHcHUSbDFpsPtxojAK4lmXCtsm1hi_yRv6FPWutce3AjXtrmTLpT2F0OYf8VHOdj0s0wgrhy1LnxVgDNVMhWXWS7C1I4pOzqYBqp2H8GQU43iMFzOeMa11OPccA3rBBAUHZvoAuNHxuIqwCcoxa0UhEjfX00Olz3jbEv0_i-kjDE8rNpVv7O39jgCD6Dz6JP5hyjW30swuBZBI_XMCVjYN_BDV02HN4WY0N3xJXFIBrOZWFyp7J3z_UpvIcmfgEh16uIuov_E"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-container-margin">
+<h1 class="font-display text-display text-white drop-shadow-md">Tonkotsu Ramen</h1>
+</div>
+</div>
+<div class="p-container-margin flex flex-col gap-stack-gap-lg">
+<!-- Risk Level Section (Amber/Warning) -->
+<div class="bg-tertiary-fixed rounded-xl p-card-padding border border-tertiary-fixed-dim shadow-sm flex flex-col gap-stack-gap-sm relative overflow-hidden">
+<!-- Decorative subtle pattern -->
+<div class="absolute -right-4 -top-4 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-[120px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div class="flex items-center gap-2 z-10">
+<span class="material-symbols-outlined text-on-tertiary-fixed-variant" style="font-variation-settings: 'FILL' 1;">warning</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-tertiary-fixed-variant">Ask Staff</h2>
+</div>
+<p class="font-body-sm text-body-sm text-on-tertiary-fixed-variant z-10 leading-relaxed">
+                    Ramen broth often contains hidden sesame oil or tare (sauce) made with soy/wheat. The menu does not specify ingredients.
+                </p>
+</div>
+<!-- Possible Allergens Bento Box -->
+<div class="flex flex-col gap-stack-gap-sm">
+<h3 class="font-label-caps text-label-caps text-outline uppercase tracking-wider">Detected Allergens</h3>
+<div class="flex flex-wrap gap-2">
+<!-- Severe Allergen -->
+<div class="bg-error-container text-on-error-container border border-error/20 rounded-full px-3 py-1.5 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">dangerous</span>
+<span class="font-label-md text-label-md">Sesame (Severe)</span>
+</div>
+<!-- Warning/Watch Allergens -->
+<div class="bg-surface-container-high text-on-surface rounded-full px-3 py-1.5 flex items-center gap-1.5 border border-outline-variant/50">
+<span class="material-symbols-outlined text-[16px]">info</span>
+<span class="font-label-md text-label-md">Wheat</span>
+</div>
+<div class="bg-surface-container-high text-on-surface rounded-full px-3 py-1.5 flex items-center gap-1.5 border border-outline-variant/50">
+<span class="material-symbols-outlined text-[16px]">info</span>
+<span class="font-label-md text-label-md">Soy</span>
+</div>
+</div>
+</div>
+<!-- Questions to Ask Staff -->
+<div class="bg-surface-container-lowest rounded-xl p-card-padding border border-outline-variant shadow-sm flex flex-col gap-stack-gap-md">
+<div class="flex items-center gap-2 border-b border-outline-variant pb-2">
+<span class="material-symbols-outlined text-primary">live_help</span>
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Questions for Staff</h3>
+</div>
+<ul class="flex flex-col gap-3">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-outline mt-0.5 text-[20px]">help</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Does the broth contain sesame oil or seeds?</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-outline mt-0.5 text-[20px]">help</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Are the noodles wheat-based?</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-outline mt-0.5 text-[20px]">help</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Is there shared equipment with peanuts?</span>
+</li>
+</ul>
+</div>
+<!-- Translation Card Section -->
+<div class="bg-primary text-on-primary rounded-xl p-card-padding shadow-md flex flex-col gap-stack-gap-md mt-2 relative overflow-hidden">
+<!-- Watermark -->
+<span class="material-symbols-outlined absolute -bottom-4 -right-4 text-[100px] text-on-primary/10 pointer-events-none">translate</span>
+<div class="flex items-center justify-between z-10">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined">translate</span>
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile">Show to Staff</h3>
+</div>
+<span class="font-label-caps text-label-caps bg-on-primary/20 px-2 py-1 rounded">JAPANESE</span>
+</div>
+<div class="bg-surface-container-lowest/10 rounded-lg p-4 z-10 border border-on-primary/20 backdrop-blur-sm">
+<p class="font-body-md text-body-md font-medium text-[18px] leading-relaxed mb-2">
+                        私はピーナッツとゴマのアレルギーがあります。
+                    </p>
+<p class="font-body-sm text-body-sm text-on-primary/80 border-t border-on-primary/20 pt-2 mt-2">
+                        "I have a peanut and sesame allergy."
+                    </p>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual Action Bar (Fixed Bottom) -->
+<div class="fixed bottom-0 w-full max-w-md left-1/2 -translate-x-1/2 bg-surface/90 backdrop-blur-md border-t border-outline-variant p-4 flex gap-3 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+<button class="flex-1 bg-surface-container-lowest border border-outline text-on-surface font-label-md text-label-md h-touch-target rounded-lg flex items-center justify-center transition-colors hover:bg-surface-container-low active:scale-[0.98]">
+            Close
+        </button>
+<button class="flex-[2] bg-primary-container text-on-primary-container font-label-md text-label-md h-touch-target rounded-lg flex items-center justify-center gap-2 transition-colors hover:bg-primary-container/90 shadow-sm active:scale-[0.98]">
+<span class="material-symbols-outlined text-[20px]">bookmark</span>
+            Save to History
+        </button>
+</div>
+</body></html>

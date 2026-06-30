@@ -1,20 +1,20 @@
 {
   "expo": {
-    "name": "Trace",
-    "slug": "trace",
+    "name": "Sift",
+    "slug": "sift",
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "splash": {
-      "backgroundColor": "#FAFAF7"
+      "backgroundColor": "#F8F9FA"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.trace.mvp"
+      "bundleIdentifier": "app.sift.mvp"
     },
     "android": {
-      "package": "app.trace.mvp"
+      "package": "app.sift.mvp"
     },
     "web": {
       "bundler": "metro"

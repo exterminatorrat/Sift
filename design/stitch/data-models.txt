@@ -1,0 +1,54 @@
+export type Severity = "mild" | "moderate" | "severe";
+
+export interface Allergy {
+  id: string;
+  name: string;
+  severity: Severity;
+  avoidCrossContact: boolean;
+  notes?: string;
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  allergies: Allergy[];
+  preferredLanguage: string;
+  restaurantLanguage?: string;
+}
+
+export type RiskLevel = 
+  | "low_risk" 
+  | "ask_staff" 
+  | "high_risk" 
+  | "avoid_unless_confirmed" 
+  | "unclear";
+
+export interface DishRisk {
+  id: string;
+  dishName: string;
+  menuDescription?: string;
+  riskLevel: RiskLevel;
+  possibleAllergens: string[];
+  hiddenRiskIngredients: string[];
+  crossContactConcerns: string[];
+  reason: string;
+  questionsToAsk: string[];
+}
+
+export interface ScanResult {
+  id: string;
+  createdAt: string;
+  restaurantName?: string;
+  profileId: string;
+  scanSummary: {
+    overallRisk: RiskLevel;
+    summary: string;
+    limitations: string;
+  };
+  dishes: DishRisk[];
+  restaurantMessage: {
+    english: string;
+    translated?: string;
+    language?: string;
+  };
+}

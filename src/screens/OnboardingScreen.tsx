@@ -22,7 +22,7 @@ export function OnboardingScreen({ onGetStarted }: OnboardingScreenProps) {
     <SafeAreaView style={styles.screen}>
       <View style={styles.content}>
         <View style={styles.brandBlock}>
-          <Text style={styles.brand}>Trace</Text>
+          <Text style={styles.brand}>Sift</Text>
           <Text style={styles.tagline}>{tagline}</Text>
         </View>
 
@@ -48,7 +48,7 @@ export function OnboardingScreen({ onGetStarted }: OnboardingScreenProps) {
           <InfoRow
             icon={ShieldCheck}
             title="Stays conservative"
-            body="Trace helps you decide what to ask. It does not confirm ingredients or kitchen prep."
+            body="Sift helps you decide what to ask. It does not confirm ingredients or kitchen prep."
           />
         </View>
 
@@ -91,15 +91,15 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 28,
     justifyContent: "center",
-    padding: 24
+    padding: 20
   },
   brandBlock: {
     gap: 8
   },
   brand: {
     color: colors.ink,
-    fontSize: 52,
-    fontWeight: "900",
+    fontSize: 32,
+    fontWeight: "700",
     letterSpacing: 0
   },
   tagline: {
@@ -113,10 +113,10 @@ const styles = StyleSheet.create({
   },
   headline: {
     color: colors.ink,
-    fontSize: 28,
-    fontWeight: "900",
+    fontSize: 32,
+    fontWeight: "700",
     letterSpacing: 0,
-    lineHeight: 34
+    lineHeight: 40
   },
   body: {
     color: colors.inkMuted,
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   infoIcon: {
     alignItems: "center",
     backgroundColor: colors.primarySoft,
-    borderRadius: 8,
+    borderRadius: 999,
     height: 36,
     justifyContent: "center",
     width: 36
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     lineHeight: 20
   },
   footer: {
-    padding: 24,
+    padding: 20,
     paddingTop: 8
   }
 });

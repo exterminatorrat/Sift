@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   backButton: {
     alignItems: "center",
     backgroundColor: colors.primarySoft,
-    borderRadius: 8,
+    borderRadius: 999,
     height: 42,
     justifyContent: "center",
     width: 42
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   },
   content: {
     gap: 18,
-    padding: 24,
+    padding: 20,
     paddingTop: 8
   },
   summary: {
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between"
   },
   badge: {
-    borderRadius: 8,
+    borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 7
   },
@@ -150,8 +150,8 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     color: colors.ink,
-    fontSize: 27,
-    fontWeight: "900",
+    fontSize: 24,
+    fontWeight: "600",
     letterSpacing: 0,
     lineHeight: 33
   },
@@ -171,8 +171,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 16,
+    borderWidth: 1,
     flexDirection: "row",
     gap: 9,
     padding: 13
@@ -209,8 +209,8 @@ const styles = StyleSheet.create({
   translationPreview: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 20,
+    borderWidth: 1,
     gap: 10,
     padding: 16
   },

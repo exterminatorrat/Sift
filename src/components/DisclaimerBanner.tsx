@@ -22,8 +22,8 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     backgroundColor: colors.primarySoft,
     borderColor: colors.border,
-    borderRadius: 8,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 12,
+    borderWidth: 1,
     flexDirection: "row",
     gap: 10,
     padding: 14

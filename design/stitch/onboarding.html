@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Trace - Onboarding</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config injected from design system -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#2e3132",
+                    "on-surface-variant": "#44474c",
+                    "inverse-on-surface": "#f0f1f2",
+                    "on-primary-fixed-variant": "#3d4757",
+                    "on-secondary-fixed": "#002113",
+                    "tertiary-container": "#543d00",
+                    "secondary": "#006c49",
+                    "on-primary-container": "#a3adc0",
+                    "primary-container": "#374151",
+                    "on-primary-fixed": "#121c2a",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-tertiary-fixed": "#261a00",
+                    "surface-bright": "#f8f9fa",
+                    "on-secondary-container": "#00714d",
+                    "on-secondary-fixed-variant": "#005236",
+                    "background": "#f8f9fa",
+                    "secondary-container": "#6cf8bb",
+                    "outline-variant": "#c5c6cc",
+                    "tertiary-fixed": "#ffdf9f",
+                    "primary": "#212b3a",
+                    "secondary-fixed": "#6ffbbe",
+                    "on-error": "#ffffff",
+                    "on-tertiary-container": "#dba400",
+                    "surface-container-low": "#f3f4f5",
+                    "surface": "#f8f9fa",
+                    "primary-fixed": "#d9e3f7",
+                    "inverse-primary": "#bdc7db",
+                    "primary-fixed-dim": "#bdc7db",
+                    "on-secondary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed-variant": "#5c4300",
+                    "secondary-fixed-dim": "#4edea3",
+                    "on-background": "#191c1d",
+                    "tertiary": "#392800",
+                    "on-tertiary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-tint": "#555f70",
+                    "outline": "#75777d",
+                    "on-primary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed-dim": "#f9bd22",
+                    "surface-container": "#edeeef",
+                    "surface-dim": "#d9dadb",
+                    "error-container": "#ffdad6",
+                    "surface-variant": "#e1e3e4",
+                    "surface-container-high": "#e7e8e9",
+                    "on-surface": "#191c1d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-gap-sm": "8px",
+                    "card-padding": "16px",
+                    "touch-target": "44px",
+                    "stack-gap-md": "16px",
+                    "container-margin": "20px",
+                    "stack-gap-lg": "24px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Inter", "sans-serif"],
+                    "label-md": ["Inter", "sans-serif"],
+                    "body-md": ["Inter", "sans-serif"],
+                    "body-sm": ["Inter", "sans-serif"],
+                    "label-caps": ["Inter", "sans-serif"],
+                    "headline-lg": ["Inter", "sans-serif"],
+                    "display": ["Inter", "sans-serif"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        /* Minimalist fade-in and slide-up animation for onboarding elements */
+        @keyframes subtleSlideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-on-load > * {
+            opacity: 0;
+            animation: subtleSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .animate-on-load > *:nth-child(1) { animation-delay: 0.1s; }
+        .animate-on-load > *:nth-child(2) { animation-delay: 0.2s; }
+        .animate-on-load > *:nth-child(3) { animation-delay: 0.3s; }
+        
+        /* Scanning line animation */
+        @keyframes scanLine {
+            0% { transform: translateY(-100%); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+        
+        .scan-animation {
+            animation: scanLine 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest text-on-surface antialiased min-h-screen flex flex-col items-center justify-center font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Main Container: Mobile optimized width, full height, adhering to fluid margin model -->
+<main class="w-full max-w-md h-[884px] flex flex-col justify-between px-container-margin py-8 relative overflow-hidden">
+<!-- Top Section: Brand Identity -->
+<header class="flex-none pt-4 flex justify-start">
+<div class="flex items-center gap-stack-gap-sm">
+<!-- Clean, clinical geometric logo mark -->
+<div class="w-8 h-8 rounded-full border-2 border-primary-container flex items-center justify-center relative overflow-hidden">
+<div class="w-2.5 h-2.5 bg-secondary rounded-full"></div>
+</div>
+<span class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface tracking-tight">Trace</span>
+</div>
+</header>
+<!-- Middle Section: Hero Content & Abstract Visual -->
+<section class="flex-grow flex flex-col justify-center gap-stack-gap-lg animate-on-load">
+<!-- Abstract Scanning Visual (representing 'scanning menus' safely) -->
+<div class="w-full aspect-[4/3] relative rounded-2xl overflow-hidden bg-surface flex items-center justify-center mb-4">
+<img class="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-60" data-alt="A minimalist, high-key abstract 3D rendering representing data analysis and clarity. Thin, delicate geometric lines and translucent frosted glass planes float against a pure white background. Soft, diffused lighting creates gentle drop shadows, emphasizing depth and precision without clutter. The aesthetic is clinical, modern, and perfectly aligned with high-end health technology." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4iv6hHTLYwHfLD9OJ8N6B08Q0KgUdowlVof7eGMblJbjqGn5fxLwbzuPW8v4Y0QiM3YN2oh2FFf_6LUPda4VrZSTSXD8NMXaNfrBr-t4jOZQcgNeiC-9YWrva93B9-82EeDCXcUoAZZp2TxlMRWcvf58zzGTf-qpJa0dts5aryRJyKh-Lw9vc-bpblTstunt2LIlXnMO8xGG2K0j6PTtXYTjzw86TcnhfKewsmdwA2J0bNlnG3ywbINpCBY18hArehZVpiCfdbwk"/>
+<!-- Overlay scanning element to reinforce the 'scan' narrative without clutter -->
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
+<div class="absolute left-0 right-0 h-[1px] bg-secondary scan-animation shadow-[0_0_12px_rgba(0,108,73,0.6)]"></div>
+</div>
+<!-- Typography Hook -->
+<div class="flex flex-col gap-stack-gap-sm">
+<h1 class="font-display text-display text-on-surface">
+                    Know what to ask before you eat.
+                </h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-[90%]">
+                    Trace helps you scan menus for possible allergen risks and identifies the exact questions to ask staff.
+                </p>
+</div>
+</section>
+<!-- Bottom Section: Actions & Compliance -->
+<footer class="flex-none flex flex-col gap-stack-gap-md pb-6 animate-on-load">
+<!-- Primary Action Button (Slate background, white text per guidelines) -->
+<button class="w-full h-touch-target bg-primary-container text-on-primary rounded-xl font-headline-lg-mobile text-headline-lg-mobile flex items-center justify-center transition-transform active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary-container focus:ring-offset-2">
+                Get Started
+            </button>
+<!-- Safety Disclaimer -->
+<p class="font-body-sm text-body-sm text-outline italic text-center px-4">
+                Trace cannot guarantee food safety. Always confirm with staff.
+            </p>
+</footer>
+</main>
+</body></html>

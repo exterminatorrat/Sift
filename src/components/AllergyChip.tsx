@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: 6,

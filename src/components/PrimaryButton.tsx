@@ -61,8 +61,8 @@ export function PrimaryButton({
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: 50,
-    borderRadius: 8,
+    minHeight: 44,
+    borderRadius: 999,
     justifyContent: "center",
     paddingHorizontal: 16
   },
@@ -76,9 +76,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary
   },
   secondary: {
-    backgroundColor: colors.primarySoft,
+    backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderWidth: StyleSheet.hairlineWidth
+    borderWidth: 1
   },
   quiet: {
     backgroundColor: "transparent"
