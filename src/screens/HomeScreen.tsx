@@ -3,7 +3,6 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ChevronRight,
-  Plus,
   ScanLine,
   UserRound
 } from "lucide-react-native";
@@ -51,13 +50,8 @@ export function HomeScreen({
               {profile.allergies.map((allergy) => (
                 <View key={allergy.id} style={styles.filterChip}>
                   <Text style={styles.filterText}>{allergy.name}</Text>
-                  <Text style={styles.filterClose}>x</Text>
                 </View>
               ))}
-              <Pressable accessibilityRole="button" onPress={onOpenProfile} style={styles.addFilter}>
-                <Plus color={colors.primaryDark} size={14} strokeWidth={2.1} />
-                <Text style={styles.addFilterText}>Add Filter</Text>
-              </Pressable>
             </View>
           </View>
         ) : (
@@ -174,9 +168,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceMuted,
     borderRadius: 999,
     flexDirection: "row",
-    gap: 8,
     minHeight: 36,
-    paddingHorizontal: 17
+    paddingHorizontal: 18
   },
   filterText: {
     color: colors.ink,
@@ -184,29 +177,10 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     letterSpacing: 0
   },
-  filterClose: {
-    color: colors.inkSubtle,
-    fontSize: 16,
-    letterSpacing: 0,
-    lineHeight: 18
-  },
-  addFilter: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 4,
-    minHeight: 36,
-    paddingHorizontal: 16
-  },
-  addFilterText: {
-    color: colors.primaryDark,
-    fontSize: 13,
-    fontWeight: "500",
-    letterSpacing: 0
-  },
   scanArea: {
     alignItems: "center",
-    paddingBottom: 50,
-    paddingTop: 34
+    paddingBottom: 58,
+    paddingTop: 42
   },
   scanCircle: {
     alignItems: "center",
@@ -215,35 +189,38 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     elevation: 2,
-    height: 256,
+    height: 300,
     justifyContent: "center",
     shadowColor: colors.primaryDark,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.04,
     shadowRadius: 40,
-    width: 256
+    width: 300
   },
   scanIcon: {
     alignItems: "center",
     backgroundColor: colors.primary,
     borderRadius: 999,
-    height: 80,
+    height: 88,
     justifyContent: "center",
-    marginBottom: 16,
-    width: 80
+    marginBottom: 22,
+    width: 88
   },
   scanTitle: {
     color: colors.ink,
     fontSize: 24,
     fontWeight: "400",
     letterSpacing: 0,
-    lineHeight: 32
+    lineHeight: 32,
+    marginBottom: 4
   },
   scanBody: {
     color: colors.inkMuted,
-    fontSize: 16,
+    fontSize: 15,
     letterSpacing: 0,
-    lineHeight: 26
+    lineHeight: 24,
+    maxWidth: 220,
+    textAlign: "center"
   },
   uploadLink: {
     marginTop: 20
