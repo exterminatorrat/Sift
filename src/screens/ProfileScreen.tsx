@@ -15,16 +15,25 @@ import { colors } from "../constants/colors";
 import { commonAllergens } from "../constants/commonAllergens";
 import { AllergyChip } from "../components/AllergyChip";
 import { PrimaryButton } from "../components/PrimaryButton";
+import { BottomNavBar } from "../components/BottomNavBar";
 
 type ProfileScreenProps = {
   profile: UserProfile;
   onChangeProfile: (profile: UserProfile) => void;
   onDone: () => void;
+  onHome?: () => void;
+  onOpenHistory?: () => void;
 };
 
 const severities: AllergySeverity[] = ["mild", "moderate", "severe"];
 
-export function ProfileScreen({ profile, onChangeProfile, onDone }: ProfileScreenProps) {
+export function ProfileScreen({
+  profile,
+  onChangeProfile,
+  onDone,
+  onHome,
+  onOpenHistory
+}: ProfileScreenProps) {
   const [draft, setDraft] = useState<UserProfile>(profile);
   const [customAllergen, setCustomAllergen] = useState("");
 
@@ -213,6 +222,14 @@ export function ProfileScreen({ profile, onChangeProfile, onDone }: ProfileScree
       <View style={styles.footer}>
         <PrimaryButton label="Save profile" icon={Check} onPress={save} />
       </View>
+      {onHome && onOpenHistory && (
+        <BottomNavBar
+          active="profile"
+          onHome={onHome}
+          onHistory={onOpenHistory}
+          onProfile={() => undefined}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -370,7 +387,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderTopColor: colors.border,
     borderTopWidth: StyleSheet.hairlineWidth,
-    bottom: 0,
+    bottom: 72,
     left: 0,
     padding: 20,
     position: "absolute",

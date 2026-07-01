@@ -117,7 +117,7 @@ export default function App() {
                     return;
                   }
                   setScanError(null);
-                  navigation.navigate("ScanCapture");
+                  void selectImageFromCamera(navigation.navigate);
                 }}
                 onUploadPhoto={async () => {
                   if (profile.allergies.length === 0) {
@@ -139,6 +139,8 @@ export default function App() {
                   await saveProfile(nextProfile);
                 }}
                 onDone={() => navigation.navigate("Home")}
+                onHome={() => navigation.navigate("Home")}
+                onOpenHistory={() => navigation.navigate("History")}
               />
             )}
           </Stack.Screen>
@@ -158,7 +160,7 @@ export default function App() {
             {({ navigation }) => (
               <ImagePreviewScreen
                 image={pendingImage}
-                onRetake={() => navigation.navigate("ScanCapture")}
+                onRetake={async () => selectImageFromCamera(navigation.navigate)}
                 onUsePhoto={() => navigation.replace("AnalysisLoading")}
               />
             )}
@@ -187,6 +189,7 @@ export default function App() {
                     scans={scanHistory}
                     onBack={() => navigation.navigate("Home")}
                     onOpenScan={(scanId) => navigation.replace("Results", { scanId })}
+                    onOpenProfile={() => navigation.navigate("Profile")}
                   />
                 );
               }
@@ -219,6 +222,7 @@ export default function App() {
                     scans={scanHistory}
                     onBack={() => navigation.navigate("Home")}
                     onOpenScan={(scanId) => navigation.replace("Results", { scanId })}
+                    onOpenProfile={() => navigation.navigate("Profile")}
                   />
                 );
               }
@@ -240,6 +244,7 @@ export default function App() {
                 scans={scanHistory}
                 onBack={() => navigation.navigate("Home")}
                 onOpenScan={(scanId) => navigation.navigate("Results", { scanId })}
+                onOpenProfile={() => navigation.navigate("Profile")}
               />
             )}
           </Stack.Screen>

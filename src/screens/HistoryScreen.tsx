@@ -8,14 +8,16 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { ScanResult } from "../types/scan";
 import { riskMeta } from "../utils/riskLabels";
 import { formatDateTime } from "../utils/formatters";
+import { BottomNavBar } from "../components/BottomNavBar";
 
 type HistoryScreenProps = {
   scans: ScanResult[];
   onBack: () => void;
   onOpenScan: (scanId: string) => void;
+  onOpenProfile?: () => void;
 };
 
-export function HistoryScreen({ scans, onBack, onOpenScan }: HistoryScreenProps) {
+export function HistoryScreen({ scans, onBack, onOpenScan, onOpenProfile }: HistoryScreenProps) {
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -57,6 +59,14 @@ export function HistoryScreen({ scans, onBack, onOpenScan }: HistoryScreenProps)
           </View>
         )}
       </ScrollView>
+      {onOpenProfile && (
+        <BottomNavBar
+          active="history"
+          onHome={onBack}
+          onHistory={() => undefined}
+          onProfile={onOpenProfile}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -68,7 +78,8 @@ const styles = StyleSheet.create({
   },
   content: {
     gap: 20,
-    padding: 20
+    padding: 20,
+    paddingBottom: 104
   },
   header: {
     gap: 6

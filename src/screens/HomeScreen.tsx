@@ -3,9 +3,6 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Camera,
-  History,
-  Languages,
-  LucideIcon,
   Settings,
   Upload,
   UserRound
@@ -17,6 +14,7 @@ import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { EmptyState } from "../components/EmptyState";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { formatAllergySummary } from "../utils/formatters";
+import { BottomNavBar } from "../components/BottomNavBar";
 
 type HomeScreenProps = {
   profile: UserProfile;
@@ -48,9 +46,6 @@ export function HomeScreen({
           <View style={styles.headerActions}>
             <Pressable accessibilityRole="button" onPress={onOpenSettings} style={styles.iconButton}>
               <Settings color={colors.primary} size={20} strokeWidth={2.2} />
-            </Pressable>
-            <Pressable accessibilityRole="button" onPress={onOpenProfile} style={styles.iconButton}>
-              <UserRound color={colors.primary} size={20} strokeWidth={2.2} />
             </Pressable>
           </View>
         </View>
@@ -87,40 +82,15 @@ export function HomeScreen({
           </View>
         </View>
 
-        <View style={styles.linkList}>
-          <HomeLink icon={History} title="Recent scans" body="Japanese menu scan from today." onPress={onOpenHistory} />
-          <HomeLink
-            icon={Languages}
-            title="Allergy translation card"
-            body={`Restaurant language: ${profile.restaurantLanguage ?? "Not set"}`}
-            onPress={onStartScan}
-          />
-        </View>
-
         <DisclaimerBanner compact />
       </ScrollView>
+      <BottomNavBar
+        active="home"
+        onHome={() => undefined}
+        onHistory={onOpenHistory}
+        onProfile={onOpenProfile}
+      />
     </SafeAreaView>
-  );
-}
-
-type HomeLinkProps = {
-  icon: LucideIcon;
-  title: string;
-  body: string;
-  onPress: () => void;
-};
-
-function HomeLink({ icon: Icon, title, body, onPress }: HomeLinkProps) {
-  return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={styles.linkRow}>
-      <View style={styles.linkIcon}>
-        <Icon color={colors.primary} size={18} strokeWidth={2.1} />
-      </View>
-      <View style={styles.linkText}>
-        <Text style={styles.linkTitle}>{title}</Text>
-        <Text style={styles.linkBody}>{body}</Text>
-      </View>
-    </Pressable>
   );
 }
 
@@ -131,7 +101,8 @@ const styles = StyleSheet.create({
   },
   content: {
     gap: 22,
-    padding: 20
+    padding: 20,
+    paddingBottom: 104
   },
   header: {
     alignItems: "center",
@@ -209,40 +180,4 @@ const styles = StyleSheet.create({
   scanActions: {
     gap: 10
   },
-  linkList: {
-    borderBottomColor: colors.border,
-    borderTopColor: colors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopWidth: StyleSheet.hairlineWidth
-  },
-  linkRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
-    paddingVertical: 16
-  },
-  linkIcon: {
-    alignItems: "center",
-    backgroundColor: colors.primarySoft,
-    borderRadius: 999,
-    height: 38,
-    justifyContent: "center",
-    width: 38
-  },
-  linkText: {
-    flex: 1,
-    gap: 2
-  },
-  linkTitle: {
-    color: colors.ink,
-    fontSize: 15,
-    fontWeight: "800",
-    letterSpacing: 0
-  },
-  linkBody: {
-    color: colors.inkMuted,
-    fontSize: 13,
-    letterSpacing: 0,
-    lineHeight: 19
-  }
 });
