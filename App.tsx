@@ -120,9 +120,11 @@ export default function App() {
             {({ navigation }) => (
               <HomeScreen
                 profile={profile}
+                recentScans={scanHistory}
                 onOpenProfile={() => navigation.replace("Profile")}
                 onOpenSettings={() => navigation.navigate("Settings")}
                 onOpenHistory={() => navigation.replace("History")}
+                onOpenScan={(scanId) => navigation.navigate("Results", { scanId })}
                 onStartScan={() => {
                   if (profile.allergies.length === 0) {
                     navigation.replace("Profile");

@@ -8,29 +8,37 @@ import {
   UserRound
 } from "lucide-react-native";
 import { UserProfile } from "../types/allergy";
+import { ScanResult } from "../types/scan";
 import { colors } from "../constants/colors";
 import { EmptyState } from "../components/EmptyState";
 import { BottomNavBar } from "../components/BottomNavBar";
 import { AppTopBar } from "../components/AppTopBar";
+import { formatDateTime } from "../utils/formatters";
+import { riskMeta } from "../utils/riskLabels";
 
 type HomeScreenProps = {
   profile: UserProfile;
+  recentScans: ScanResult[];
   onOpenProfile: () => void;
   onStartScan: () => void;
   onUploadPhoto: () => void;
   onOpenHistory: () => void;
+  onOpenScan: (scanId: string) => void;
   onOpenSettings: () => void;
 };
 
 export function HomeScreen({
   profile,
+  recentScans,
   onOpenProfile,
   onStartScan,
   onUploadPhoto,
   onOpenHistory,
+  onOpenScan,
   onOpenSettings
 }: HomeScreenProps) {
   const hasAllergies = profile.allergies.length > 0;
+  const visibleScans = recentScans.slice(0, 3);
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -78,34 +86,50 @@ export function HomeScreen({
         <View style={styles.recentSection}>
           <View style={styles.recentHeader}>
             <Text style={styles.recentTitle}>Recent Scans</Text>
-            <Pressable accessibilityRole="button" onPress={onOpenHistory} style={styles.viewAll}>
-              <Text style={styles.viewAllText}>View All</Text>
-              <ChevronRight color={colors.primaryDark} size={13} strokeWidth={2} />
-            </Pressable>
+            {visibleScans.length > 0 && (
+              <Pressable accessibilityRole="button" onPress={onOpenHistory} style={styles.viewAll}>
+                <Text style={styles.viewAllText}>View All</Text>
+                <ChevronRight color={colors.primaryDark} size={13} strokeWidth={2} />
+              </Pressable>
+            )}
           </View>
 
-          <View style={styles.recentList}>
-            {["The Rustic Spoon", "Oasis Cafe", "Trattoria Bella"].map((name, index) => (
-              <Pressable key={name} accessibilityRole="button" onPress={onOpenHistory} style={styles.recentItem}>
-                <View>
-                  <Text style={styles.recentName}>{name}</Text>
-                  <Text style={styles.recentDate}>
-                    {index === 0 ? "Today, 1:30 PM" : index === 1 ? "Yesterday" : "Oct 12"}
-                  </Text>
-                </View>
-                <View style={styles.recentRight}>
-                  {index === 0 ? (
-                    <View style={styles.cautionPill}>
-                      <Text style={styles.cautionText}>Caution</Text>
+          {visibleScans.length > 0 ? (
+            <View style={styles.recentList}>
+              {visibleScans.map((scan) => {
+                const meta = riskMeta[scan.scanSummary.overallRisk];
+                const isLowRisk = scan.scanSummary.overallRisk === "low_risk";
+
+                return (
+                  <Pressable
+                    key={scan.id}
+                    accessibilityRole="button"
+                    onPress={() => onOpenScan(scan.id)}
+                    style={styles.recentItem}
+                  >
+                    <View style={styles.recentText}>
+                      <Text style={styles.recentName}>{scan.restaurantName ?? "Menu scan"}</Text>
+                      <Text style={styles.recentDate}>{formatDateTime(scan.createdAt)}</Text>
                     </View>
-                  ) : (
-                    <View style={styles.lowDot} />
-                  )}
-                  <ChevronRight color={colors.inkSubtle} size={18} strokeWidth={2} />
-                </View>
-              </Pressable>
-            ))}
-          </View>
+                    <View style={styles.recentRight}>
+                      {isLowRisk ? (
+                        <View style={[styles.lowDot, { backgroundColor: meta.color }]} />
+                      ) : (
+                        <View style={[styles.cautionPill, { backgroundColor: meta.background }]}>
+                          <Text style={[styles.cautionText, { color: meta.color }]}>
+                            {meta.label}
+                          </Text>
+                        </View>
+                      )}
+                      <ChevronRight color={colors.inkSubtle} size={18} strokeWidth={2} />
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+          ) : (
+            <Text style={styles.emptyRecent}>Scans you save on this device will appear here.</Text>
+          )}
         </View>
       </ScrollView>
       <BottomNavBar
@@ -125,7 +149,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 24,
-    paddingBottom: 118,
+    paddingBottom: 132,
     paddingTop: 24
   },
   filtersSection: {
@@ -181,8 +205,8 @@ const styles = StyleSheet.create({
   },
   scanArea: {
     alignItems: "center",
-    paddingBottom: 48,
-    paddingTop: 32
+    paddingBottom: 50,
+    paddingTop: 34
   },
   scanCircle: {
     alignItems: "center",
@@ -268,6 +292,10 @@ const styles = StyleSheet.create({
     minHeight: 81,
     paddingVertical: 16
   },
+  recentText: {
+    flex: 1,
+    paddingRight: 12
+  },
   recentName: {
     color: colors.ink,
     fontSize: 16,
@@ -289,13 +317,11 @@ const styles = StyleSheet.create({
     gap: 12
   },
   cautionPill: {
-    backgroundColor: "rgba(255,218,214,0.3)",
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 4
   },
   cautionText: {
-    color: colors.high,
     fontSize: 13,
     fontWeight: "500",
     letterSpacing: 0
@@ -305,5 +331,11 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     height: 8,
     width: 8
+  },
+  emptyRecent: {
+    color: colors.inkMuted,
+    fontSize: 14,
+    letterSpacing: 0,
+    lineHeight: 22
   }
 });
