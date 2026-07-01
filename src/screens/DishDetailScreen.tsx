@@ -79,7 +79,7 @@ export function DishDetailScreen({
           <View style={styles.questionList}>
             {dish.questionsToAsk.map((question) => (
               <View key={question} style={styles.questionRow}>
-                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.bullet}>-</Text>
                 <Text style={styles.question}>{question}</Text>
               </View>
             ))}

@@ -11,10 +11,15 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.sift.mvp"
+      "bundleIdentifier": "app.sift.mvp",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Sift uses your camera to scan restaurant menus for possible allergen risks.",
+        "NSPhotoLibraryUsageDescription": "Sift lets you upload menu photos for possible allergen risk analysis."
+      }
     },
     "android": {
-      "package": "app.sift.mvp"
+      "package": "app.sift.mvp",
+      "permissions": ["CAMERA", "READ_MEDIA_IMAGES", "READ_EXTERNAL_STORAGE"]
     },
     "web": {
       "bundler": "metro"

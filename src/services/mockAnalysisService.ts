@@ -30,9 +30,19 @@ export const mockProfile: UserProfile = {
   ]
 };
 
+export function createDefaultProfile(): UserProfile {
+  return {
+    id: "profile-me",
+    name: "Me",
+    preferredLanguage: "English",
+    restaurantLanguage: "Japanese",
+    allergies: []
+  };
+}
+
 export function getMockScanResult(profile: UserProfile): ScanResult {
   return {
-    id: "scan-japanese-menu",
+    id: `scan-japanese-menu-${Date.now()}`,
     createdAt: new Date().toISOString(),
     restaurantName: "Kobashi Japanese Menu",
     profileId: profile.id,
@@ -120,14 +130,14 @@ export function getMockScanResult(profile: UserProfile): ScanResult {
         hiddenRiskIngredients: [],
         crossContactConcerns: ["serving utensils may be shared during busy service"],
         reason:
-          "No obvious peanut, sesame, or mango risk appears in the visible menu text. Severe allergies still require staff confirmation about handling and serving utensils.",
+          "No obvious listed-allergen risk appears in the visible menu text. Severe allergies still require staff confirmation about handling and serving utensils.",
         questionsToAsk: [
           "Is this plain rice without seasoning or garnish?",
           "Are separate serving utensils available?",
-          "Is it handled away from peanut or sesame ingredients?"
+          "Is it handled away from my listed allergens?"
         ],
         conservativeLanguage:
-          "No obvious risk found from visible menu text. Confirm with staff because severe allergies are listed."
+          "No obvious risk found from visible menu text. Confirm with staff if your allergy is severe."
       }
     ]
   };

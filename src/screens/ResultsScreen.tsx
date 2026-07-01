@@ -15,9 +15,16 @@ type ResultsScreenProps = {
   profile: UserProfile;
   onBack: () => void;
   onOpenDish: (dish: DishRisk) => void;
+  onOpenHistory?: () => void;
 };
 
-export function ResultsScreen({ scanResult, profile, onBack, onOpenDish }: ResultsScreenProps) {
+export function ResultsScreen({
+  scanResult,
+  profile,
+  onBack,
+  onOpenDish,
+  onOpenHistory
+}: ResultsScreenProps) {
   const summaryMeta = riskMeta[scanResult.scanSummary.overallRisk];
 
   return (
@@ -75,6 +82,12 @@ export function ResultsScreen({ scanResult, profile, onBack, onOpenDish }: Resul
             </View>
             <Text style={styles.translationBody}>{scanResult.restaurantMessage.english}</Text>
           </View>
+        )}
+
+        {onOpenHistory && (
+          <Text style={styles.savedNote} onPress={onOpenHistory}>
+            Saved to scan history
+          </Text>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -230,5 +243,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     letterSpacing: 0,
     lineHeight: 21
+  },
+  savedNote: {
+    color: colors.inkSubtle,
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0,
+    textAlign: "center",
+    textTransform: "uppercase"
   }
 });

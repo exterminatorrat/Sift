@@ -101,6 +101,33 @@ export function ProfileScreen({ profile, onChangeProfile, onDone }: ProfileScree
           />
         </View>
 
+        <View style={styles.languageRow}>
+          <View style={styles.languageField}>
+            <Text style={styles.label}>Your language</Text>
+            <TextInput
+              value={draft.preferredLanguage}
+              onChangeText={(preferredLanguage) =>
+                setDraft((current) => ({ ...current, preferredLanguage }))
+              }
+              placeholder="English"
+              placeholderTextColor={colors.inkSubtle}
+              style={styles.input}
+            />
+          </View>
+          <View style={styles.languageField}>
+            <Text style={styles.label}>Restaurant language</Text>
+            <TextInput
+              value={draft.restaurantLanguage ?? ""}
+              onChangeText={(restaurantLanguage) =>
+                setDraft((current) => ({ ...current, restaurantLanguage }))
+              }
+              placeholder="Japanese"
+              placeholderTextColor={colors.inkSubtle}
+              style={styles.input}
+            />
+          </View>
+        </View>
+
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Quick add</Text>
           <View style={styles.chipGrid}>
@@ -232,6 +259,14 @@ const styles = StyleSheet.create({
     lineHeight: 31
   },
   fieldGroup: {
+    gap: 10
+  },
+  languageRow: {
+    flexDirection: "row",
+    gap: 10
+  },
+  languageField: {
+    flex: 1,
     gap: 10
   },
   label: {

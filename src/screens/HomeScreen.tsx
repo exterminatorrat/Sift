@@ -1,7 +1,15 @@
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Camera, History, Languages, LucideIcon, Upload, UserRound } from "lucide-react-native";
+import {
+  Camera,
+  History,
+  Languages,
+  LucideIcon,
+  Settings,
+  Upload,
+  UserRound
+} from "lucide-react-native";
 import { UserProfile } from "../types/allergy";
 import { colors } from "../constants/colors";
 import { AllergyChip } from "../components/AllergyChip";
@@ -14,14 +22,18 @@ type HomeScreenProps = {
   profile: UserProfile;
   onOpenProfile: () => void;
   onStartScan: () => void;
+  onUploadPhoto: () => void;
   onOpenHistory: () => void;
+  onOpenSettings: () => void;
 };
 
 export function HomeScreen({
   profile,
   onOpenProfile,
   onStartScan,
-  onOpenHistory
+  onUploadPhoto,
+  onOpenHistory,
+  onOpenSettings
 }: HomeScreenProps) {
   const hasAllergies = profile.allergies.length > 0;
 
@@ -33,9 +45,14 @@ export function HomeScreen({
             <Text style={styles.brand}>Sift</Text>
             <Text style={styles.subtitle}>Checking for: {formatAllergySummary(profile.allergies)}</Text>
           </View>
-          <Pressable accessibilityRole="button" onPress={onOpenProfile} style={styles.iconButton}>
-            <UserRound color={colors.primary} size={21} strokeWidth={2.2} />
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable accessibilityRole="button" onPress={onOpenSettings} style={styles.iconButton}>
+              <Settings color={colors.primary} size={20} strokeWidth={2.2} />
+            </Pressable>
+            <Pressable accessibilityRole="button" onPress={onOpenProfile} style={styles.iconButton}>
+              <UserRound color={colors.primary} size={20} strokeWidth={2.2} />
+            </Pressable>
+          </View>
         </View>
 
         {hasAllergies ? (
@@ -66,7 +83,7 @@ export function HomeScreen({
           </Text>
           <View style={styles.scanActions}>
             <PrimaryButton label="Scan menu" icon={Camera} onPress={onStartScan} />
-            <PrimaryButton label="Upload photo" icon={Upload} tone="secondary" onPress={onStartScan} />
+            <PrimaryButton label="Upload photo" icon={Upload} tone="secondary" onPress={onUploadPhoto} />
           </View>
         </View>
 
@@ -142,6 +159,10 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: "center",
     width: 44
+  },
+  headerActions: {
+    flexDirection: "row",
+    gap: 8
   },
   allergyPanel: {
     gap: 12,
