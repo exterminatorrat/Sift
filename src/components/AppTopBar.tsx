@@ -1,16 +1,29 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ChevronLeft, Menu } from "lucide-react-native";
+import { ChevronLeft, LucideIcon, Menu } from "lucide-react-native";
 import { colors } from "../constants/colors";
 
 type AppTopBarProps = {
+  title?: string;
   showBack?: boolean;
   showMenu?: boolean;
+  rightIcon?: LucideIcon;
+  rightAccessibilityLabel?: string;
   onBack?: () => void;
   onMenu?: () => void;
+  onRightPress?: () => void;
 };
 
-export function AppTopBar({ showBack, showMenu, onBack, onMenu }: AppTopBarProps) {
+export function AppTopBar({
+  title = "Sift",
+  showBack,
+  showMenu,
+  rightIcon: RightIcon,
+  rightAccessibilityLabel = "Action",
+  onBack,
+  onMenu,
+  onRightPress
+}: AppTopBarProps) {
   return (
     <View style={styles.bar}>
       <View style={styles.side}>
@@ -25,14 +38,24 @@ export function AppTopBar({ showBack, showMenu, onBack, onMenu }: AppTopBarProps
           </Pressable>
         )}
       </View>
-      <Text style={styles.brand}>Sift</Text>
+      <Text style={styles.brand}>{title}</Text>
       <View style={styles.side}>
-        {showMenu && (
+        {RightIcon && (
+          <Pressable
+            accessibilityLabel={rightAccessibilityLabel}
+            accessibilityRole="button"
+            onPress={onRightPress}
+            style={[styles.iconButton, styles.circleButton]}
+          >
+            <RightIcon color={colors.primaryDark} size={21} strokeWidth={2.2} />
+          </Pressable>
+        )}
+        {!RightIcon && showMenu && (
           <Pressable
             accessibilityLabel="Open settings"
             accessibilityRole="button"
             onPress={onMenu}
-            style={styles.iconButton}
+            style={[styles.iconButton, styles.circleButton]}
           >
             <Menu color={colors.primaryDark} size={22} strokeWidth={2.1} />
           </Pressable>
@@ -61,6 +84,14 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: "center",
     width: 40
+  },
+  circleButton: {
+    backgroundColor: colors.surface,
+    elevation: 2,
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12
   },
   brand: {
     color: colors.primaryDark,

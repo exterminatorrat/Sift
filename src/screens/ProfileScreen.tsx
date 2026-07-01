@@ -126,10 +126,14 @@ export function ProfileScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
-      <AppTopBar />
+      <AppTopBar
+        title="Allergy Profile"
+        rightIcon={Check}
+        rightAccessibilityLabel="Save profile"
+        onRightPress={save}
+      />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={styles.title}>Allergy Profile</Text>
           <Text style={styles.subtitle}>
             Choose allergies and severity. Sift uses this profile to scan menus and prepare
             questions.
@@ -344,10 +348,6 @@ export function ProfileScreen({
           </View>
         )}
       </ScrollView>
-
-      <View style={styles.footer}>
-        <PrimaryButton label="Save profile" icon={Check} onPress={save} />
-      </View>
       {onHome && onOpenHistory && (
         <BottomNavBar
           active="profile"
@@ -368,20 +368,12 @@ const styles = StyleSheet.create({
   content: {
     gap: 24,
     padding: 24,
-    paddingTop: 48,
-    paddingBottom: 168
+    paddingTop: 22,
+    paddingBottom: 132
   },
   header: {
     alignItems: "center",
-    gap: 12
-  },
-  title: {
-    color: colors.ink,
-    fontSize: 32,
-    fontWeight: "300",
-    letterSpacing: 0,
-    lineHeight: 40,
-    textAlign: "center"
+    gap: 0
   },
   subtitle: {
     color: colors.inkMuted,
@@ -662,12 +654,4 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     textAlignVertical: "top"
   },
-  footer: {
-    backgroundColor: colors.background,
-    bottom: 98,
-    left: 0,
-    padding: 20,
-    position: "absolute",
-    right: 0
-  }
 });

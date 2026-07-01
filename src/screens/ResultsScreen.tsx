@@ -30,14 +30,13 @@ export function ResultsScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
-      <AppTopBar showBack onBack={onBack} />
+      <AppTopBar title="Scan Results" showBack onBack={onBack} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
           <View style={styles.heroIcon}>
             <ScanSearch color={colors.primary} size={30} strokeWidth={1.9} />
           </View>
-          <Text style={styles.heroTitle}>Scan Results</Text>
           <Text style={styles.heroSubtitle}>
             {scanResult.restaurantName ?? "Menu scan"} for {profile.name}
           </Text>
@@ -122,13 +121,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 22,
     width: 64
-  },
-  heroTitle: {
-    color: colors.ink,
-    fontSize: 32,
-    fontWeight: "300",
-    letterSpacing: 0,
-    lineHeight: 40
   },
   heroSubtitle: {
     color: colors.inkSubtle,

@@ -20,10 +20,8 @@ type HistoryScreenProps = {
 export function HistoryScreen({ scans, onBack, onOpenScan, onOpenProfile }: HistoryScreenProps) {
   return (
     <SafeAreaView style={styles.screen}>
-      <AppTopBar showBack onBack={onBack} />
+      <AppTopBar title="Scan History" />
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Scan History</Text>
-
         {scans.length === 0 ? (
           <EmptyState
             icon={History}
@@ -94,17 +92,10 @@ const styles = StyleSheet.create({
     flex: 1
   },
   content: {
-    gap: 48,
+    gap: 24,
     padding: 24,
     paddingBottom: 154,
-    paddingTop: 48
-  },
-  title: {
-    color: colors.ink,
-    fontSize: 32,
-    fontWeight: "300",
-    letterSpacing: 0,
-    lineHeight: 40
+    paddingTop: 32
   },
   list: {
     gap: 24

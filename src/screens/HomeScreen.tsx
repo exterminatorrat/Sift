@@ -41,7 +41,7 @@ export function HomeScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
-      <AppTopBar showMenu onMenu={onOpenSettings} />
+      <AppTopBar title="Home" showMenu onMenu={onOpenSettings} />
       <ScrollView contentContainerStyle={styles.content}>
         {hasAllergies ? (
           <View style={styles.filtersSection}>
