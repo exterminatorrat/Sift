@@ -68,7 +68,7 @@ async function prepareMenuImage(asset: ImagePicker.ImagePickerAsset): Promise<Pr
 
   if (!resized.base64) {
     const base64 = await FileSystem.readAsStringAsync(resized.uri, {
-      encoding: FileSystem.EncodingType.Base64
+      encoding: "base64"
     });
 
     return {
