@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChevronLeft, Image as ImageIcon, Languages } from "lucide-react-native";
+import { ChevronLeft, Image as ImageIcon, Languages, ScanSearch } from "lucide-react-native";
 import { UserProfile } from "../types/allergy";
 import { DishRisk, ScanResult } from "../types/scan";
 import { colors } from "../constants/colors";
@@ -31,15 +31,23 @@ export function ResultsScreen({
     <SafeAreaView style={styles.screen}>
       <View style={styles.topBar}>
         <Pressable accessibilityRole="button" onPress={onBack} style={styles.backButton}>
-          <ChevronLeft color={colors.primary} size={22} strokeWidth={2.2} />
+          <ChevronLeft color={colors.ink} size={24} strokeWidth={2.3} />
         </Pressable>
-        <View style={styles.topText}>
-          <Text style={styles.kicker}>Scan results</Text>
-          <Text style={styles.topTitle}>{scanResult.restaurantName ?? "Menu scan"}</Text>
-        </View>
+        <Text style={styles.topTitle}>Sift</Text>
+        <View style={styles.topSpacer} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.hero}>
+          <View style={styles.heroIcon}>
+            <ScanSearch color={colors.primary} size={30} strokeWidth={1.9} />
+          </View>
+          <Text style={styles.heroTitle}>Scan Results</Text>
+          <Text style={styles.heroSubtitle}>
+            {scanResult.restaurantName ?? "Menu scan"} for {profile.name}
+          </Text>
+        </View>
+
         <View style={styles.summary}>
           <View style={styles.summaryTop}>
             <View style={[styles.badge, { backgroundColor: summaryMeta.background }]}>
@@ -49,8 +57,7 @@ export function ResultsScreen({
             </View>
             <Text style={styles.date}>{formatDateTime(scanResult.createdAt)}</Text>
           </View>
-          <Text style={styles.summaryTitle}>Menu review for {profile.name}</Text>
-          <Text style={styles.summaryBody}>{scanResult.scanSummary.summary}</Text>
+          <Text style={styles.summaryTitle}>{scanResult.scanSummary.summary}</Text>
           <Text style={styles.limitations}>{scanResult.scanSummary.limitations}</Text>
         </View>
 
@@ -102,43 +109,68 @@ const styles = StyleSheet.create({
   topBar: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 12
+    height: 64,
+    justifyContent: "space-between",
+    paddingHorizontal: 20
   },
   backButton: {
     alignItems: "center",
-    backgroundColor: colors.primarySoft,
     borderRadius: 999,
-    height: 42,
+    height: 40,
     justifyContent: "center",
-    width: 42
-  },
-  topText: {
-    flex: 1,
-    gap: 2
-  },
-  kicker: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0,
-    textTransform: "uppercase"
+    width: 40
   },
   topTitle: {
-    color: colors.ink,
-    fontSize: 20,
-    fontWeight: "900",
+    color: colors.primaryDark,
+    fontSize: 24,
+    fontWeight: "600",
     letterSpacing: 0
   },
+  topSpacer: {
+    width: 40
+  },
   content: {
-    gap: 18,
-    padding: 20,
-    paddingTop: 8
+    gap: 22,
+    padding: 24,
+    paddingTop: 32
+  },
+  hero: {
+    alignItems: "center",
+    gap: 10
+  },
+  heroIcon: {
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderRadius: 999,
+    elevation: 2,
+    height: 64,
+    justifyContent: "center",
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.06,
+    shadowRadius: 22,
+    width: 64
+  },
+  heroTitle: {
+    color: colors.ink,
+    fontSize: 32,
+    fontWeight: "300",
+    letterSpacing: 0,
+    lineHeight: 40
+  },
+  heroSubtitle: {
+    color: colors.inkSubtle,
+    fontSize: 16,
+    letterSpacing: 0,
+    lineHeight: 24,
+    maxWidth: 280,
+    textAlign: "center"
   },
   summary: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
     gap: 12,
-    paddingBottom: 6
+    padding: 20
   },
   summaryTop: {
     alignItems: "center",
@@ -163,13 +195,13 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     color: colors.ink,
-    fontSize: 24,
-    fontWeight: "600",
+    fontSize: 20,
+    fontWeight: "500",
     letterSpacing: 0,
-    lineHeight: 33
+    lineHeight: 29
   },
   summaryBody: {
-    color: colors.ink,
+    color: colors.inkMuted,
     fontSize: 15,
     letterSpacing: 0,
     lineHeight: 22
@@ -184,8 +216,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: 9,
     padding: 13
@@ -206,9 +238,10 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: colors.ink,
-    fontSize: 20,
-    fontWeight: "900",
-    letterSpacing: 0
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0,
+    textTransform: "uppercase"
   },
   sectionMeta: {
     color: colors.inkSubtle,
@@ -217,13 +250,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0
   },
   cards: {
-    gap: 12
+    gap: 16
   },
   translationPreview: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: 20,
-    borderWidth: 1,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
     gap: 10,
     padding: 16
   },

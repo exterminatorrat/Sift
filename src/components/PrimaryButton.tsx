@@ -30,7 +30,7 @@ export function PrimaryButton({
   loading = false
 }: PrimaryButtonProps) {
   const isPrimary = tone === "primary";
-  const iconColor = isPrimary ? colors.surface : colors.primary;
+  const iconColor = isPrimary ? "#F5F1EC" : colors.primary;
 
   return (
     <Pressable
@@ -61,10 +61,10 @@ export function PrimaryButton({
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: 44,
-    borderRadius: 999,
+    minHeight: 48,
+    borderRadius: 12,
     justifyContent: "center",
-    paddingHorizontal: 16
+    paddingHorizontal: 18
   },
   content: {
     alignItems: "center",
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0
   },
   primaryLabel: {
-    color: colors.surface
+    color: "#F5F1EC"
   },
   secondaryLabel: {
     color: colors.primary

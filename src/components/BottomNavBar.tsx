@@ -56,7 +56,7 @@ function NavItem({ active, icon: Icon, label, onPress }: NavItemProps) {
         pressed && styles.itemPressed
       ]}
     >
-      <Icon color={active ? colors.low : colors.inkMuted} size={21} strokeWidth={2.2} />
+      <Icon color={active ? colors.primaryDark : colors.inkMuted} size={21} strokeWidth={2.2} />
       <Text style={[styles.label, active && styles.labelActive]}>{label}</Text>
     </Pressable>
   );
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6
   },
   itemActive: {
-    backgroundColor: colors.lowSoft
+    backgroundColor: colors.primarySoft
   },
   itemPressed: {
     opacity: 0.75
@@ -108,6 +108,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0
   },
   labelActive: {
-    color: colors.low
+    color: colors.primaryDark
   }
 });

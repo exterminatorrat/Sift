@@ -36,6 +36,7 @@ export function RiskCard({ dish, onPress }: RiskCardProps) {
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
+      <View style={[styles.accent, { backgroundColor: meta.color }]} />
       <View style={styles.topRow}>
         <View style={[styles.status, { backgroundColor: meta.background }]}>
           <Icon color={meta.color} size={16} strokeWidth={2.2} />
@@ -48,14 +49,17 @@ export function RiskCard({ dish, onPress }: RiskCardProps) {
       {dish.menuDescription && <Text style={styles.description}>{dish.menuDescription}</Text>}
       <Text style={styles.reason}>{dish.conservativeLanguage}</Text>
 
-      <View style={styles.footer}>
-        <Text style={styles.allergens} numberOfLines={1}>
-          {dish.possibleAllergens.length > 0
-            ? dish.possibleAllergens.join(", ")
-            : "No obvious listed allergen"}
-        </Text>
-        <Text style={[styles.action, { color: meta.color }]}>{meta.action}</Text>
+      <View style={styles.chips}>
+        {(dish.possibleAllergens.length > 0
+          ? dish.possibleAllergens.slice(0, 4)
+          : ["No obvious listed allergen"]
+        ).map((allergen) => (
+          <View key={allergen} style={styles.chip}>
+            <Text style={styles.chipText}>{allergen}</Text>
+          </View>
+        ))}
       </View>
+      <Text style={[styles.action, { color: meta.color }]}>{meta.action}</Text>
     </Pressable>
   );
 }
@@ -63,10 +67,22 @@ export function RiskCard({ dish, onPress }: RiskCardProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: 16
+    borderRadius: 12,
+    elevation: 2,
+    overflow: "hidden",
+    padding: 24,
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.06,
+    shadowRadius: 24
+  },
+  accent: {
+    bottom: 24,
+    left: 0,
+    opacity: 0.22,
+    position: "absolute",
+    top: 24,
+    width: 4
   },
   pressed: {
     opacity: 0.78
@@ -91,42 +107,46 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.ink,
-    fontSize: 20,
-    fontWeight: "600",
+    fontSize: 23,
+    fontWeight: "500",
     letterSpacing: 0,
-    marginTop: 14
+    lineHeight: 31,
+    marginTop: 18
   },
   description: {
     color: colors.inkMuted,
-    fontSize: 14,
+    fontSize: 15,
     letterSpacing: 0,
-    lineHeight: 20,
-    marginTop: 4
+    lineHeight: 23,
+    marginTop: 6
   },
   reason: {
-    color: colors.ink,
-    fontSize: 14,
-    letterSpacing: 0,
-    lineHeight: 21,
-    marginTop: 12
-  },
-  footer: {
-    borderTopColor: colors.border,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: "row",
-    gap: 10,
-    justifyContent: "space-between",
-    marginTop: 14,
-    paddingTop: 12
-  },
-  allergens: {
     color: colors.inkMuted,
-    flex: 1,
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 15,
+    letterSpacing: 0,
+    lineHeight: 24,
+    marginTop: 16
+  },
+  chips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 18
+  },
+  chip: {
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 5
+  },
+  chipText: {
+    color: colors.inkMuted,
+    fontSize: 11,
+    fontWeight: "800",
     letterSpacing: 0
   },
   action: {
+    marginTop: 16,
     fontSize: 13,
     fontWeight: "800",
     letterSpacing: 0
