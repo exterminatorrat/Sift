@@ -339,7 +339,7 @@ export function ProfileScreen({
                         })}
                       </View>
                       <View style={styles.specificsField}>
-                        <Text style={styles.specificsLabel}>Specifics for AI</Text>
+                        <Text style={styles.specificsLabel}>Custom details</Text>
                         <TextInput
                           value={selectedAllergy.notes ?? ""}
                           onChangeText={(notes) => updateAllergy(selectedAllergy.id, { notes })}
@@ -423,7 +423,7 @@ export function ProfileScreen({
                     <TextInput
                       value={allergy.notes ?? ""}
                       onChangeText={(notes) => updateAllergy(allergy.id, { notes })}
-                      placeholder="Specifics for AI, such as oils, traces, or tolerated forms"
+                      placeholder="Custom details, such as oils, traces, or tolerated forms"
                       placeholderTextColor={colors.inkSubtle}
                       style={[styles.input, styles.notesInput]}
                       multiline
