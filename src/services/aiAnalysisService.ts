@@ -1,11 +1,13 @@
 import { UserProfile } from "../types/allergy";
 import { PreparedMenuImage } from "../types/image";
 import { ScanResult } from "../types/scan";
+import { validateScanResult } from "../utils/scanResultValidation";
 import { getMockScanResult } from "./mockAnalysisService";
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 const ANALYSIS_MODE = process.env.EXPO_PUBLIC_ANALYSIS_MODE ?? "mock";
+const ANALYSIS_TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_ANALYSIS_TIMEOUT_MS ?? 45000);
 
 export type AnalyzeMenuRequest = {
   profile: UserProfile;
@@ -15,33 +17,42 @@ export type AnalyzeMenuRequest = {
 
 export async function analyzeMenuImage(request: AnalyzeMenuRequest): Promise<ScanResult> {
   if (ANALYSIS_MODE !== "supabase" || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    return withImageUri(getMockScanResult(request.profile), request.image.uri);
+    return withImageUri(getMockScanResult(request.profile), request.image.uri, "mock");
   }
 
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/analyze-menu`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      profile: request.profile,
-      imageBase64: request.image.base64,
-      mimeType: request.image.mimeType,
-      restaurantLanguage: request.restaurantLanguage
-    })
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ANALYSIS_TIMEOUT_MS);
 
-  if (!response.ok) {
-    throw new Error("Menu analysis failed.");
+  try {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/analyze-menu`, {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        profile: request.profile,
+        imageBase64: request.image.base64,
+        mimeType: request.image.mimeType,
+        restaurantLanguage: request.restaurantLanguage
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Menu analysis failed.");
+    }
+
+    const scanResult = await response.json();
+    const validation = validateScanResult(scanResult);
+    if (!validation.ok) {
+      throw new Error(`Menu analysis returned an invalid response: ${validation.error}`);
+    }
+
+    return withImageUri(validation.value, request.image.uri, "ai");
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const scanResult = await response.json();
-  if (!isScanResult(scanResult)) {
-    throw new Error("Menu analysis returned an invalid response.");
-  }
-
-  return withImageUri(scanResult, request.image.uri);
 }
 
 export function createUnclearScanResult(profile: UserProfile, imageUri?: string): ScanResult {
@@ -50,6 +61,7 @@ export function createUnclearScanResult(profile: UserProfile, imageUri?: string)
     createdAt: new Date().toISOString(),
     imageUri,
     profileId: profile.id,
+    analysisSource: "fallback",
     scanSummary: {
       overallRisk: "unclear",
       summary: "We could not analyze this menu clearly. Please retake the photo or ask staff directly.",
@@ -79,25 +91,16 @@ export function createUnclearScanResult(profile: UserProfile, imageUri?: string)
   };
 }
 
-function withImageUri(scanResult: ScanResult, imageUri?: string): ScanResult {
+function withImageUri(
+  scanResult: ScanResult,
+  imageUri?: string,
+  analysisSource?: ScanResult["analysisSource"]
+): ScanResult {
   return {
     ...scanResult,
     id: scanResult.id || `scan-${Date.now()}`,
     createdAt: scanResult.createdAt || new Date().toISOString(),
-    imageUri
+    imageUri,
+    analysisSource: analysisSource ?? scanResult.analysisSource
   };
-}
-
-function isScanResult(value: unknown): value is ScanResult {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const candidate = value as Partial<ScanResult>;
-  return Boolean(
-    candidate.id &&
-      candidate.scanSummary &&
-      Array.isArray(candidate.dishes) &&
-      candidate.imageQuality
-  );
 }

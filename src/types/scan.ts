@@ -20,7 +20,7 @@ export type ImageQuality = {
 export type DishRisk = {
   id: string;
   dishName: string;
-  menuDescription?: string;
+  menuDescription?: string | null;
   riskLevel: RiskLevel;
   possibleAllergens: string[];
   hiddenRiskIngredients: string[];
@@ -33,9 +33,11 @@ export type DishRisk = {
 export type ScanResult = {
   id: string;
   createdAt: string;
-  imageUri?: string;
-  restaurantName?: string;
+  imageUri?: string | null;
+  restaurantName?: string | null;
   profileId: string;
+  analysisSource?: "mock" | "ai" | "fallback";
+  analysisModel?: string | null;
   scanSummary: ScanSummary;
   dishes: DishRisk[];
   restaurantMessage?: RestaurantMessage;
