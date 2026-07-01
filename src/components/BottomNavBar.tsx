@@ -64,29 +64,35 @@ function NavItem({ active, icon: Icon, label, onPress }: NavItemProps) {
 
 const styles = StyleSheet.create({
   shell: {
-    backgroundColor: colors.surface,
-    borderTopColor: colors.border,
-    borderTopWidth: 1,
-    bottom: 0,
-    left: 0,
+    bottom: 18,
+    left: 16,
     position: "absolute",
-    right: 0
+    right: 16
   },
   inner: {
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    elevation: 10,
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingBottom: 10,
-    paddingHorizontal: 20,
-    paddingTop: 8
+    minHeight: 68,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 18
   },
   item: {
     alignItems: "center",
-    borderRadius: 16,
+    borderRadius: 999,
+    flex: 1,
     gap: 2,
-    minHeight: 54,
-    minWidth: 82,
+    minHeight: 56,
     justifyContent: "center",
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     paddingVertical: 6
   },
   itemActive: {

@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   content: {
     gap: 22,
     padding: 20,
-    paddingBottom: 104
+    paddingBottom: 126
   },
   header: {
     alignItems: "center",

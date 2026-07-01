@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   content: {
     gap: 20,
     padding: 20,
-    paddingBottom: 104
+    paddingBottom: 126
   },
   header: {
     gap: 6

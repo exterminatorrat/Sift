@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   content: {
     gap: 22,
     padding: 20,
-    paddingBottom: 110
+    paddingBottom: 168
   },
   header: {
     alignItems: "center",
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderTopColor: colors.border,
     borderTopWidth: StyleSheet.hairlineWidth,
-    bottom: 72,
+    bottom: 98,
     left: 0,
     padding: 20,
     position: "absolute",
