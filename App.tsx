@@ -32,10 +32,12 @@ import { HistoryScreen } from "./src/screens/HistoryScreen";
 import { SettingsScreen } from "./src/screens/SettingsScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+type MainTab = "home" | "history" | "profile";
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [mainTab, setMainTab] = useState<MainTab>("home");
   const [profiles, setProfiles] = useState<UserProfile[]>([createDefaultProfile()]);
   const [activeProfileId, setActiveProfileId] = useState(createDefaultProfile().id);
   const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
@@ -109,8 +111,9 @@ export default function App() {
               <OnboardingScreen
                 onGetStarted={async () => {
                   setOnboardingComplete(true);
+                  setMainTab("profile");
                   await saveOnboardingComplete(true);
-                  navigation.replace("Profile");
+                  navigation.replace("Home");
                 }}
               />
             )}
@@ -118,86 +121,91 @@ export default function App() {
 
           <Stack.Screen name="Home">
             {({ navigation }) => (
-              <HomeScreen
-                profile={profile}
-                recentScans={scanHistory}
-                onOpenProfile={() => navigation.replace("Profile")}
-                onOpenSettings={() => navigation.navigate("Settings")}
-                onOpenHistory={() => navigation.replace("History")}
-                onOpenScan={(scanId) => navigation.navigate("Results", { scanId })}
-                onStartScan={() => {
-                  if (profile.allergies.length === 0) {
-                    navigation.replace("Profile");
-                    return;
-                  }
-                  setScanError(null);
-                  void selectImageFromCamera(navigation.navigate);
-                }}
-                onUploadPhoto={async () => {
-                  if (profile.allergies.length === 0) {
-                    navigation.replace("Profile");
-                    return;
-                  }
-                  await selectImageFromLibrary(navigation.navigate);
-                }}
-              />
-            )}
-          </Stack.Screen>
+              mainTab === "history" ? (
+                <HistoryScreen
+                  scans={scanHistory}
+                  onBack={() => setMainTab("home")}
+                  onOpenScan={(scanId) => navigation.navigate("Results", { scanId })}
+                  onOpenProfile={() => setMainTab("profile")}
+                />
+              ) : mainTab === "profile" ? (
+                <ProfileScreen
+                  profile={profile}
+                  profiles={profiles}
+                  activeProfileId={activeProfileId}
+                  onChangeProfile={async (nextProfile) => {
+                    const nextProfiles = profiles.some((item) => item.id === nextProfile.id)
+                      ? profiles.map((item) => (item.id === nextProfile.id ? nextProfile : item))
+                      : [...profiles, nextProfile];
+                    await persistProfiles(nextProfiles, nextProfile.id);
+                  }}
+                  onSelectProfile={async (profileId, currentProfile) => {
+                    const nextProfiles = profiles.map((item) =>
+                      item.id === currentProfile.id ? currentProfile : item
+                    );
+                    await persistProfiles(nextProfiles, profileId);
+                  }}
+                  onCreateProfile={async (currentProfile) => {
+                    const profileNumber = profiles.length + 1;
+                    const nextProfile: UserProfile = {
+                      ...createDefaultProfile(),
+                      id: `profile-${Date.now()}`,
+                      name: `Profile ${profileNumber}`
+                    };
+                    const nextProfiles = profiles.map((item) =>
+                      item.id === currentProfile.id ? currentProfile : item
+                    );
+                    await persistProfiles([...nextProfiles, nextProfile], nextProfile.id);
+                  }}
+                  onDeleteProfile={async (profileId, currentProfile) => {
+                    const savedCurrentProfiles = profiles.map((item) =>
+                      item.id === currentProfile.id && item.id !== profileId ? currentProfile : item
+                    );
+                    const remainingProfiles = savedCurrentProfiles.filter((item) => item.id !== profileId);
+                    const nextProfiles =
+                      remainingProfiles.length > 0
+                        ? remainingProfiles
+                        : [
+                            {
+                              ...createDefaultProfile(),
+                              id: `profile-${Date.now()}`,
+                              name: "Profile 1"
+                            }
+                          ];
+                    const nextActiveProfileId =
+                      profileId === activeProfileId ? nextProfiles[0].id : activeProfileId;
 
-          <Stack.Screen name="Profile">
-            {({ navigation }) => (
-              <ProfileScreen
-                profile={profile}
-                profiles={profiles}
-                activeProfileId={activeProfileId}
-                onChangeProfile={async (nextProfile) => {
-                  const nextProfiles = profiles.some((item) => item.id === nextProfile.id)
-                    ? profiles.map((item) => (item.id === nextProfile.id ? nextProfile : item))
-                    : [...profiles, nextProfile];
-                  await persistProfiles(nextProfiles, nextProfile.id);
-                }}
-                onSelectProfile={async (profileId, currentProfile) => {
-                  const nextProfiles = profiles.map((item) =>
-                    item.id === currentProfile.id ? currentProfile : item
-                  );
-                  await persistProfiles(nextProfiles, profileId);
-                }}
-                onCreateProfile={async (currentProfile) => {
-                  const profileNumber = profiles.length + 1;
-                  const nextProfile: UserProfile = {
-                    ...createDefaultProfile(),
-                    id: `profile-${Date.now()}`,
-                    name: `Profile ${profileNumber}`
-                  };
-                  const nextProfiles = profiles.map((item) =>
-                    item.id === currentProfile.id ? currentProfile : item
-                  );
-                  await persistProfiles([...nextProfiles, nextProfile], nextProfile.id);
-                }}
-                onDeleteProfile={async (profileId, currentProfile) => {
-                  const savedCurrentProfiles = profiles.map((item) =>
-                    item.id === currentProfile.id && item.id !== profileId ? currentProfile : item
-                  );
-                  const remainingProfiles = savedCurrentProfiles.filter((item) => item.id !== profileId);
-                  const nextProfiles =
-                    remainingProfiles.length > 0
-                      ? remainingProfiles
-                      : [
-                          {
-                            ...createDefaultProfile(),
-                            id: `profile-${Date.now()}`,
-                            name: "Profile 1"
-                          }
-                        ];
-                  const nextActiveProfileId =
-                    profileId === activeProfileId ? nextProfiles[0].id : activeProfileId;
-
-                  await persistProfiles(nextProfiles, nextActiveProfileId);
-                }}
-                onDone={() => navigation.replace("Home")}
-                onHome={() => navigation.replace("Home")}
-                onOpenHistory={() => navigation.replace("History")}
-              />
+                    await persistProfiles(nextProfiles, nextActiveProfileId);
+                  }}
+                  onDone={() => setMainTab("home")}
+                  onHome={() => setMainTab("home")}
+                  onOpenHistory={() => setMainTab("history")}
+                />
+              ) : (
+                <HomeScreen
+                  profile={profile}
+                  recentScans={scanHistory}
+                  onOpenProfile={() => setMainTab("profile")}
+                  onOpenSettings={() => navigation.navigate("Settings")}
+                  onOpenHistory={() => setMainTab("history")}
+                  onOpenScan={(scanId) => navigation.navigate("Results", { scanId })}
+                  onStartScan={() => {
+                    if (profile.allergies.length === 0) {
+                      setMainTab("profile");
+                      return;
+                    }
+                    setScanError(null);
+                    void selectImageFromCamera(navigation.navigate);
+                  }}
+                  onUploadPhoto={async () => {
+                    if (profile.allergies.length === 0) {
+                      setMainTab("profile");
+                      return;
+                    }
+                    await selectImageFromLibrary(navigation.navigate);
+                  }}
+                />
+              )
             )}
           </Stack.Screen>
 
@@ -243,9 +251,15 @@ export default function App() {
                 return (
                   <HistoryScreen
                     scans={scanHistory}
-                    onBack={() => navigation.replace("Home")}
+                    onBack={() => {
+                      setMainTab("home");
+                      navigation.navigate("Home");
+                    }}
                     onOpenScan={(scanId) => navigation.replace("Results", { scanId })}
-                    onOpenProfile={() => navigation.replace("Profile")}
+                    onOpenProfile={() => {
+                      setMainTab("profile");
+                      navigation.navigate("Home");
+                    }}
                   />
                 );
               }
@@ -254,8 +268,14 @@ export default function App() {
                 <ResultsScreen
                   scanResult={scanResult}
                   profile={profile}
-                  onBack={() => navigation.navigate("Home")}
-                  onOpenHistory={() => navigation.replace("History")}
+                  onBack={() => {
+                    setMainTab("home");
+                    navigation.navigate("Home");
+                  }}
+                  onOpenHistory={() => {
+                    setMainTab("history");
+                    navigation.navigate("Home");
+                  }}
                   onOpenDish={(dish) =>
                     navigation.navigate("DishDetail", {
                       scanId: scanResult.id,
@@ -276,9 +296,15 @@ export default function App() {
                 return (
                   <HistoryScreen
                     scans={scanHistory}
-                    onBack={() => navigation.replace("Home")}
+                    onBack={() => {
+                      setMainTab("home");
+                      navigation.navigate("Home");
+                    }}
                     onOpenScan={(scanId) => navigation.replace("Results", { scanId })}
-                    onOpenProfile={() => navigation.replace("Profile")}
+                    onOpenProfile={() => {
+                      setMainTab("profile");
+                      navigation.navigate("Home");
+                    }}
                   />
                 );
               }
@@ -294,24 +320,16 @@ export default function App() {
             }}
           </Stack.Screen>
 
-          <Stack.Screen name="History">
-            {({ navigation }) => (
-              <HistoryScreen
-                scans={scanHistory}
-                onBack={() => navigation.replace("Home")}
-                onOpenScan={(scanId) => navigation.navigate("Results", { scanId })}
-                onOpenProfile={() => navigation.replace("Profile")}
-              />
-            )}
-          </Stack.Screen>
-
           <Stack.Screen name="Settings">
             {({ navigation }) => (
               <SettingsScreen
                 profile={profile}
                 scanCount={scanHistory.length}
                 onBack={() => navigation.goBack()}
-                onEditProfile={() => navigation.navigate("Profile")}
+                onEditProfile={() => {
+                  setMainTab("profile");
+                  navigation.navigate("Home");
+                }}
                 onClearHistory={async () => {
                   setScanHistory([]);
                   await clearScanHistory();
