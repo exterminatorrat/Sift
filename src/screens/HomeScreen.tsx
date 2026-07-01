@@ -5,6 +5,7 @@ import {
   ChevronRight,
   Menu,
   ScanLine,
+  Upload,
   UserRound
 } from "lucide-react-native";
 import { UserProfile } from "../types/allergy";
@@ -84,7 +85,8 @@ export function HomeScreen({
             <Text style={styles.scanBody}>Analyze ingredients instantly</Text>
           </Pressable>
           <Pressable accessibilityRole="button" onPress={onUploadPhoto} style={styles.uploadLink}>
-            <Text style={styles.uploadLinkText}>Upload photo instead</Text>
+            <Upload color={colors.primaryDark} size={15} strokeWidth={2} />
+            <Text style={styles.uploadLinkText}>Upload Photo</Text>
           </Pressable>
         </View>
 
@@ -263,12 +265,21 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   uploadLink: {
-    marginTop: 20
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderColor: colors.borderStrong,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 20,
+    minHeight: 46,
+    paddingHorizontal: 22
   },
   uploadLinkText: {
     color: colors.primaryDark,
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
     letterSpacing: 0
   },
   recentSection: {
