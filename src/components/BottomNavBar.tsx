@@ -1,7 +1,9 @@
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 import { History, Home, UserRound } from "lucide-react-native";
 import { colors } from "../constants/colors";
+
+let lastActiveIndex = 0;
 
 type BottomNavBarProps = {
   active: "home" | "history" | "profile";
@@ -11,9 +13,42 @@ type BottomNavBarProps = {
 };
 
 export function BottomNavBar({ active, onHome, onHistory, onProfile }: BottomNavBarProps) {
+  const activeIndex = active === "home" ? 0 : active === "history" ? 1 : 2;
+  const [barWidth, setBarWidth] = useState(0);
+  const slide = useRef(new Animated.Value(lastActiveIndex)).current;
+  const tabWidth = barWidth > 0 ? (barWidth - 16) / 3 : 0;
+
+  useEffect(() => {
+    Animated.timing(slide, {
+      duration: 220,
+      easing: Easing.out(Easing.cubic),
+      toValue: activeIndex,
+      useNativeDriver: true
+    }).start(() => {
+      lastActiveIndex = activeIndex;
+    });
+  }, [activeIndex, slide]);
+
+  const translateX = slide.interpolate({
+    inputRange: [0, 1, 2],
+    outputRange: [0, tabWidth, tabWidth * 2]
+  });
+
   return (
     <View style={styles.shell}>
-      <View style={styles.inner}>
+      <View style={styles.inner} onLayout={(event) => setBarWidth(event.nativeEvent.layout.width)}>
+        {tabWidth > 0 && (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.activeTrack,
+              {
+                transform: [{ translateX }],
+                width: tabWidth
+              }
+            ]}
+          />
+        )}
         <NavItem active={active === "home"} icon={Home} label="Home" onPress={onHome} />
         <NavItem active={active === "history"} icon={History} label="History" onPress={onHistory} />
         <NavItem active={active === "profile"} icon={UserRound} label="Profile" onPress={onProfile} />
@@ -41,9 +76,7 @@ function NavItem({ active, icon: Icon, label, onPress }: NavItemProps) {
         pressed && styles.itemPressed
       ]}
     >
-      <View style={[styles.iconBubble, active && styles.iconBubbleActive]}>
-        <Icon color={active ? colors.surface : colors.inkSubtle} size={21} strokeWidth={2.4} />
-      </View>
+      <Icon color={active ? colors.surface : colors.inkSubtle} size={21} strokeWidth={2.4} />
       <Text style={[styles.label, active && styles.labelActive]}>{label}</Text>
     </Pressable>
   );
@@ -65,6 +98,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     minHeight: 68,
+    overflow: "hidden",
     paddingHorizontal: 8,
     paddingVertical: 7,
     shadowColor: colors.primaryDark,
@@ -79,7 +113,8 @@ const styles = StyleSheet.create({
     gap: 2,
     minHeight: 54,
     justifyContent: "center",
-    paddingHorizontal: 4
+    paddingHorizontal: 4,
+    zIndex: 2
   },
   itemActive: {
     backgroundColor: "transparent"
@@ -87,20 +122,19 @@ const styles = StyleSheet.create({
   itemPressed: {
     opacity: 0.75
   },
-  iconBubble: {
-    alignItems: "center",
+  activeTrack: {
+    backgroundColor: colors.primaryDark,
     borderRadius: 999,
-    height: 32,
-    justifyContent: "center",
-    width: 32
-  },
-  iconBubbleActive: {
-    backgroundColor: colors.primary,
+    bottom: 7,
     elevation: 3,
+    left: 8,
+    position: "absolute",
     shadowColor: colors.primaryDark,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    top: 7,
+    zIndex: 1
   },
   label: {
     color: colors.inkSubtle,
@@ -110,7 +144,7 @@ const styles = StyleSheet.create({
     lineHeight: 14
   },
   labelActive: {
-    color: colors.primaryDark,
+    color: colors.surface,
     fontWeight: "800"
   }
 });

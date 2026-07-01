@@ -126,7 +126,7 @@ export function ProfileScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
-      <AppTopBar showBack onBack={onHome ?? onDone} />
+      <AppTopBar />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Text style={styles.title}>Allergy Profile</Text>
