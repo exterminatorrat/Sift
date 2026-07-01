@@ -40,7 +40,8 @@ export function HomeScreen({
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.brand}>Sift</Text>
+            <Text style={styles.welcome}>Welcome back,</Text>
+            <Text style={styles.profileGreeting}>{profile.name || "Profile"}</Text>
             <Text style={styles.subtitle}>Checking for: {formatAllergySummary(profile.allergies)}</Text>
           </View>
           <View style={styles.headerActions}>
@@ -109,11 +110,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between"
   },
-  brand: {
+  welcome: {
+    color: colors.inkMuted,
+    fontSize: 15,
+    fontWeight: "700",
+    letterSpacing: 0,
+    lineHeight: 20
+  },
+  profileGreeting: {
     color: colors.ink,
     fontSize: 32,
-    fontWeight: "700",
-    letterSpacing: 0
+    fontWeight: "900",
+    letterSpacing: 0,
+    lineHeight: 38
   },
   subtitle: {
     color: colors.inkMuted,

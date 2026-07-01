@@ -16,7 +16,7 @@ import {
   clearScanHistory,
   loadStoredAppState,
   saveOnboardingComplete,
-  saveProfile,
+  saveProfiles,
   saveScanHistory
 } from "./src/services/storageService";
 import { addScanToHistory } from "./src/utils/scanHistory";
@@ -36,10 +36,12 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function App() {
   const [isReady, setIsReady] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
-  const [profile, setProfile] = useState<UserProfile>(createDefaultProfile());
+  const [profiles, setProfiles] = useState<UserProfile[]>([createDefaultProfile()]);
+  const [activeProfileId, setActiveProfileId] = useState(createDefaultProfile().id);
   const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
   const [pendingImage, setPendingImage] = useState<PreparedMenuImage | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
+  const profile = profiles.find((item) => item.id === activeProfileId) ?? profiles[0] ?? createDefaultProfile();
 
   useEffect(() => {
     let mounted = true;
@@ -51,12 +53,16 @@ export default function App() {
         }
 
         setOnboardingComplete(stored.onboardingComplete);
-        setProfile(stored.profile ?? createDefaultProfile());
+        const nextProfiles = stored.profiles.length > 0 ? stored.profiles : [stored.profile ?? createDefaultProfile()];
+        setProfiles(nextProfiles);
+        setActiveProfileId(stored.activeProfileId ?? nextProfiles[0].id);
         setScanHistory(stored.scanHistory);
       })
       .catch(() => {
         if (mounted) {
-          setProfile(createDefaultProfile());
+          const defaultProfile = createDefaultProfile();
+          setProfiles([defaultProfile]);
+          setActiveProfileId(defaultProfile.id);
         }
       })
       .finally(() => {
@@ -73,6 +79,12 @@ export default function App() {
   const persistScanHistory = useCallback(async (nextHistory: ScanResult[]) => {
     setScanHistory(nextHistory);
     await saveScanHistory(nextHistory);
+  }, []);
+
+  const persistProfiles = useCallback(async (nextProfiles: UserProfile[], nextActiveProfileId: string) => {
+    setProfiles(nextProfiles);
+    setActiveProfileId(nextActiveProfileId);
+    await saveProfiles(nextProfiles, nextActiveProfileId);
   }, []);
 
   if (!isReady) {
@@ -134,9 +146,31 @@ export default function App() {
             {({ navigation }) => (
               <ProfileScreen
                 profile={profile}
+                profiles={profiles}
+                activeProfileId={activeProfileId}
                 onChangeProfile={async (nextProfile) => {
-                  setProfile(nextProfile);
-                  await saveProfile(nextProfile);
+                  const nextProfiles = profiles.some((item) => item.id === nextProfile.id)
+                    ? profiles.map((item) => (item.id === nextProfile.id ? nextProfile : item))
+                    : [...profiles, nextProfile];
+                  await persistProfiles(nextProfiles, nextProfile.id);
+                }}
+                onSelectProfile={async (profileId, currentProfile) => {
+                  const nextProfiles = profiles.map((item) =>
+                    item.id === currentProfile.id ? currentProfile : item
+                  );
+                  await persistProfiles(nextProfiles, profileId);
+                }}
+                onCreateProfile={async (currentProfile) => {
+                  const profileNumber = profiles.length + 1;
+                  const nextProfile: UserProfile = {
+                    ...createDefaultProfile(),
+                    id: `profile-${Date.now()}`,
+                    name: `Profile ${profileNumber}`
+                  };
+                  const nextProfiles = profiles.map((item) =>
+                    item.id === currentProfile.id ? currentProfile : item
+                  );
+                  await persistProfiles([...nextProfiles, nextProfile], nextProfile.id);
                 }}
                 onDone={() => navigation.replace("Home")}
                 onHome={() => navigation.replace("Home")}

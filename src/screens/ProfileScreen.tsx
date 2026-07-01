@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -19,7 +19,11 @@ import { BottomNavBar } from "../components/BottomNavBar";
 
 type ProfileScreenProps = {
   profile: UserProfile;
+  profiles: UserProfile[];
+  activeProfileId: string;
   onChangeProfile: (profile: UserProfile) => void;
+  onSelectProfile: (profileId: string, currentProfile: UserProfile) => void;
+  onCreateProfile: (currentProfile: UserProfile) => void;
   onDone: () => void;
   onHome?: () => void;
   onOpenHistory?: () => void;
@@ -29,7 +33,11 @@ const severities: AllergySeverity[] = ["mild", "moderate", "severe"];
 
 export function ProfileScreen({
   profile,
+  profiles,
+  activeProfileId,
   onChangeProfile,
+  onSelectProfile,
+  onCreateProfile,
   onDone,
   onHome,
   onOpenHistory
@@ -37,9 +45,22 @@ export function ProfileScreen({
   const [draft, setDraft] = useState<UserProfile>(profile);
   const [customAllergen, setCustomAllergen] = useState("");
 
+  useEffect(() => {
+    setDraft(profile);
+    setCustomAllergen("");
+  }, [profile]);
+
   const save = () => {
     onChangeProfile(draft);
     onDone();
+  };
+
+  const selectProfile = (profileId: string) => {
+    if (profileId === activeProfileId) {
+      return;
+    }
+
+    onSelectProfile(profileId, draft);
   };
 
   const addAllergy = (name: string) => {
@@ -110,6 +131,42 @@ export function ProfileScreen({
             <Text style={styles.kicker}>Allergy profile</Text>
             <Text style={styles.title}>Tell Sift what to watch for.</Text>
           </View>
+        </View>
+
+        <View style={styles.fieldGroup}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.label}>Saved profiles</Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => onCreateProfile(draft)}
+              style={styles.newProfileButton}
+            >
+              <Plus color={colors.primary} size={16} strokeWidth={2.4} />
+              <Text style={styles.newProfileText}>New</Text>
+            </Pressable>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.profileSwitcher}
+          >
+            {profiles.map((savedProfile) => {
+              const active = savedProfile.id === activeProfileId;
+              return (
+                <Pressable
+                  accessibilityRole="button"
+                  key={savedProfile.id}
+                  onPress={() => selectProfile(savedProfile.id)}
+                  style={[styles.profilePill, active && styles.profilePillActive]}
+                >
+                  <Text style={[styles.profilePillName, active && styles.profilePillNameActive]}>
+                    {savedProfile.name || "Profile"}
+                  </Text>
+                  <Text style={styles.profilePillMeta}>{savedProfile.allergies.length} allergies</Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
         </View>
 
         <View style={styles.fieldGroup}>
@@ -290,6 +347,59 @@ const styles = StyleSheet.create({
   },
   fieldGroup: {
     gap: 10
+  },
+  sectionHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between"
+  },
+  newProfileButton: {
+    alignItems: "center",
+    backgroundColor: colors.primarySoft,
+    borderRadius: 999,
+    flexDirection: "row",
+    gap: 4,
+    minHeight: 34,
+    paddingHorizontal: 12
+  },
+  newProfileText: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: "900",
+    letterSpacing: 0
+  },
+  profileSwitcher: {
+    gap: 8,
+    paddingRight: 20
+  },
+  profilePill: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 3,
+    minWidth: 116,
+    paddingHorizontal: 12,
+    paddingVertical: 10
+  },
+  profilePillActive: {
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primary
+  },
+  profilePillName: {
+    color: colors.ink,
+    fontSize: 14,
+    fontWeight: "900",
+    letterSpacing: 0
+  },
+  profilePillNameActive: {
+    color: colors.primary
+  },
+  profilePillMeta: {
+    color: colors.inkSubtle,
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0
   },
   languageRow: {
     flexDirection: "row",
