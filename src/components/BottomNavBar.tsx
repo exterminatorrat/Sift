@@ -1,7 +1,9 @@
-import React, { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 import { History, Home, UserRound } from "lucide-react-native";
 import { colors } from "../constants/colors";
+
+let lastActiveIndex = 0;
 
 type BottomNavBarProps = {
   active: "home" | "history" | "profile";
@@ -13,14 +15,30 @@ type BottomNavBarProps = {
 export function BottomNavBar({ active, onHome, onHistory, onProfile }: BottomNavBarProps) {
   const activeIndex = active === "home" ? 0 : active === "history" ? 1 : 2;
   const [barWidth, setBarWidth] = useState(0);
+  const slide = useRef(new Animated.Value(lastActiveIndex)).current;
   const tabWidth = barWidth > 0 ? (barWidth - 16) / 3 : 0;
-  const translateX = tabWidth * activeIndex;
+
+  useEffect(() => {
+    Animated.timing(slide, {
+      duration: 220,
+      easing: Easing.out(Easing.cubic),
+      toValue: activeIndex,
+      useNativeDriver: true
+    }).start(() => {
+      lastActiveIndex = activeIndex;
+    });
+  }, [activeIndex, slide]);
+
+  const translateX = slide.interpolate({
+    inputRange: [0, 1, 2],
+    outputRange: [0, tabWidth, tabWidth * 2]
+  });
 
   return (
     <View style={styles.shell}>
       <View style={styles.inner} onLayout={(event) => setBarWidth(event.nativeEvent.layout.width)}>
         {tabWidth > 0 && (
-          <View
+          <Animated.View
             pointerEvents="none"
             style={[
               styles.activeTrack,

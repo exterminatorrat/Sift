@@ -100,6 +100,7 @@ const styles = StyleSheet.create({
     paddingTop: 18
   },
   pageHeader: {
+    alignItems: "center",
     justifyContent: "center",
     minHeight: 40
   },
@@ -108,7 +109,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     letterSpacing: 0,
-    lineHeight: 32
+    lineHeight: 32,
+    textAlign: "center"
   },
   list: {
     gap: 24

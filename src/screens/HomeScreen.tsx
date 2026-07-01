@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   pageHeader: {
     alignItems: "center",
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     marginBottom: 24
   },
   pageTitle: {
@@ -168,7 +168,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     letterSpacing: 0,
-    lineHeight: 32
+    lineHeight: 32,
+    textAlign: "center"
   },
   headerButton: {
     alignItems: "center",
@@ -177,6 +178,8 @@ const styles = StyleSheet.create({
     elevation: 2,
     height: 40,
     justifyContent: "center",
+    position: "absolute",
+    right: 0,
     shadowColor: colors.primaryDark,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
