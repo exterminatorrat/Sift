@@ -70,6 +70,19 @@ export function ProfileScreen({
     setCustomAllergen("");
   };
 
+  const toggleQuickAllergen = (name: string) => {
+    const selectedAllergy = draft.allergies.find(
+      (allergy) => allergy.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (selectedAllergy) {
+      removeAllergy(selectedAllergy.id);
+      return;
+    }
+
+    addAllergy(name);
+  };
+
   const updateAllergy = (id: string, patch: Partial<Allergy>) => {
     setDraft((current) => ({
       ...current,
@@ -145,7 +158,7 @@ export function ProfileScreen({
                 key={name}
                 label={name}
                 selected={draft.allergies.some((allergy) => allergy.name === name)}
-                onPress={() => addAllergy(name)}
+                onPress={() => toggleQuickAllergen(name)}
               />
             ))}
           </View>
