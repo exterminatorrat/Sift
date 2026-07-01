@@ -1,17 +1,10 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  ArrowRight,
-  LucideIcon,
-  MessageSquareText,
-  ScanSearch,
-  ShieldCheck
-} from "lucide-react-native";
+import { ArrowRight } from "lucide-react-native";
 import { colors } from "../constants/colors";
-import { tagline } from "../constants/copy";
-import { DisclaimerBanner } from "../components/DisclaimerBanner";
-import { PrimaryButton } from "../components/PrimaryButton";
+
+const onboardingPlate = require("../../assets/onboarding-plate.png");
 
 type OnboardingScreenProps = {
   onGetStarted: () => void;
@@ -21,64 +14,24 @@ export function OnboardingScreen({ onGetStarted }: OnboardingScreenProps) {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.content}>
-        <View style={styles.brandBlock}>
-          <Text style={styles.brand}>Sift</Text>
-          <Text style={styles.tagline}>{tagline}</Text>
+        <View style={styles.imageFrame}>
+          <Image source={onboardingPlate} resizeMode="cover" style={styles.image} />
         </View>
 
-        <View style={styles.statementBlock}>
-          <Text style={styles.headline}>An allergy copilot for restaurant menus.</Text>
+        <View style={styles.copy}>
+          <Text style={styles.headline}>Know what to{"\n"}ask before you{"\n"}eat.</Text>
           <Text style={styles.body}>
-            Scan a menu, spot possible allergen risks, and get practical questions to ask before
-            ordering.
+            Sift helps you navigate menus with confidence, filtering for your unique dietary needs
+            in a soft, quiet space.
           </Text>
         </View>
 
-        <View style={styles.rows}>
-          <InfoRow
-            icon={ScanSearch}
-            title="Reads visible menu text"
-            body="Flags likely allergens, hidden sauces, oils, broths, garnishes, and unclear dishes."
-          />
-          <InfoRow
-            icon={MessageSquareText}
-            title="Turns risk into questions"
-            body="Gives specific staff questions based on your allergies and cross-contact needs."
-          />
-          <InfoRow
-            icon={ShieldCheck}
-            title="Stays conservative"
-            body="Sift helps you decide what to ask. It does not confirm ingredients or kitchen prep."
-          />
-        </View>
-
-        <DisclaimerBanner />
-      </View>
-
-      <View style={styles.footer}>
-        <PrimaryButton label="Get started" icon={ArrowRight} onPress={onGetStarted} />
+        <Pressable accessibilityRole="button" onPress={onGetStarted} style={styles.button}>
+          <Text style={styles.buttonText}>Get Started</Text>
+          <ArrowRight color={colors.surface} size={16} strokeWidth={2.1} />
+        </Pressable>
       </View>
     </SafeAreaView>
-  );
-}
-
-type InfoRowProps = {
-  icon: LucideIcon;
-  title: string;
-  body: string;
-};
-
-function InfoRow({ icon: Icon, title, body }: InfoRowProps) {
-  return (
-    <View style={styles.infoRow}>
-      <View style={styles.infoIcon}>
-        <Icon color={colors.primary} size={19} strokeWidth={2.1} />
-      </View>
-      <View style={styles.infoText}>
-        <Text style={styles.infoTitle}>{title}</Text>
-        <Text style={styles.infoBody}>{body}</Text>
-      </View>
-    </View>
   );
 }
 
@@ -88,80 +41,60 @@ const styles = StyleSheet.create({
     flex: 1
   },
   content: {
+    alignItems: "center",
     flex: 1,
-    gap: 28,
     justifyContent: "center",
-    padding: 20
+    padding: 24
   },
-  brandBlock: {
-    gap: 8
+  imageFrame: {
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: 999,
+    height: 280,
+    overflow: "hidden",
+    width: 280
   },
-  brand: {
-    color: colors.ink,
-    fontSize: 32,
-    fontWeight: "700",
-    letterSpacing: 0
+  image: {
+    height: "100%",
+    width: "100%"
   },
-  tagline: {
-    color: colors.primary,
-    fontSize: 17,
-    fontWeight: "700",
-    letterSpacing: 0
-  },
-  statementBlock: {
-    gap: 12
+  copy: {
+    alignItems: "center",
+    marginTop: 80
   },
   headline: {
-    color: colors.ink,
+    color: colors.primaryDark,
     fontSize: 32,
-    fontWeight: "700",
+    fontWeight: "300",
     letterSpacing: 0,
-    lineHeight: 40
+    lineHeight: 40,
+    textAlign: "center"
   },
   body: {
     color: colors.inkMuted,
     fontSize: 16,
     letterSpacing: 0,
-    lineHeight: 24
+    lineHeight: 26,
+    marginTop: 24,
+    maxWidth: 342,
+    textAlign: "center"
   },
-  rows: {
-    borderBottomColor: colors.border,
-    borderTopColor: colors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderTopWidth: StyleSheet.hairlineWidth
-  },
-  infoRow: {
-    alignItems: "flex-start",
-    flexDirection: "row",
-    gap: 12,
-    paddingVertical: 16
-  },
-  infoIcon: {
+  button: {
     alignItems: "center",
-    backgroundColor: colors.primarySoft,
+    alignSelf: "stretch",
+    backgroundColor: colors.primary,
     borderRadius: 999,
-    height: 36,
+    flexDirection: "row",
+    gap: 8,
     justifyContent: "center",
-    width: 36
+    marginTop: 128,
+    minHeight: 52,
+    paddingHorizontal: 32
   },
-  infoText: {
-    flex: 1,
-    gap: 4
-  },
-  infoTitle: {
-    color: colors.ink,
-    fontSize: 15,
-    fontWeight: "800",
-    letterSpacing: 0
-  },
-  infoBody: {
-    color: colors.inkMuted,
-    fontSize: 14,
+  buttonText: {
+    color: colors.surface,
+    fontSize: 13,
+    fontWeight: "500",
     letterSpacing: 0,
-    lineHeight: 20
-  },
-  footer: {
-    padding: 20,
-    paddingTop: 8
+    lineHeight: 18
   }
 });

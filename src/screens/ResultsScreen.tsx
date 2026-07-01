@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChevronLeft, Image as ImageIcon, Languages, ScanSearch } from "lucide-react-native";
+import { Image as ImageIcon, Languages, ScanSearch } from "lucide-react-native";
 import { UserProfile } from "../types/allergy";
 import { DishRisk, ScanResult } from "../types/scan";
 import { colors } from "../constants/colors";
@@ -9,6 +9,7 @@ import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { RiskCard } from "../components/RiskCard";
 import { riskMeta } from "../utils/riskLabels";
 import { formatDateTime } from "../utils/formatters";
+import { AppTopBar } from "../components/AppTopBar";
 
 type ResultsScreenProps = {
   scanResult: ScanResult;
@@ -29,13 +30,7 @@ export function ResultsScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.topBar}>
-        <Pressable accessibilityRole="button" onPress={onBack} style={styles.backButton}>
-          <ChevronLeft color={colors.ink} size={24} strokeWidth={2.3} />
-        </Pressable>
-        <Text style={styles.topTitle}>Sift</Text>
-        <View style={styles.topSpacer} />
-      </View>
+      <AppTopBar showBack onBack={onBack} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
@@ -105,29 +100,6 @@ const styles = StyleSheet.create({
   screen: {
     backgroundColor: colors.background,
     flex: 1
-  },
-  topBar: {
-    alignItems: "center",
-    flexDirection: "row",
-    height: 64,
-    justifyContent: "space-between",
-    paddingHorizontal: 20
-  },
-  backButton: {
-    alignItems: "center",
-    borderRadius: 999,
-    height: 40,
-    justifyContent: "center",
-    width: 40
-  },
-  topTitle: {
-    color: colors.primaryDark,
-    fontSize: 24,
-    fontWeight: "600",
-    letterSpacing: 0
-  },
-  topSpacer: {
-    width: 40
   },
   content: {
     gap: 22,

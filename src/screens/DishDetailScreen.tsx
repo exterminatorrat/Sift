@@ -6,7 +6,8 @@ import {
   ClipboardList,
   Languages,
   LucideIcon,
-  MessageSquareText
+  MessageSquareText,
+  TriangleAlert
 } from "lucide-react-native";
 import { UserProfile } from "../types/allergy";
 import { DishRisk, RestaurantMessage } from "../types/scan";
@@ -14,6 +15,7 @@ import { colors } from "../constants/colors";
 import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { riskMeta } from "../utils/riskLabels";
+import { AppTopBar } from "../components/AppTopBar";
 
 type DishDetailScreenProps = {
   dish: DishRisk;
@@ -32,17 +34,7 @@ export function DishDetailScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.topBar}>
-        <Pressable accessibilityRole="button" onPress={onBack} style={styles.backButton}>
-          <ChevronLeft color={colors.primary} size={22} strokeWidth={2.2} />
-        </Pressable>
-        <View style={styles.topText}>
-          <Text style={styles.kicker}>Dish detail</Text>
-          <Text style={styles.topTitle} numberOfLines={1}>
-            {dish.dishName}
-          </Text>
-        </View>
-      </View>
+      <AppTopBar showBack onBack={onBack} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
@@ -54,17 +46,39 @@ export function DishDetailScreen({
           <Text style={styles.summary}>{dish.conservativeLanguage}</Text>
         </View>
 
-        <DisclaimerBanner compact />
+        {restaurantMessage && (
+          <View style={styles.translationCard}>
+            <View style={styles.warningHeader}>
+              <TriangleAlert color={colors.avoid} size={20} strokeWidth={2.2} />
+              <Text style={styles.warningText}>Severe allergy alert</Text>
+            </View>
+            <View style={styles.translationPrimary}>
+              <Text style={styles.translationPrompt}>Please read carefully</Text>
+              <Text style={styles.translatedText}>
+                {restaurantMessage.translated ?? restaurantMessage.english}
+              </Text>
+            </View>
+            <View style={styles.translationSecondary}>
+              <Text style={styles.englishLead}>I have allergies to:</Text>
+              <TokenList
+                emptyLabel="No obvious listed allergen from visible menu text."
+                items={profile.allergies.map((allergy) => allergy.name)}
+                tone="alert"
+              />
+              <Text style={styles.englishReference}>{restaurantMessage.english}</Text>
+            </View>
+          </View>
+        )}
+
+        <DetailSection title="Why it was flagged">
+          <Text style={styles.paragraph}>{dish.reason}</Text>
+        </DetailSection>
 
         <DetailSection title="Possible allergens">
           <TokenList
             emptyLabel="No obvious listed allergen from visible menu text."
             items={dish.possibleAllergens}
           />
-        </DetailSection>
-
-        <DetailSection title="Why it was flagged">
-          <Text style={styles.paragraph}>{dish.reason}</Text>
         </DetailSection>
 
         <DetailSection title="Hidden-risk ingredients">
@@ -85,19 +99,6 @@ export function DishDetailScreen({
             ))}
           </View>
         </DetailSection>
-
-        {restaurantMessage && (
-          <DetailSection title="Restaurant-facing message" icon={Languages}>
-            <Text style={styles.messageLabel}>English</Text>
-            <Text style={styles.messageText}>{restaurantMessage.english}</Text>
-            {restaurantMessage.translated && (
-              <>
-                <Text style={styles.messageLabel}>{restaurantMessage.language}</Text>
-                <Text style={styles.messageText}>{restaurantMessage.translated}</Text>
-              </>
-            )}
-          </DetailSection>
-        )}
 
         <View style={styles.profileNote}>
           <ClipboardList color={colors.primary} size={18} strokeWidth={2.1} />
@@ -133,9 +134,10 @@ function DetailSection({ title, children, icon: Icon }: DetailSectionProps) {
 type TokenListProps = {
   items: string[];
   emptyLabel: string;
+  tone?: "default" | "alert";
 };
 
-function TokenList({ items, emptyLabel }: TokenListProps) {
+function TokenList({ items, emptyLabel, tone = "default" }: TokenListProps) {
   if (items.length === 0) {
     return <Text style={styles.paragraphMuted}>{emptyLabel}</Text>;
   }
@@ -143,8 +145,8 @@ function TokenList({ items, emptyLabel }: TokenListProps) {
   return (
     <View style={styles.tokenList}>
       {items.map((item) => (
-        <View key={item} style={styles.token}>
-          <Text style={styles.tokenText}>{item}</Text>
+        <View key={item} style={[styles.token, tone === "alert" && styles.alertToken]}>
+          <Text style={[styles.tokenText, tone === "alert" && styles.alertTokenText]}>{item}</Text>
         </View>
       ))}
     </View>
@@ -156,42 +158,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     flex: 1
   },
-  topBar: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 12
-  },
-  backButton: {
-    alignItems: "center",
-    backgroundColor: colors.primarySoft,
-    borderRadius: 999,
-    height: 42,
-    justifyContent: "center",
-    width: 42
-  },
-  topText: {
-    flex: 1,
-    gap: 2
-  },
-  kicker: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0,
-    textTransform: "uppercase"
-  },
-  topTitle: {
-    color: colors.ink,
-    fontSize: 20,
-    fontWeight: "900",
-    letterSpacing: 0
-  },
   content: {
     gap: 16,
-    padding: 20,
-    paddingTop: 8
+    padding: 24,
+    paddingBottom: 64,
+    paddingTop: 64
   },
   hero: {
     gap: 11,
@@ -211,7 +182,7 @@ const styles = StyleSheet.create({
   title: {
     color: colors.ink,
     fontSize: 32,
-    fontWeight: "700",
+    fontWeight: "300",
     letterSpacing: 0,
     lineHeight: 36
   },
@@ -231,8 +202,8 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: 20,
-    borderWidth: 1,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
     gap: 12,
     padding: 16
   },
@@ -275,6 +246,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "800",
     letterSpacing: 0
+  },
+  alertToken: {
+    backgroundColor: "rgba(186,26,26,0.1)"
+  },
+  alertTokenText: {
+    color: colors.high
   },
   questionList: {
     gap: 10
@@ -327,5 +304,74 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 0,
     lineHeight: 19
+  },
+  translationCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 24,
+    elevation: 4,
+    overflow: "hidden",
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.08,
+    shadowRadius: 40
+  },
+  warningHeader: {
+    alignItems: "center",
+    backgroundColor: colors.highSoft,
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12
+  },
+  warningText: {
+    color: colors.avoid,
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 1.2,
+    lineHeight: 16,
+    textTransform: "uppercase"
+  },
+  translationPrimary: {
+    alignItems: "center",
+    borderBottomColor: "#E3E2E1",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 24,
+    padding: 24
+  },
+  translationPrompt: {
+    color: colors.inkMuted,
+    fontSize: 18,
+    letterSpacing: 0,
+    lineHeight: 30,
+    textAlign: "center"
+  },
+  translatedText: {
+    color: colors.ink,
+    fontSize: 30,
+    fontWeight: "400",
+    letterSpacing: 0,
+    lineHeight: 42,
+    textAlign: "center"
+  },
+  translationSecondary: {
+    alignItems: "center",
+    backgroundColor: colors.background,
+    gap: 12,
+    padding: 24
+  },
+  englishLead: {
+    color: colors.ink,
+    fontSize: 18,
+    letterSpacing: 0,
+    lineHeight: 30,
+    textAlign: "center"
+  },
+  englishReference: {
+    color: colors.inkMuted,
+    fontSize: 16,
+    letterSpacing: 0,
+    lineHeight: 26,
+    marginTop: 8,
+    textAlign: "center"
   }
 });

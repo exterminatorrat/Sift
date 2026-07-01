@@ -17,5 +17,5 @@ export function AnalysisLoadingScreen({ onAnalyze }: AnalysisLoadingScreenProps)
     onAnalyze();
   }, [onAnalyze]);
 
-  return <LoadingAnalysis />;
+  return <LoadingAnalysis showTopBar />;
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { History, Home, UserRound } from "lucide-react-native";
 import { colors } from "../constants/colors";
 
@@ -14,24 +14,9 @@ export function BottomNavBar({ active, onHome, onHistory, onProfile }: BottomNav
   return (
     <View style={styles.shell}>
       <View style={styles.inner}>
-        <NavItem
-          active={active === "home"}
-          icon={Home}
-          label="Home"
-          onPress={onHome}
-        />
-        <NavItem
-          active={active === "history"}
-          icon={History}
-          label="History"
-          onPress={onHistory}
-        />
-        <NavItem
-          active={active === "profile"}
-          icon={UserRound}
-          label="Profile"
-          onPress={onProfile}
-        />
+        <NavItem active={active === "home"} icon={Home} onPress={onHome} />
+        <NavItem active={active === "history"} icon={History} onPress={onHistory} />
+        <NavItem active={active === "profile"} icon={UserRound} onPress={onProfile} />
       </View>
     </View>
   );
@@ -40,11 +25,10 @@ export function BottomNavBar({ active, onHome, onHistory, onProfile }: BottomNav
 type NavItemProps = {
   active: boolean;
   icon: typeof Home;
-  label: string;
   onPress: () => void;
 };
 
-function NavItem({ active, icon: Icon, label, onPress }: NavItemProps) {
+function NavItem({ active, icon: Icon, onPress }: NavItemProps) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -56,58 +40,47 @@ function NavItem({ active, icon: Icon, label, onPress }: NavItemProps) {
         pressed && styles.itemPressed
       ]}
     >
-      <Icon color={active ? colors.primaryDark : colors.inkMuted} size={21} strokeWidth={2.2} />
-      <Text style={[styles.label, active && styles.labelActive]}>{label}</Text>
+      <Icon color={active ? colors.primaryDark : colors.inkSubtle} size={21} strokeWidth={2.2} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   shell: {
-    bottom: 18,
-    left: 16,
+    bottom: 0,
+    left: 0,
     position: "absolute",
-    right: 16
+    right: 0
   },
   inner: {
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.border,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    elevation: 10,
+    backgroundColor: "rgba(250,249,248,0.94)",
+    borderColor: "rgba(68,65,61,0.05)",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    elevation: 2,
     flexDirection: "row",
     justifyContent: "space-around",
-    minHeight: 68,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+    minHeight: 74,
+    paddingHorizontal: 44,
+    paddingBottom: 24,
+    paddingTop: 8,
     shadowColor: colors.primaryDark,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 18
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2
   },
   item: {
     alignItems: "center",
     borderRadius: 999,
-    flex: 1,
-    gap: 2,
-    minHeight: 56,
+    height: 42,
     justifyContent: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 6
+    width: 42
   },
   itemActive: {
-    backgroundColor: colors.primarySoft
+    backgroundColor: "rgba(233,222,210,0.18)"
   },
   itemPressed: {
     opacity: 0.75
-  },
-  label: {
-    color: colors.inkMuted,
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0
-  },
-  labelActive: {
-    color: colors.primaryDark
   }
 });

@@ -5,6 +5,7 @@ import { RotateCcw, ScanSearch } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { PreparedMenuImage } from "../types/image";
 import { PrimaryButton } from "../components/PrimaryButton";
+import { AppTopBar } from "../components/AppTopBar";
 
 type ImagePreviewScreenProps = {
   image: PreparedMenuImage | null;
@@ -15,9 +16,9 @@ type ImagePreviewScreenProps = {
 export function ImagePreviewScreen({ image, onRetake, onUsePhoto }: ImagePreviewScreenProps) {
   return (
     <SafeAreaView style={styles.screen}>
+      <AppTopBar showBack onBack={onRetake} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
-          <Text style={styles.kicker}>Preview</Text>
           <Text style={styles.title}>Use this menu photo?</Text>
           <Text style={styles.body}>If text is cut off or blurry, retake it before analysis.</Text>
         </View>
@@ -45,25 +46,19 @@ const styles = StyleSheet.create({
     flex: 1
   },
   content: {
-    gap: 20,
-    padding: 20
+    gap: 24,
+    padding: 24,
+    paddingTop: 48
   },
   hero: {
-    gap: 8
-  },
-  kicker: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0,
-    textTransform: "uppercase"
+    gap: 12
   },
   title: {
     color: colors.ink,
-    fontSize: 28,
-    fontWeight: "700",
+    fontSize: 32,
+    fontWeight: "300",
     letterSpacing: 0,
-    lineHeight: 36
+    lineHeight: 40
   },
   body: {
     color: colors.inkMuted,
@@ -75,8 +70,8 @@ const styles = StyleSheet.create({
     aspectRatio: 3 / 4,
     backgroundColor: colors.surfaceMuted,
     borderColor: colors.border,
-    borderRadius: 20,
-    borderWidth: 1,
+    borderRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
     width: "100%"
   },
   emptyPreview: {
@@ -84,8 +79,8 @@ const styles = StyleSheet.create({
     aspectRatio: 3 / 4,
     backgroundColor: colors.surfaceMuted,
     borderColor: colors.border,
-    borderRadius: 20,
-    borderWidth: 1,
+    borderRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
     justifyContent: "center",
     width: "100%"
   },

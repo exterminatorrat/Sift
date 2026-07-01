@@ -1,10 +1,11 @@
 import React from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Camera, ChevronLeft, Upload } from "lucide-react-native";
+import { Camera, Upload } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { PrimaryButton } from "../components/PrimaryButton";
+import { AppTopBar } from "../components/AppTopBar";
 
 type ScanCaptureScreenProps = {
   error?: string | null;
@@ -21,11 +22,9 @@ export function ScanCaptureScreen({
 }: ScanCaptureScreenProps) {
   return (
     <SafeAreaView style={styles.screen}>
+      <AppTopBar showBack onBack={onBack} />
       <ScrollView contentContainerStyle={styles.content}>
-        <PrimaryButton label="Back" icon={ChevronLeft} tone="quiet" onPress={onBack} />
-
         <View style={styles.hero}>
-          <Text style={styles.kicker}>Scan menu</Text>
           <Text style={styles.title}>Capture one clear menu page.</Text>
           <Text style={styles.body}>
             Keep the page flat, include dish descriptions when possible, and avoid glare.
@@ -52,23 +51,17 @@ const styles = StyleSheet.create({
   },
   content: {
     gap: 24,
-    padding: 20
+    padding: 24,
+    paddingTop: 48
   },
   hero: {
     gap: 10,
-    paddingTop: 48
-  },
-  kicker: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0,
-    textTransform: "uppercase"
+    paddingTop: 0
   },
   title: {
     color: colors.ink,
     fontSize: 32,
-    fontWeight: "700",
+    fontWeight: "300",
     letterSpacing: 0,
     lineHeight: 40
   },

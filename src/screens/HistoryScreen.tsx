@@ -1,13 +1,14 @@
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { History } from "lucide-react-native";
+import { AlertTriangle, CircleCheck, History } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { EmptyState } from "../components/EmptyState";
 import { ScanResult } from "../types/scan";
 import { riskMeta } from "../utils/riskLabels";
 import { formatDateTime } from "../utils/formatters";
 import { BottomNavBar } from "../components/BottomNavBar";
+import { AppTopBar } from "../components/AppTopBar";
 
 type HistoryScreenProps = {
   scans: ScanResult[];
@@ -19,11 +20,9 @@ type HistoryScreenProps = {
 export function HistoryScreen({ scans, onBack, onOpenScan, onOpenProfile }: HistoryScreenProps) {
   return (
     <SafeAreaView style={styles.screen}>
+      <AppTopBar showBack onBack={onBack} />
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.kicker}>History</Text>
-          <Text style={styles.title}>Recent scans</Text>
-        </View>
+        <Text style={styles.title}>Scan History</Text>
 
         {scans.length === 0 ? (
           <EmptyState
@@ -42,13 +41,34 @@ export function HistoryScreen({ scans, onBack, onOpenScan, onOpenProfile }: Hist
                   onPress={() => onOpenScan(scan.id)}
                   style={styles.item}
                 >
-                  <View style={[styles.riskBar, { backgroundColor: meta.color }]} />
-                  <View style={styles.itemText}>
-                    <Text style={styles.itemTitle}>{scan.restaurantName ?? "Menu scan"}</Text>
-                    <Text style={styles.itemDate}>{formatDateTime(scan.createdAt)}</Text>
+                  <View style={styles.itemHeader}>
+                    <View style={styles.itemText}>
+                      <Text style={styles.itemTitle}>{scan.restaurantName ?? "Menu scan"}</Text>
+                      <Text style={styles.itemDate}>{formatDateTime(scan.createdAt)}</Text>
+                    </View>
+                    <View style={[styles.badge, { backgroundColor: meta.background }]}>
+                      {scan.scanSummary.overallRisk === "low_risk" ? (
+                        <CircleCheck color={meta.color} size={13} strokeWidth={2.4} />
+                      ) : (
+                        <AlertTriangle color={meta.color} size={13} strokeWidth={2.4} />
+                      )}
+                      <Text style={[styles.badgeText, { color: meta.color }]}>
+                        {scan.scanSummary.overallRisk === "low_risk"
+                          ? "No Obvious Risks"
+                          : `${Math.max(1, scan.dishes.filter((dish) => dish.riskLevel !== "low_risk").length)} Risks Found`}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={[styles.badge, { backgroundColor: meta.background }]}>
-                    <Text style={[styles.badgeText, { color: meta.color }]}>{meta.label}</Text>
+                  <View style={styles.chips}>
+                    {scan.dishes
+                      .flatMap((dish) => dish.possibleAllergens)
+                      .filter((value, index, list) => list.indexOf(value) === index)
+                      .slice(0, 3)
+                      .map((allergen) => (
+                        <View key={allergen} style={styles.chip}>
+                          <Text style={styles.chipText}>{allergen}</Text>
+                        </View>
+                      ))}
                   </View>
                 </Pressable>
               );
@@ -74,70 +94,84 @@ const styles = StyleSheet.create({
     flex: 1
   },
   content: {
-    gap: 20,
-    padding: 20,
-    paddingBottom: 126
-  },
-  header: {
-    gap: 6
-  },
-  kicker: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0,
-    textTransform: "uppercase"
+    gap: 48,
+    padding: 24,
+    paddingBottom: 154,
+    paddingTop: 48
   },
   title: {
     color: colors.ink,
     fontSize: 32,
-    fontWeight: "700",
+    fontWeight: "300",
     letterSpacing: 0,
     lineHeight: 40
   },
   list: {
-    gap: 10
+    gap: 24
   },
   item: {
-    alignItems: "center",
     backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: 20,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 12,
-    minHeight: 76,
-    overflow: "hidden",
-    padding: 14
+    borderRadius: 12,
+    elevation: 2,
+    gap: 16,
+    padding: 24,
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12
   },
-  riskBar: {
-    alignSelf: "stretch",
-    borderRadius: 999,
-    width: 4
+  itemHeader: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    justifyContent: "space-between"
   },
   itemText: {
     flex: 1,
-    gap: 2
+    gap: 0
   },
   itemTitle: {
     color: colors.ink,
-    fontSize: 15,
-    fontWeight: "800",
-    letterSpacing: 0
+    fontSize: 18,
+    fontWeight: "500",
+    letterSpacing: 0,
+    lineHeight: 30
   },
   itemDate: {
     color: colors.inkMuted,
-    fontSize: 13,
-    letterSpacing: 0
+    fontSize: 16,
+    letterSpacing: 0,
+    lineHeight: 26
   },
   badge: {
+    alignItems: "center",
     borderRadius: 999,
-    paddingHorizontal: 9,
-    paddingVertical: 6
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4
   },
   badgeText: {
-    fontSize: 11,
-    fontWeight: "900",
+    fontSize: 13,
+    fontWeight: "500",
     letterSpacing: 0
+  },
+  chips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8
+  },
+  chip: {
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 4
+  },
+  chipText: {
+    color: colors.inkMuted,
+    fontSize: 13,
+    fontWeight: "500",
+    letterSpacing: 0,
+    lineHeight: 18,
+    textTransform: "capitalize"
   }
 });

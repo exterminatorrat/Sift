@@ -1,12 +1,23 @@
 import React from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChevronLeft, Trash2, UserRound } from "lucide-react-native";
+import {
+  Bell,
+  ChevronRight,
+  CircleHelp,
+  CreditCard,
+  Languages,
+  ShieldPlus,
+  Trash2
+} from "lucide-react-native";
 import { colors } from "../constants/colors";
-import { DisclaimerBanner } from "../components/DisclaimerBanner";
-import { PrimaryButton } from "../components/PrimaryButton";
+import { AppTopBar } from "../components/AppTopBar";
+import { UserProfile } from "../types/allergy";
+
+const profileAvatar = require("../../assets/profile-avatar.png");
 
 type SettingsScreenProps = {
+  profile: UserProfile;
   scanCount: number;
   onBack: () => void;
   onEditProfile: () => void;
@@ -14,6 +25,7 @@ type SettingsScreenProps = {
 };
 
 export function SettingsScreen({
+  profile,
   scanCount,
   onBack,
   onEditProfile,
@@ -28,40 +40,50 @@ export function SettingsScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.topBar}>
-        <Pressable
-          accessibilityLabel="Go back"
-          accessibilityRole="button"
-          onPress={onBack}
-          style={styles.backButton}
-        >
-          <ChevronLeft color={colors.ink} size={24} strokeWidth={2.3} />
-        </Pressable>
-        <Text style={styles.topTitle}>Sift</Text>
-        <View style={styles.topSpacer} />
-      </View>
+      <AppTopBar showBack onBack={onBack} />
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Profile</Text>
-          <PrimaryButton label="Edit allergy profile" icon={UserRound} tone="secondary" onPress={onEditProfile} />
+        <Pressable accessibilityRole="button" onPress={onEditProfile} style={styles.profileCard}>
+          <Image source={profileAvatar} resizeMode="cover" style={styles.avatar} />
+          <View style={styles.profileText}>
+            <Text style={styles.profileName}>{profile.name || "Profile"}</Text>
+            <Text style={styles.profileEmail}>{profile.allergies.length} active filters</Text>
+          </View>
+          <ChevronRight color={colors.borderStrong} size={20} strokeWidth={2} />
+        </Pressable>
+
+        <View style={styles.menuList}>
+          <SettingsRow icon={CreditCard} label="Subscription" />
+          <SettingsRow icon={Bell} label="Notifications" />
+          <SettingsRow icon={Languages} label="Language & Translation" />
+          <SettingsRow icon={ShieldPlus} label="Safety Disclaimer" />
+          <View style={styles.divider} />
+          <SettingsRow icon={Trash2} label={`Clear Scan History (${scanCount})`} onPress={confirmClearHistory} />
+          <SettingsRow icon={CircleHelp} label="Help / Support" />
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Saved scans</Text>
-          <Text style={styles.body}>{scanCount} scans saved on this device.</Text>
-          <PrimaryButton
-            label="Clear history"
-            icon={Trash2}
-            tone="secondary"
-            onPress={confirmClearHistory}
-          />
-        </View>
-
-        <DisclaimerBanner />
-
-        <Text style={styles.version}>Sift 0.1.0</Text>
+        <Pressable accessibilityRole="button" style={styles.logout}>
+          <Text style={styles.logoutText}>LOG OUT</Text>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+type SettingsRowProps = {
+  icon: typeof CreditCard;
+  label: string;
+  onPress?: () => void;
+};
+
+function SettingsRow({ icon: Icon, label, onPress }: SettingsRowProps) {
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={styles.row}>
+      <View style={styles.rowLeft}>
+        <Icon color={colors.primary} size={21} strokeWidth={1.9} />
+        <Text style={styles.rowLabel}>{label}</Text>
+      </View>
+      <ChevronRight color={colors.borderStrong} size={18} strokeWidth={2} />
+    </Pressable>
   );
 }
 
@@ -70,59 +92,88 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     flex: 1
   },
-  topBar: {
-    alignItems: "center",
-    flexDirection: "row",
-    height: 56,
-    paddingHorizontal: 14
-  },
-  backButton: {
-    alignItems: "center",
-    height: 44,
-    justifyContent: "center",
-    width: 44
-  },
-  topTitle: {
-    color: colors.ink,
-    flex: 1,
-    fontSize: 17,
-    fontWeight: "900",
-    letterSpacing: 0,
-    textAlign: "center"
-  },
-  topSpacer: {
-    width: 44
-  },
   content: {
-    gap: 20,
-    padding: 20,
-    paddingTop: 8
+    gap: 80,
+    padding: 24,
+    paddingBottom: 138,
+    paddingTop: 48
   },
-  section: {
+  profileCard: {
+    alignItems: "center",
     backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: 20,
-    borderWidth: 1,
-    gap: 12,
+    borderRadius: 16,
+    elevation: 2,
+    flexDirection: "row",
+    gap: 24,
+    minHeight: 112,
+    padding: 24,
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.04,
+    shadowRadius: 20
+  },
+  avatar: {
+    borderRadius: 999,
+    height: 64,
+    width: 64
+  },
+  profileText: {
+    flex: 1,
+    gap: 4
+  },
+  profileName: {
+    color: colors.ink,
+    fontSize: 18,
+    fontWeight: "400",
+    letterSpacing: 0,
+    lineHeight: 30
+  },
+  profileEmail: {
+    color: colors.inkMuted,
+    fontSize: 16,
+    letterSpacing: 0,
+    lineHeight: 26
+  },
+  menuList: {
+    gap: 8
+  },
+  row: {
+    alignItems: "center",
+    borderRadius: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    minHeight: 62,
     padding: 16
   },
-  sectionTitle: {
+  rowLeft: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 16
+  },
+  rowLabel: {
     color: colors.ink,
-    fontSize: 16,
-    fontWeight: "900",
-    letterSpacing: 0
-  },
-  body: {
-    color: colors.inkMuted,
-    fontSize: 14,
+    fontSize: 18,
+    fontWeight: "400",
     letterSpacing: 0,
-    lineHeight: 21
+    lineHeight: 30
   },
-  version: {
-    color: colors.inkSubtle,
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0,
-    textAlign: "center"
+  divider: {
+    backgroundColor: "rgba(206,197,188,0.2)",
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 12
+  },
+  logout: {
+    alignSelf: "center",
+    backgroundColor: "rgba(255,218,214,0.2)",
+    borderRadius: 999,
+    paddingHorizontal: 32,
+    paddingVertical: 12
+  },
+  logoutText: {
+    color: colors.high,
+    fontSize: 13,
+    fontWeight: "500",
+    letterSpacing: 1.3,
+    lineHeight: 18
   }
 });

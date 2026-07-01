@@ -286,6 +286,7 @@ export default function App() {
           <Stack.Screen name="Settings">
             {({ navigation }) => (
               <SettingsScreen
+                profile={profile}
                 scanCount={scanHistory.length}
                 onBack={() => navigation.goBack()}
                 onEditProfile={() => navigation.navigate("Profile")}

@@ -16,6 +16,7 @@ import { commonAllergens } from "../constants/commonAllergens";
 import { AllergyChip } from "../components/AllergyChip";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { BottomNavBar } from "../components/BottomNavBar";
+import { AppTopBar } from "../components/AppTopBar";
 
 type ProfileScreenProps = {
   profile: UserProfile;
@@ -125,6 +126,7 @@ export function ProfileScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
+      <AppTopBar showBack onBack={onHome ?? onDone} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Text style={styles.title}>Allergy Profile</Text>
@@ -366,7 +368,7 @@ const styles = StyleSheet.create({
   content: {
     gap: 24,
     padding: 24,
-    paddingTop: 44,
+    paddingTop: 48,
     paddingBottom: 168
   },
   header: {
