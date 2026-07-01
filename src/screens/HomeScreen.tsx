@@ -13,7 +13,6 @@ import { AllergyChip } from "../components/AllergyChip";
 import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { EmptyState } from "../components/EmptyState";
 import { PrimaryButton } from "../components/PrimaryButton";
-import { formatAllergySummary } from "../utils/formatters";
 import { BottomNavBar } from "../components/BottomNavBar";
 
 type HomeScreenProps = {
@@ -42,7 +41,6 @@ export function HomeScreen({
           <View>
             <Text style={styles.welcome}>Welcome back,</Text>
             <Text style={styles.profileGreeting}>{profile.name || "Profile"}</Text>
-            <Text style={styles.subtitle}>Checking for: {formatAllergySummary(profile.allergies)}</Text>
           </View>
           <View style={styles.headerActions}>
             <Pressable accessibilityRole="button" onPress={onOpenSettings} style={styles.iconButton}>
@@ -53,8 +51,6 @@ export function HomeScreen({
 
         {hasAllergies ? (
           <View style={styles.allergyPanel}>
-            <Text style={styles.panelLabel}>Active allergy profile</Text>
-            <Text style={styles.profileName}>{profile.name}</Text>
             <View style={styles.chipGrid}>
               {profile.allergies.map((allergy) => (
                 <AllergyChip key={allergy.id} label={allergy.name} severity={allergy.severity} />
@@ -124,14 +120,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     lineHeight: 38
   },
-  subtitle: {
-    color: colors.inkMuted,
-    fontSize: 14,
-    letterSpacing: 0,
-    lineHeight: 20,
-    marginTop: 2,
-    maxWidth: 270
-  },
   iconButton: {
     alignItems: "center",
     backgroundColor: colors.primarySoft,
@@ -147,19 +135,6 @@ const styles = StyleSheet.create({
   allergyPanel: {
     gap: 12,
     paddingVertical: 8
-  },
-  panelLabel: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0,
-    textTransform: "uppercase"
-  },
-  profileName: {
-    color: colors.ink,
-    fontSize: 24,
-    fontWeight: "900",
-    letterSpacing: 0
   },
   chipGrid: {
     flexDirection: "row",
