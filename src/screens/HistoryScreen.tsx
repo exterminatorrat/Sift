@@ -1,10 +1,9 @@
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChevronLeft, History } from "lucide-react-native";
+import { History } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { EmptyState } from "../components/EmptyState";
-import { PrimaryButton } from "../components/PrimaryButton";
 import { ScanResult } from "../types/scan";
 import { riskMeta } from "../utils/riskLabels";
 import { formatDateTime } from "../utils/formatters";
@@ -21,8 +20,6 @@ export function HistoryScreen({ scans, onBack, onOpenScan, onOpenProfile }: Hist
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
-        <PrimaryButton label="Back" icon={ChevronLeft} tone="quiet" onPress={onBack} />
-
         <View style={styles.header}>
           <Text style={styles.kicker}>History</Text>
           <Text style={styles.title}>Recent scans</Text>

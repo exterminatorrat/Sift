@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronLeft, Trash2, UserRound } from "lucide-react-native";
 import { colors } from "../constants/colors";
@@ -28,14 +28,19 @@ export function SettingsScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
+      <View style={styles.topBar}>
+        <Pressable
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+          onPress={onBack}
+          style={styles.backButton}
+        >
+          <ChevronLeft color={colors.ink} size={24} strokeWidth={2.3} />
+        </Pressable>
+        <Text style={styles.topTitle}>Sift</Text>
+        <View style={styles.topSpacer} />
+      </View>
       <ScrollView contentContainerStyle={styles.content}>
-        <PrimaryButton label="Back" icon={ChevronLeft} tone="quiet" onPress={onBack} />
-
-        <View style={styles.header}>
-          <Text style={styles.kicker}>Settings</Text>
-          <Text style={styles.title}>Sift</Text>
-        </View>
-
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Profile</Text>
           <PrimaryButton label="Edit allergy profile" icon={UserRound} tone="secondary" onPress={onEditProfile} />
@@ -65,26 +70,33 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     flex: 1
   },
+  topBar: {
+    alignItems: "center",
+    flexDirection: "row",
+    height: 56,
+    paddingHorizontal: 14
+  },
+  backButton: {
+    alignItems: "center",
+    height: 44,
+    justifyContent: "center",
+    width: 44
+  },
+  topTitle: {
+    color: colors.ink,
+    flex: 1,
+    fontSize: 17,
+    fontWeight: "900",
+    letterSpacing: 0,
+    textAlign: "center"
+  },
+  topSpacer: {
+    width: 44
+  },
   content: {
     gap: 20,
-    padding: 20
-  },
-  header: {
-    gap: 6
-  },
-  kicker: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0,
-    textTransform: "uppercase"
-  },
-  title: {
-    color: colors.ink,
-    fontSize: 32,
-    fontWeight: "700",
-    letterSpacing: 0,
-    lineHeight: 40
+    padding: 20,
+    paddingTop: 8
   },
   section: {
     backgroundColor: colors.surface,

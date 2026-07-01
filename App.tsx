@@ -90,7 +90,7 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator
           initialRouteName={onboardingComplete ? "Home" : "Onboarding"}
-          screenOptions={{ headerShown: false }}
+          screenOptions={{ animation: "none", headerShown: false }}
         >
           <Stack.Screen name="Onboarding">
             {({ navigation }) => (
@@ -108,12 +108,12 @@ export default function App() {
             {({ navigation }) => (
               <HomeScreen
                 profile={profile}
-                onOpenProfile={() => navigation.navigate("Profile")}
+                onOpenProfile={() => navigation.replace("Profile")}
                 onOpenSettings={() => navigation.navigate("Settings")}
-                onOpenHistory={() => navigation.navigate("History")}
+                onOpenHistory={() => navigation.replace("History")}
                 onStartScan={() => {
                   if (profile.allergies.length === 0) {
-                    navigation.navigate("Profile");
+                    navigation.replace("Profile");
                     return;
                   }
                   setScanError(null);
@@ -121,7 +121,7 @@ export default function App() {
                 }}
                 onUploadPhoto={async () => {
                   if (profile.allergies.length === 0) {
-                    navigation.navigate("Profile");
+                    navigation.replace("Profile");
                     return;
                   }
                   await selectImageFromLibrary(navigation.navigate);
@@ -138,9 +138,9 @@ export default function App() {
                   setProfile(nextProfile);
                   await saveProfile(nextProfile);
                 }}
-                onDone={() => navigation.navigate("Home")}
-                onHome={() => navigation.navigate("Home")}
-                onOpenHistory={() => navigation.navigate("History")}
+                onDone={() => navigation.replace("Home")}
+                onHome={() => navigation.replace("Home")}
+                onOpenHistory={() => navigation.replace("History")}
               />
             )}
           </Stack.Screen>
@@ -187,9 +187,9 @@ export default function App() {
                 return (
                   <HistoryScreen
                     scans={scanHistory}
-                    onBack={() => navigation.navigate("Home")}
+                    onBack={() => navigation.replace("Home")}
                     onOpenScan={(scanId) => navigation.replace("Results", { scanId })}
-                    onOpenProfile={() => navigation.navigate("Profile")}
+                    onOpenProfile={() => navigation.replace("Profile")}
                   />
                 );
               }
@@ -199,7 +199,7 @@ export default function App() {
                   scanResult={scanResult}
                   profile={profile}
                   onBack={() => navigation.navigate("Home")}
-                  onOpenHistory={() => navigation.navigate("History")}
+                  onOpenHistory={() => navigation.replace("History")}
                   onOpenDish={(dish) =>
                     navigation.navigate("DishDetail", {
                       scanId: scanResult.id,
@@ -220,9 +220,9 @@ export default function App() {
                 return (
                   <HistoryScreen
                     scans={scanHistory}
-                    onBack={() => navigation.navigate("Home")}
+                    onBack={() => navigation.replace("Home")}
                     onOpenScan={(scanId) => navigation.replace("Results", { scanId })}
-                    onOpenProfile={() => navigation.navigate("Profile")}
+                    onOpenProfile={() => navigation.replace("Profile")}
                   />
                 );
               }
@@ -242,9 +242,9 @@ export default function App() {
             {({ navigation }) => (
               <HistoryScreen
                 scans={scanHistory}
-                onBack={() => navigation.navigate("Home")}
+                onBack={() => navigation.replace("Home")}
                 onOpenScan={(scanId) => navigation.navigate("Results", { scanId })}
-                onOpenProfile={() => navigation.navigate("Profile")}
+                onOpenProfile={() => navigation.replace("Profile")}
               />
             )}
           </Stack.Screen>
