@@ -174,6 +174,26 @@ export default function App() {
                   );
                   await persistProfiles([...nextProfiles, nextProfile], nextProfile.id);
                 }}
+                onDeleteProfile={async (profileId, currentProfile) => {
+                  const savedCurrentProfiles = profiles.map((item) =>
+                    item.id === currentProfile.id && item.id !== profileId ? currentProfile : item
+                  );
+                  const remainingProfiles = savedCurrentProfiles.filter((item) => item.id !== profileId);
+                  const nextProfiles =
+                    remainingProfiles.length > 0
+                      ? remainingProfiles
+                      : [
+                          {
+                            ...createDefaultProfile(),
+                            id: `profile-${Date.now()}`,
+                            name: "Profile 1"
+                          }
+                        ];
+                  const nextActiveProfileId =
+                    profileId === activeProfileId ? nextProfiles[0].id : activeProfileId;
+
+                  await persistProfiles(nextProfiles, nextActiveProfileId);
+                }}
                 onDone={() => navigation.replace("Home")}
                 onHome={() => navigation.replace("Home")}
                 onOpenHistory={() => navigation.replace("History")}

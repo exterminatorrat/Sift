@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ChevronRight,
+  Menu,
   ScanLine,
   UserRound
 } from "lucide-react-native";
@@ -11,7 +12,6 @@ import { ScanResult } from "../types/scan";
 import { colors } from "../constants/colors";
 import { EmptyState } from "../components/EmptyState";
 import { BottomNavBar } from "../components/BottomNavBar";
-import { AppTopBar } from "../components/AppTopBar";
 import { formatDateTime } from "../utils/formatters";
 import { riskMeta } from "../utils/riskLabels";
 
@@ -41,8 +41,19 @@ export function HomeScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
-      <AppTopBar title="Home" showMenu onMenu={onOpenSettings} />
       <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.pageHeader}>
+          <Text style={styles.pageTitle}>Home</Text>
+          <Pressable
+            accessibilityLabel="Open settings"
+            accessibilityRole="button"
+            onPress={onOpenSettings}
+            style={styles.headerButton}
+          >
+            <Menu color={colors.primaryDark} size={22} strokeWidth={2.1} />
+          </Pressable>
+        </View>
+
         {hasAllergies ? (
           <View style={styles.filtersSection}>
             <Text style={styles.sectionEyebrow}>Active filters</Text>
@@ -144,7 +155,33 @@ const styles = StyleSheet.create({
   content: {
     padding: 24,
     paddingBottom: 132,
-    paddingTop: 24
+    paddingTop: 18
+  },
+  pageHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 24
+  },
+  pageTitle: {
+    color: colors.primaryDark,
+    fontSize: 24,
+    fontWeight: "700",
+    letterSpacing: 0,
+    lineHeight: 32
+  },
+  headerButton: {
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderRadius: 999,
+    elevation: 2,
+    height: 40,
+    justifyContent: "center",
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    width: 40
   },
   filtersSection: {
     gap: 12,

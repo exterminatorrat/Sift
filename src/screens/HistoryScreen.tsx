@@ -8,7 +8,6 @@ import { ScanResult } from "../types/scan";
 import { riskMeta } from "../utils/riskLabels";
 import { formatDateTime } from "../utils/formatters";
 import { BottomNavBar } from "../components/BottomNavBar";
-import { AppTopBar } from "../components/AppTopBar";
 
 type HistoryScreenProps = {
   scans: ScanResult[];
@@ -20,8 +19,11 @@ type HistoryScreenProps = {
 export function HistoryScreen({ scans, onBack, onOpenScan, onOpenProfile }: HistoryScreenProps) {
   return (
     <SafeAreaView style={styles.screen}>
-      <AppTopBar title="Scan History" />
       <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.pageHeader}>
+          <Text style={styles.pageTitle}>Scan History</Text>
+        </View>
+
         {scans.length === 0 ? (
           <EmptyState
             icon={History}
@@ -95,7 +97,18 @@ const styles = StyleSheet.create({
     gap: 24,
     padding: 24,
     paddingBottom: 154,
-    paddingTop: 32
+    paddingTop: 18
+  },
+  pageHeader: {
+    justifyContent: "center",
+    minHeight: 40
+  },
+  pageTitle: {
+    color: colors.primaryDark,
+    fontSize: 24,
+    fontWeight: "700",
+    letterSpacing: 0,
+    lineHeight: 32
   },
   list: {
     gap: 24

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,22 +10,22 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Check, Plus } from "lucide-react-native";
+import { Check, Plus, Save, Trash2 } from "lucide-react-native";
 import { Allergy, AllergySeverity, UserProfile } from "../types/allergy";
 import { colors } from "../constants/colors";
 import { commonAllergens } from "../constants/commonAllergens";
 import { AllergyChip } from "../components/AllergyChip";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { BottomNavBar } from "../components/BottomNavBar";
-import { AppTopBar } from "../components/AppTopBar";
 
 type ProfileScreenProps = {
   profile: UserProfile;
   profiles: UserProfile[];
   activeProfileId: string;
-  onChangeProfile: (profile: UserProfile) => void;
+  onChangeProfile: (profile: UserProfile) => void | Promise<void>;
   onSelectProfile: (profileId: string, currentProfile: UserProfile) => void;
   onCreateProfile: (currentProfile: UserProfile) => void;
+  onDeleteProfile: (profileId: string, currentProfile: UserProfile) => void | Promise<void>;
   onDone: () => void;
   onHome?: () => void;
   onOpenHistory?: () => void;
@@ -39,21 +40,37 @@ export function ProfileScreen({
   onChangeProfile,
   onSelectProfile,
   onCreateProfile,
+  onDeleteProfile,
   onDone,
   onHome,
   onOpenHistory
 }: ProfileScreenProps) {
   const [draft, setDraft] = useState<UserProfile>(profile);
   const [customAllergen, setCustomAllergen] = useState("");
+  const [savedNoticeVisible, setSavedNoticeVisible] = useState(false);
 
   useEffect(() => {
     setDraft(profile);
     setCustomAllergen("");
   }, [profile]);
 
-  const save = () => {
-    onChangeProfile(draft);
-    onDone();
+  const save = async () => {
+    await onChangeProfile(draft);
+    setSavedNoticeVisible(true);
+    setTimeout(() => setSavedNoticeVisible(false), 2200);
+  };
+
+  const confirmDeleteProfile = (profileId: string, profileName: string) => {
+    Alert.alert("Delete profile?", `Delete ${profileName || "this profile"} from this device?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          void onDeleteProfile(profileId, draft);
+        }
+      }
+    ]);
   };
 
   const selectProfile = (profileId: string) => {
@@ -126,14 +143,9 @@ export function ProfileScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
-      <AppTopBar
-        title="Allergy Profile"
-        rightIcon={Check}
-        rightAccessibilityLabel="Save profile"
-        onRightPress={save}
-      />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
+          <Text style={styles.title}>Allergy Profile</Text>
           <Text style={styles.subtitle}>
             Choose allergies and severity. Sift uses this profile to scan menus and prepare
             questions.
@@ -166,9 +178,22 @@ export function ProfileScreen({
                   onPress={() => selectProfile(savedProfile.id)}
                   style={[styles.profilePill, active && styles.profilePillActive]}
                 >
-                  <Text style={[styles.profilePillName, active && styles.profilePillNameActive]}>
-                    {savedProfile.name || "Profile"}
-                  </Text>
+                  <View style={styles.profilePillHeader}>
+                    <Text style={[styles.profilePillName, active && styles.profilePillNameActive]}>
+                      {savedProfile.name || "Profile"}
+                    </Text>
+                    <Pressable
+                      accessibilityLabel={`Delete ${savedProfile.name || "profile"}`}
+                      accessibilityRole="button"
+                      hitSlop={8}
+                      onPress={(event) => {
+                        event.stopPropagation();
+                        confirmDeleteProfile(savedProfile.id, savedProfile.name);
+                      }}
+                    >
+                      <Trash2 color={colors.inkSubtle} size={14} strokeWidth={2.1} />
+                    </Pressable>
+                  </View>
                   <Text style={styles.profilePillMeta}>{savedProfile.allergies.length} allergies</Text>
                 </Pressable>
               );
@@ -356,6 +381,21 @@ export function ProfileScreen({
           onProfile={() => undefined}
         />
       )}
+      <Pressable
+        accessibilityLabel="Save profile"
+        accessibilityRole="button"
+        onPress={() => {
+          void save();
+        }}
+        style={styles.floatingSave}
+      >
+        <Save color={colors.surface} size={23} strokeWidth={2.2} />
+      </Pressable>
+      {savedNoticeVisible && (
+        <View style={styles.toast}>
+          <Text style={styles.toastText}>Allergy profile saved</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -368,12 +408,20 @@ const styles = StyleSheet.create({
   content: {
     gap: 24,
     padding: 24,
-    paddingTop: 22,
-    paddingBottom: 132
+    paddingTop: 18,
+    paddingBottom: 154
   },
   header: {
     alignItems: "center",
-    gap: 0
+    gap: 12
+  },
+  title: {
+    color: colors.primaryDark,
+    fontSize: 24,
+    fontWeight: "700",
+    letterSpacing: 0,
+    lineHeight: 32,
+    textAlign: "center"
   },
   subtitle: {
     color: colors.inkMuted,
@@ -416,9 +464,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
     gap: 3,
-    minWidth: 116,
+    minWidth: 132,
     paddingHorizontal: 12,
     paddingVertical: 10
+  },
+  profilePillHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "space-between"
   },
   profilePillActive: {
     backgroundColor: colors.primarySoft,
@@ -654,4 +708,35 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     textAlignVertical: "top"
   },
+  floatingSave: {
+    alignItems: "center",
+    backgroundColor: colors.primaryDark,
+    borderRadius: 999,
+    bottom: 104,
+    elevation: 10,
+    height: 58,
+    justifyContent: "center",
+    position: "absolute",
+    right: 24,
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    width: 58
+  },
+  toast: {
+    alignSelf: "center",
+    backgroundColor: colors.primaryDark,
+    borderRadius: 999,
+    bottom: 176,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    position: "absolute"
+  },
+  toastText: {
+    color: colors.surface,
+    fontSize: 13,
+    fontWeight: "700",
+    letterSpacing: 0
+  }
 });
