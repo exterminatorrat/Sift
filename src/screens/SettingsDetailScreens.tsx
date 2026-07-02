@@ -362,10 +362,10 @@ const styles = StyleSheet.create({
     flex: 1
   },
   content: {
-    gap: 44,
+    gap: 36,
     padding: 40,
     paddingBottom: 72,
-    paddingTop: 72
+    paddingTop: 24
   },
   header: {
     gap: 8
