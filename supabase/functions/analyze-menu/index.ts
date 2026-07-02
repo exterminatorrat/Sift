@@ -25,6 +25,14 @@ type AnalyzeMenuRequest = {
   restaurantLanguage?: string;
 };
 
+type AnalysisProvider = "openai" | "nvidia";
+
+type AnalysisOutput = {
+  model: string;
+  provider: AnalysisProvider;
+  text: string;
+};
+
 type ScanResult = {
   id: string;
   createdAt: string;
@@ -178,92 +186,170 @@ Deno.serve(async (request) => {
   }
 
   try {
-    const openAiKey = Deno.env.get("OPENAI_API_KEY");
-    if (!openAiKey) {
-      return jsonResponse({ error: "Analysis service is not configured." }, 500);
-    }
-
     const body = await request.json() as Partial<AnalyzeMenuRequest>;
     if (!isValidRequest(body)) {
       return jsonResponse({ error: "Invalid analysis request." }, 400);
     }
 
-    const model = Deno.env.get("OPENAI_MODEL") ?? "gpt-5.4-mini";
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${openAiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model,
-        reasoning: { effort: Deno.env.get("OPENAI_REASONING_EFFORT") ?? "low" },
-        max_output_tokens: Number(Deno.env.get("OPENAI_MAX_OUTPUT_TOKENS") ?? 3500),
-        text: {
-          verbosity: "low",
-          format: {
-            type: "json_schema",
-            name: "sift_menu_scan_result",
-            strict: true,
-            schema: scanResultSchema
-          }
-        },
-        input: [
-          {
-            role: "system",
-            content: [
-              {
-                type: "input_text",
-                text: buildSystemPrompt()
-              }
-            ]
-          },
-          {
-            role: "user",
-            content: [
-              {
-                type: "input_text",
-                text: buildUserPrompt(body)
-              },
-              {
-                type: "input_image",
-                image_url: `data:${body.mimeType};base64,${body.imageBase64}`
-              }
-            ]
-          }
-        ]
-      })
-    });
-
-    if (!response.ok) {
-      console.error("OpenAI analysis failed", response.status, await response.text());
-      return jsonResponse({ error: "Menu analysis failed." }, 502);
-    }
-
-    const data = await response.json();
-    const outputText = extractOutputText(data);
-    const scanResult = JSON.parse(outputText) as ScanResult;
+    const analysis = await analyzeMenu(body);
+    const scanResult = normalizeScanResult(
+      JSON.parse(extractJsonText(analysis.text)) as Partial<ScanResult>,
+      body.profile.id
+    );
     const validationError = validateScanResult(scanResult);
 
     if (validationError) {
-      console.error("Invalid model response", validationError);
+      console.error("Invalid model response", validationError, analysis.provider, analysis.model);
       return jsonResponse({ error: "Menu analysis returned an invalid response." }, 502);
     }
 
     return jsonResponse({
       ...scanResult,
-      id: scanResult.id || `scan-${Date.now()}`,
-      createdAt: scanResult.createdAt || new Date().toISOString(),
       imageUri: null,
-      profileId: body.profile.id,
       analysisSource: "ai",
-      analysisModel: model
+      analysisModel: analysis.model
     });
   } catch (error) {
     console.error(error);
     return jsonResponse({ error: "We could not analyze this menu clearly." }, 500);
   }
 });
+
+async function analyzeMenu(request: AnalyzeMenuRequest): Promise<AnalysisOutput> {
+  const provider = getAnalysisProvider();
+
+  if (provider === "nvidia") {
+    return analyzeWithNvidia(request);
+  }
+
+  return analyzeWithOpenAi(request);
+}
+
+function getAnalysisProvider(): AnalysisProvider {
+  const provider = Deno.env.get("AI_PROVIDER")?.trim().toLowerCase();
+  return provider === "nvidia" ? "nvidia" : "openai";
+}
+
+async function analyzeWithOpenAi(request: AnalyzeMenuRequest): Promise<AnalysisOutput> {
+  const openAiKey = Deno.env.get("OPENAI_API_KEY");
+  if (!openAiKey) {
+    throw new Error("OpenAI analysis service is not configured.");
+  }
+
+  const model = Deno.env.get("OPENAI_MODEL") ?? "gpt-5.4-mini";
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${openAiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model,
+      reasoning: { effort: Deno.env.get("OPENAI_REASONING_EFFORT") ?? "low" },
+      max_output_tokens: Number(Deno.env.get("OPENAI_MAX_OUTPUT_TOKENS") ?? 3500),
+      text: {
+        verbosity: "low",
+        format: {
+          type: "json_schema",
+          name: "sift_menu_scan_result",
+          strict: true,
+          schema: scanResultSchema
+        }
+      },
+      input: [
+        {
+          role: "system",
+          content: [
+            {
+              type: "input_text",
+              text: buildSystemPrompt()
+            }
+          ]
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: buildUserPrompt(request)
+            },
+            {
+              type: "input_image",
+              image_url: `data:${request.mimeType};base64,${request.imageBase64}`
+            }
+          ]
+        }
+      ]
+    })
+  });
+
+  if (!response.ok) {
+    console.error("OpenAI analysis failed", response.status, await response.text());
+    throw new Error("OpenAI menu analysis failed.");
+  }
+
+  const data = await response.json();
+  return {
+    model,
+    provider: "openai",
+    text: extractOpenAiOutputText(data)
+  };
+}
+
+async function analyzeWithNvidia(request: AnalyzeMenuRequest): Promise<AnalysisOutput> {
+  const nvidiaKey = Deno.env.get("NVIDIA_API_KEY");
+  if (!nvidiaKey) {
+    throw new Error("NVIDIA analysis service is not configured.");
+  }
+
+  const baseUrl = trimTrailingSlash(Deno.env.get("NVIDIA_BASE_URL") ?? "https://integrate.api.nvidia.com/v1");
+  const model = Deno.env.get("NVIDIA_MODEL") ?? "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning";
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${nvidiaKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model,
+      temperature: Number(Deno.env.get("NVIDIA_TEMPERATURE") ?? 0.1),
+      max_tokens: Number(Deno.env.get("NVIDIA_MAX_TOKENS") ?? 3500),
+      messages: [
+        {
+          role: "system",
+          content: `${buildSystemPrompt()}\nReturn raw JSON only. Do not wrap JSON in markdown fences.`
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: buildUserPrompt(request)
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:${request.mimeType};base64,${request.imageBase64}`
+              }
+            }
+          ]
+        }
+      ]
+    })
+  });
+
+  if (!response.ok) {
+    console.error("NVIDIA analysis failed", response.status, await response.text());
+    throw new Error("NVIDIA menu analysis failed.");
+  }
+
+  const data = await response.json();
+  return {
+    model,
+    provider: "nvidia",
+    text: extractChatCompletionText(data)
+  };
+}
 
 function buildSystemPrompt() {
   return [
@@ -279,7 +365,9 @@ function buildSystemPrompt() {
     "For low_risk, still include confirmation language when allergies are severe.",
     "Questions must be specific, short, and usable with restaurant staff.",
     "If a target restaurant language is requested, provide a simple polite translated restaurant message. If uncertain, keep translated null.",
-    "Return only JSON matching the provided schema."
+    "Return only JSON matching the provided schema.",
+    "Use camelCase keys exactly as specified: scanSummary, overallRisk, dishName, riskLevel, possibleAllergens, hiddenRiskIngredients, crossContactConcerns, questionsToAsk, conservativeLanguage, restaurantMessage, imageQuality.",
+    `Required JSON schema: ${JSON.stringify(scanResultSchema)}`
   ].join("\n");
 }
 
@@ -388,7 +476,7 @@ function validateDish(dish: unknown): string | null {
   return null;
 }
 
-function extractOutputText(data: any): string {
+function extractOpenAiOutputText(data: any): string {
   if (typeof data.output_text === "string") {
     return data.output_text;
   }
@@ -402,6 +490,126 @@ function extractOutputText(data: any): string {
   }
 
   throw new Error("No text output returned from OpenAI.");
+}
+
+function extractChatCompletionText(data: any): string {
+  const content = data?.choices?.[0]?.message?.content;
+
+  if (typeof content === "string") {
+    return content;
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map((item) => item?.text ?? item?.content ?? "")
+      .filter((value) => typeof value === "string")
+      .join("\n");
+  }
+
+  throw new Error("No text output returned from chat completion.");
+}
+
+function extractJsonText(value: string): string {
+  const trimmed = value.trim();
+  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fencedMatch?.[1]) {
+    return fencedMatch[1].trim();
+  }
+
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    return trimmed.slice(firstBrace, lastBrace + 1);
+  }
+
+  return trimmed;
+}
+
+function normalizeScanResult(value: Partial<ScanResult>, profileId: string): ScanResult {
+  return {
+    id: readString(value.id) || `scan-${Date.now()}`,
+    createdAt: readString(value.createdAt) || new Date().toISOString(),
+    imageUri: null,
+    restaurantName: typeof value.restaurantName === "string" ? value.restaurantName : null,
+    profileId,
+    scanSummary: {
+      overallRisk: riskLevels.has(value.scanSummary?.overallRisk as RiskLevel)
+        ? value.scanSummary!.overallRisk
+        : "unclear",
+      summary: readString(value.scanSummary?.summary) || "We could not analyze this menu clearly.",
+      limitations:
+        readString(value.scanSummary?.limitations) ||
+        "Visible menu text and common ingredient patterns only."
+    },
+    dishes: Array.isArray(value.dishes)
+      ? value.dishes.map((dish, index) => normalizeDish(dish, index))
+      : [createUnclearDish()],
+    restaurantMessage: value.restaurantMessage
+      ? {
+          english: readString(value.restaurantMessage.english),
+          translated:
+            typeof value.restaurantMessage.translated === "string"
+              ? value.restaurantMessage.translated
+              : null,
+          language:
+            typeof value.restaurantMessage.language === "string"
+              ? value.restaurantMessage.language
+              : null
+        }
+      : null,
+    imageQuality: {
+      readability: readabilityValues.has(value.imageQuality?.readability as ImageReadability)
+        ? value.imageQuality!.readability
+        : "poor",
+      issues: isStringArray(value.imageQuality?.issues) ? value.imageQuality!.issues : []
+    }
+  };
+}
+
+function normalizeDish(value: unknown, index: number): ScanResult["dishes"][number] {
+  const dish: Record<string, unknown> = isRecord(value) ? value : {};
+  return {
+    id: readString(dish.id) || `dish-${index + 1}`,
+    dishName: readString(dish.dishName) || readString(dish.dish_name) || `Dish ${index + 1}`,
+    menuDescription:
+      typeof dish.menuDescription === "string"
+        ? dish.menuDescription
+        : typeof dish.menu_description === "string"
+          ? dish.menu_description
+          : null,
+    riskLevel: riskLevels.has(dish.riskLevel as RiskLevel)
+      ? dish.riskLevel as RiskLevel
+      : riskLevels.has(dish.risk_level as RiskLevel)
+        ? dish.risk_level as RiskLevel
+        : "unclear",
+    possibleAllergens: readStringArray(dish.possibleAllergens ?? dish.possible_allergens),
+    hiddenRiskIngredients: readStringArray(dish.hiddenRiskIngredients ?? dish.hidden_risk_ingredients),
+    crossContactConcerns: readStringArray(dish.crossContactConcerns ?? dish.cross_contact_concerns),
+    reason: readString(dish.reason) || "The model did not provide enough reliable detail.",
+    questionsToAsk: readStringArray(dish.questionsToAsk ?? dish.questions_to_ask).length > 0
+      ? readStringArray(dish.questionsToAsk ?? dish.questions_to_ask)
+      : ["Can you confirm whether this dish contains any of my listed allergens?"],
+    conservativeLanguage:
+      readString(dish.conservativeLanguage ?? dish.safe_language) ||
+      "Not enough information. Ask staff before ordering."
+  };
+}
+
+function createUnclearDish(): ScanResult["dishes"][number] {
+  return {
+    id: "unclear-menu",
+    dishName: "Menu image unclear",
+    menuDescription: null,
+    riskLevel: "unclear",
+    possibleAllergens: [],
+    hiddenRiskIngredients: [],
+    crossContactConcerns: [],
+    reason: "The image or model response did not provide enough reliable menu detail.",
+    questionsToAsk: [
+      "Can you confirm whether this dish contains any of my listed allergens?"
+    ],
+    conservativeLanguage: "Not enough information. Retake the photo or ask staff directly."
+  };
 }
 
 function containsBannedSafetyLanguage(value: unknown): boolean {
@@ -444,6 +652,16 @@ function readString(value: unknown): string {
 
 function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
+function readStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
+}
+
+function trimTrailingSlash(value: string) {
+  return value.replace(/\/+$/, "");
 }
 
 function jsonResponse(body: unknown, status = 200) {
