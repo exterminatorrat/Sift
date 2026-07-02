@@ -13,6 +13,12 @@ import {
 import { AppTopBar } from "../components/AppTopBar";
 import { colors } from "../constants/colors";
 import { UserProfile } from "../types/allergy";
+import { useI18n } from "../i18n/I18nProvider";
+import {
+  languageNameByCode,
+  plannedAppLanguages,
+  supportedAppLanguages
+} from "../i18n/translations";
 
 type BasicSettingsScreenProps = {
   onBack: () => void;
@@ -27,39 +33,39 @@ type LanguageSettingsScreenProps = BasicSettingsScreenProps & {
   onChangeProfile: (profile: UserProfile) => void | Promise<void>;
 };
 
-const appLanguages = ["English", "French", "Italian", "Japanese"];
-
 export function SubscriptionScreen({ onBack, onOpenSupport }: SubscriptionScreenProps) {
+  const { t } = useI18n();
+
   return (
     <SettingsShell onBack={onBack}>
-      <Header title="Sift Premium" body="Elevate menu scanning with deeper tools designed for peace of mind." />
+      <Header title={t("subscription.title")} body={t("subscription.body")} />
 
       <View style={styles.subscriptionCard}>
         <View style={styles.planTop}>
           <View>
-            <Text style={styles.eyebrow}>Current plan</Text>
-            <Text style={styles.planName}>Free MVP</Text>
+            <Text style={styles.eyebrow}>{t("subscription.currentPlan")}</Text>
+            <Text style={styles.planName}>{t("subscription.freeMvp")}</Text>
           </View>
           <View style={styles.priceBlock}>
             <Text style={styles.price}>$0</Text>
-            <Text style={styles.priceMeta}>now</Text>
+            <Text style={styles.priceMeta}>{t("subscription.now")}</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Planned benefits</Text>
-        <Benefit title="Unlimited scans" body="Scan menus without monthly limits when subscriptions launch." />
-        <Benefit title="Translation cards" body="Show restaurant staff a clear allergy message in travel languages." />
-        <Benefit title="Detailed risk analysis" body="Deeper hidden-ingredient and cross-contact explanations." />
+        <Text style={styles.sectionTitle}>{t("subscription.plannedBenefits")}</Text>
+        <Benefit title={t("subscription.unlimitedScans")} body={t("subscription.unlimitedScansBody")} />
+        <Benefit title={t("subscription.translationCards")} body={t("subscription.translationCardsBody")} />
+        <Benefit title={t("subscription.detailedRisk")} body={t("subscription.detailedRiskBody")} />
 
         <Pressable accessibilityRole="button" style={styles.primaryAction}>
-          <Text style={styles.primaryActionText}>Manage Subscription</Text>
+          <Text style={styles.primaryActionText}>{t("subscription.manage")}</Text>
         </Pressable>
       </View>
 
       <View style={styles.supportBlock}>
-        <Text style={styles.supportTitle}>Have questions about your plan?</Text>
+        <Text style={styles.supportTitle}>{t("subscription.questions")}</Text>
         <Pressable accessibilityRole="button" onPress={onOpenSupport} hitSlop={8}>
-          <Text style={styles.supportLink}>Visit the Support Center</Text>
+          <Text style={styles.supportLink}>{t("subscription.supportCenter")}</Text>
         </Pressable>
       </View>
     </SettingsShell>
@@ -71,6 +77,7 @@ export function LanguageTranslationScreen({
   onBack,
   onChangeProfile
 }: LanguageSettingsScreenProps) {
+  const { t } = useI18n();
   const selectedAppLanguage = profile.preferredLanguage || "English";
 
   const updateProfile = (patch: Partial<UserProfile>) => {
@@ -80,63 +87,75 @@ export function LanguageTranslationScreen({
   return (
     <SettingsShell onBack={onBack}>
       <Header
-        title="Language"
-        body="Choose the language Sift should use around the app. Restaurant language stays with your allergy profile."
+        title={t("language.title")}
+        body={t("language.body")}
       />
 
       <OptionSection
-        label="App language"
-        body="The primary language used for navigation and menus."
-        options={appLanguages}
+        label={t("language.appLanguage")}
+        body={t("language.appLanguageBody")}
+        options={supportedAppLanguages.map((language) => ({
+          label: t(language.labelKey),
+          value: languageNameByCode[language.code]
+        }))}
         selected={selectedAppLanguage}
         onSelect={(preferredLanguage) => updateProfile({ preferredLanguage })}
       />
+
+      <View style={styles.plannedLanguages}>
+        <Text style={styles.optionMeta}>
+          {t("language.comingLater", {
+            languages: plannedAppLanguages.map((language) => t(language)).join(", ")
+          })}
+        </Text>
+      </View>
     </SettingsShell>
   );
 }
 
 export function SafetyDisclaimerScreen({ onBack }: BasicSettingsScreenProps) {
+  const { t } = useI18n();
+
   return (
     <SettingsShell onBack={onBack}>
       <Header
-        title="Safety Disclaimer"
-        body="Please read carefully before using Sift for menu decisions."
+        title={t("safety.title")}
+        body={t("safety.body")}
         centered
       />
 
       <View style={styles.article}>
         <DisclaimerSection
-          title="1. Visible menu text only"
-          body="Sift analyzes visible menu text and common ingredient patterns. It cannot confirm full ingredients, kitchen preparation, substitutions, or cross-contact."
+          title={t("safety.visibleTitle")}
+          body={t("safety.visibleBody")}
         />
         <DisclaimerSection
-          title="2. Confirm with staff"
-          body="Always confirm with restaurant staff, especially for severe allergies. Ask about sauces, oils, broths, marinades, garnishes, fryers, and shared equipment."
+          title={t("safety.confirmTitle")}
+          body={t("safety.confirmBody")}
         />
         <View style={styles.callout}>
           <ShieldPlus color={colors.primaryDark} size={21} strokeWidth={2} />
-          <Text style={styles.calloutText}>
-            Sift never guarantees a dish is safe. It helps you know what to ask before ordering.
-          </Text>
+          <Text style={styles.calloutText}>{t("safety.callout")}</Text>
         </View>
         <DisclaimerSection
-          title="3. Not medical advice"
-          body="Sift is an allergy menu copilot, not a medical device, doctor, restaurant, or food safety certifier."
+          title={t("safety.medicalTitle")}
+          body={t("safety.medicalBody")}
         />
         <DisclaimerSection
-          title="4. Your responsibility"
-          body="You are responsible for deciding what to order and whether restaurant confirmation is sufficient for your allergy needs."
+          title={t("safety.responsibilityTitle")}
+          body={t("safety.responsibilityBody")}
         />
       </View>
 
       <Pressable accessibilityRole="button" onPress={onBack} style={styles.primaryAction}>
-        <Text style={styles.primaryActionText}>I understand</Text>
+        <Text style={styles.primaryActionText}>{t("safety.understand")}</Text>
       </Pressable>
     </SettingsShell>
   );
 }
 
 export function HelpSupportScreen({ onBack }: BasicSettingsScreenProps) {
+  const { t } = useI18n();
   const [supportVisible, setSupportVisible] = useState(false);
 
   const openUrl = async (url: string, fallbackTitle: string) => {
@@ -147,42 +166,40 @@ export function HelpSupportScreen({ onBack }: BasicSettingsScreenProps) {
       }
       await Linking.openURL(url);
     } catch {
-      Alert.alert(fallbackTitle, "We could not open this link on your device.");
+      Alert.alert(fallbackTitle, t("help.openError"));
     }
   };
 
   const openFeedbackEmail = () => {
-    const subject = encodeURIComponent("Sift feedback");
-    const body = encodeURIComponent(
-      "What happened?\n\nWhat would you like Sift to improve?\n\nDevice/App version if relevant:\n"
-    );
+    const subject = encodeURIComponent(t("help.feedbackSubject"));
+    const body = encodeURIComponent(t("help.feedbackBodyTemplate"));
     void openUrl(
       `mailto:feedback@siftallergy.app?subject=${subject}&body=${body}`,
-      "Email feedback"
+      t("help.emailFeedbackTitle")
     );
   };
 
   return (
     <SettingsShell onBack={onBack}>
-      <Header title="Help & Support" body="How can we assist you today?" />
+      <Header title={t("help.title")} body={t("help.body")} />
 
       <View style={styles.supportOptions}>
         <SupportOption
           icon={CircleHelp}
-          title="Frequently Asked Questions"
-          body="Find quick answers to common issues."
-          onPress={() => openUrl("https://faq.siftallergy.app", "Open FAQ")}
+          title={t("help.faq")}
+          body={t("help.faqBody")}
+          onPress={() => openUrl("https://faq.siftallergy.app", t("help.faq"))}
         />
         <SupportOption
           icon={MessageCircle}
-          title="Contact Support"
-          body="Reach out to our team directly."
+          title={t("help.contact")}
+          body={t("help.contactBody")}
           onPress={() => setSupportVisible(true)}
         />
         <SupportOption
           icon={Sparkles}
-          title="Submit Feedback"
-          body="Help us improve your Sift experience."
+          title={t("help.feedback")}
+          body={t("help.feedbackBody")}
           onPress={openFeedbackEmail}
         />
       </View>
@@ -195,26 +212,24 @@ export function HelpSupportScreen({ onBack }: BasicSettingsScreenProps) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.supportModal}>
-            <Text style={styles.modalTitle}>Contact Support</Text>
-            <Text style={styles.modalBody}>
-              Email us at support@siftallergy.app. We usually respond within 2-5 business days.
-            </Text>
+            <Text style={styles.modalTitle}>{t("help.supportModalTitle")}</Text>
+            <Text style={styles.modalBody}>{t("help.supportModalBody")}</Text>
             <Pressable
               accessibilityRole="button"
               onPress={() => {
-                const subject = encodeURIComponent("Sift support request");
-                void openUrl(`mailto:support@siftallergy.app?subject=${subject}`, "Email support");
+                const subject = encodeURIComponent(t("help.supportSubject"));
+                void openUrl(`mailto:support@siftallergy.app?subject=${subject}`, t("help.emailSupportTitle"));
               }}
               style={styles.modalPrimary}
             >
-              <Text style={styles.modalPrimaryText}>Email Support</Text>
+              <Text style={styles.modalPrimaryText}>{t("help.emailSupport")}</Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
               onPress={() => setSupportVisible(false)}
               style={styles.modalSecondary}
             >
-              <Text style={styles.modalSecondaryText}>Close</Text>
+              <Text style={styles.modalSecondaryText}>{t("common.close")}</Text>
             </Pressable>
           </View>
         </View>
@@ -263,7 +278,7 @@ function OptionSection({
 }: {
   label: string;
   body: string;
-  options: string[];
+  options: Array<{ label: string; value: string }>;
   selected: string;
   recommended?: string;
   onSelect: (option: string) => void;
@@ -276,17 +291,17 @@ function OptionSection({
       </View>
       <View style={styles.optionCard}>
         {options.map((option) => {
-          const active = selected === option;
+          const active = selected === option.value;
           return (
             <Pressable
               accessibilityRole="button"
-              key={option}
-              onPress={() => onSelect(option)}
+              key={option.value}
+              onPress={() => onSelect(option.value)}
               style={styles.optionRow}
             >
               <View style={styles.rowText}>
-                <Text style={styles.optionTitle}>{option}</Text>
-                {recommended === option && <Text style={styles.optionMeta}>Recommended</Text>}
+                <Text style={styles.optionTitle}>{option.label}</Text>
+                {recommended === option.value && <Text style={styles.optionMeta}>Recommended</Text>}
               </View>
               {active && <Check color={colors.primaryDark} size={20} strokeWidth={2.5} />}
             </Pressable>
@@ -412,6 +427,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.05,
     shadowRadius: 18
+  },
+  plannedLanguages: {
+    marginTop: -16
   },
   optionRow: {
     alignItems: "center",

@@ -15,6 +15,7 @@ import { EmptyState } from "../components/EmptyState";
 import { BottomNavBar } from "../components/BottomNavBar";
 import { formatDateTime } from "../utils/formatters";
 import { riskMeta } from "../utils/riskLabels";
+import { useI18n } from "../i18n/I18nProvider";
 
 type HomeScreenProps = {
   profile: UserProfile;
@@ -37,6 +38,7 @@ export function HomeScreen({
   onOpenScan,
   onOpenSettings
 }: HomeScreenProps) {
+  const { t } = useI18n();
   const hasAllergies = profile.allergies.length > 0;
   const visibleScans = recentScans.slice(0, 3);
 
@@ -44,9 +46,9 @@ export function HomeScreen({
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.pageHeader}>
-          <Text style={styles.pageTitle}>Home</Text>
+          <Text style={styles.pageTitle}>{t("home.title")}</Text>
           <Pressable
-            accessibilityLabel="Open settings"
+            accessibilityLabel={t("home.openSettings")}
             accessibilityRole="button"
             onPress={onOpenSettings}
             style={styles.headerButton}
@@ -57,7 +59,7 @@ export function HomeScreen({
 
         {hasAllergies ? (
           <View style={styles.filtersSection}>
-            <Text style={styles.sectionEyebrow}>Active filters</Text>
+            <Text style={styles.sectionEyebrow}>{t("home.activeFilters")}</Text>
             <View style={styles.filterWrap}>
               {profile.allergies.map((allergy) => (
                 <View key={allergy.id} style={styles.filterChip}>
@@ -69,9 +71,9 @@ export function HomeScreen({
         ) : (
           <EmptyState
             icon={UserRound}
-            title="Create an allergy profile"
-            body="Sift needs your allergies and severity before it can structure menu risks."
-            actionLabel="Edit profile"
+            title={t("home.createProfileTitle")}
+            body={t("home.createProfileBody")}
+            actionLabel={t("home.editProfile")}
             onAction={onOpenProfile}
           />
         )}
@@ -81,21 +83,21 @@ export function HomeScreen({
             <View style={styles.scanIcon}>
               <ScanLine color={colors.surface} size={32} strokeWidth={1.8} />
             </View>
-            <Text style={styles.scanTitle}>Scan Menu</Text>
-            <Text style={styles.scanBody}>Analyze ingredients instantly</Text>
+            <Text style={styles.scanTitle}>{t("home.scanMenu")}</Text>
+            <Text style={styles.scanBody}>{t("home.scanBody")}</Text>
           </Pressable>
           <Pressable accessibilityRole="button" onPress={onUploadPhoto} style={styles.uploadLink}>
             <Upload color={colors.primaryDark} size={15} strokeWidth={2} />
-            <Text style={styles.uploadLinkText}>Upload Photo</Text>
+            <Text style={styles.uploadLinkText}>{t("home.uploadPhoto")}</Text>
           </Pressable>
         </View>
 
         <View style={styles.recentSection}>
           <View style={styles.recentHeader}>
-            <Text style={styles.recentTitle}>Recent Scans</Text>
+            <Text style={styles.recentTitle}>{t("home.recentScans")}</Text>
             {visibleScans.length > 0 && (
               <Pressable accessibilityRole="button" onPress={onOpenHistory} style={styles.viewAll}>
-                <Text style={styles.viewAllText}>View All</Text>
+                <Text style={styles.viewAllText}>{t("home.viewAll")}</Text>
                 <ChevronRight color={colors.primaryDark} size={13} strokeWidth={2} />
               </Pressable>
             )}
@@ -115,7 +117,7 @@ export function HomeScreen({
                     style={styles.recentItem}
                   >
                     <View style={styles.recentText}>
-                      <Text style={styles.recentName}>{scan.restaurantName ?? "Menu scan"}</Text>
+                      <Text style={styles.recentName}>{scan.restaurantName ?? t("home.menuScan")}</Text>
                       <Text style={styles.recentDate}>{formatDateTime(scan.createdAt)}</Text>
                     </View>
                     <View style={styles.recentRight}>
@@ -135,7 +137,7 @@ export function HomeScreen({
               })}
             </View>
           ) : (
-            <Text style={styles.emptyRecent}>Scans you save on this device will appear here.</Text>
+            <Text style={styles.emptyRecent}>{t("home.emptyRecent")}</Text>
           )}
         </View>
       </ScrollView>

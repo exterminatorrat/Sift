@@ -36,6 +36,7 @@ import {
   SafetyDisclaimerScreen,
   SubscriptionScreen
 } from "./src/screens/SettingsDetailScreens";
+import { I18nProvider } from "./src/i18n/I18nProvider";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 type MainTab = "home" | "history" | "profile";
@@ -107,11 +108,12 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName={onboardingComplete ? "Home" : "Onboarding"}
-          screenOptions={{ animation: "none", headerShown: false }}
-        >
+      <I18nProvider language={profile.preferredLanguage}>
+        <NavigationContainer>
+          <Stack.Navigator
+            initialRouteName={onboardingComplete ? "Home" : "Onboarding"}
+            screenOptions={{ animation: "none", headerShown: false }}
+          >
           <Stack.Screen name="Onboarding">
             {({ navigation }) => (
               <OnboardingScreen
@@ -374,8 +376,9 @@ export default function App() {
           <Stack.Screen name="SettingsHelp" options={{ animation: "slide_from_right" }}>
             {({ navigation }) => <HelpSupportScreen onBack={() => navigation.goBack()} />}
           </Stack.Screen>
-        </Stack.Navigator>
-      </NavigationContainer>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </I18nProvider>
     </SafeAreaProvider>
   );
 

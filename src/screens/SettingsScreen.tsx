@@ -11,6 +11,7 @@ import {
 } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { AppTopBar } from "../components/AppTopBar";
+import { useI18n } from "../i18n/I18nProvider";
 
 type SettingsScreenProps = {
   scanCount: number;
@@ -31,10 +32,12 @@ export function SettingsScreen({
   onOpenHelp,
   onClearHistory
 }: SettingsScreenProps) {
+  const { t } = useI18n();
+
   const confirmClearHistory = () => {
-    Alert.alert("Clear scan history?", "This only clears saved scans on this device.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Clear", style: "destructive", onPress: onClearHistory }
+    Alert.alert(t("settings.clearHistoryTitle"), t("settings.clearHistoryBody"), [
+      { text: t("settings.cancel"), style: "cancel" },
+      { text: t("settings.clear"), style: "destructive", onPress: onClearHistory }
     ]);
   };
 
@@ -43,16 +46,20 @@ export function SettingsScreen({
       <AppTopBar showBack onBack={onBack} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.menuList}>
-          <SettingsRow icon={CreditCard} label="Subscription" onPress={onOpenSubscription} />
-          <SettingsRow icon={Languages} label="Language" onPress={onOpenLanguage} />
-          <SettingsRow icon={ShieldPlus} label="Safety Disclaimer" onPress={onOpenSafety} />
+          <SettingsRow icon={CreditCard} label={t("settings.subscription")} onPress={onOpenSubscription} />
+          <SettingsRow icon={Languages} label={t("settings.language")} onPress={onOpenLanguage} />
+          <SettingsRow icon={ShieldPlus} label={t("settings.safetyDisclaimer")} onPress={onOpenSafety} />
           <View style={styles.divider} />
-          <SettingsRow icon={Trash2} label={`Clear Scan History (${scanCount})`} onPress={confirmClearHistory} />
-          <SettingsRow icon={CircleHelp} label="Help / Support" onPress={onOpenHelp} />
+          <SettingsRow
+            icon={Trash2}
+            label={t("settings.clearScanHistory", { count: scanCount })}
+            onPress={confirmClearHistory}
+          />
+          <SettingsRow icon={CircleHelp} label={t("settings.helpSupport")} onPress={onOpenHelp} />
         </View>
 
         <Pressable accessibilityRole="button" style={styles.logout}>
-          <Text style={styles.logoutText}>LOG OUT</Text>
+          <Text style={styles.logoutText}>{t("settings.logout")}</Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>

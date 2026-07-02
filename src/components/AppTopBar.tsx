@@ -2,6 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ChevronLeft, LucideIcon, Menu } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { useI18n } from "../i18n/I18nProvider";
 
 type AppTopBarProps = {
   title?: string;
@@ -24,12 +25,14 @@ export function AppTopBar({
   onMenu,
   onRightPress
 }: AppTopBarProps) {
+  const { t } = useI18n();
+
   return (
     <View style={styles.bar}>
       <View style={styles.side}>
         {showBack && (
           <Pressable
-            accessibilityLabel="Go back"
+            accessibilityLabel={t("common.back")}
             accessibilityRole="button"
             onPress={onBack}
             style={styles.iconButton}
@@ -52,7 +55,7 @@ export function AppTopBar({
         )}
         {!RightIcon && showMenu && (
           <Pressable
-            accessibilityLabel="Open settings"
+            accessibilityLabel={t("home.openSettings")}
             accessibilityRole="button"
             onPress={onMenu}
             style={[styles.iconButton, styles.circleButton]}

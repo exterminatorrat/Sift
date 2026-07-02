@@ -8,6 +8,7 @@ import { ScanResult } from "../types/scan";
 import { riskMeta } from "../utils/riskLabels";
 import { formatDateTime } from "../utils/formatters";
 import { BottomNavBar } from "../components/BottomNavBar";
+import { useI18n } from "../i18n/I18nProvider";
 
 type HistoryScreenProps = {
   scans: ScanResult[];
@@ -17,18 +18,20 @@ type HistoryScreenProps = {
 };
 
 export function HistoryScreen({ scans, onBack, onOpenScan, onOpenProfile }: HistoryScreenProps) {
+  const { t } = useI18n();
+
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.pageHeader}>
-          <Text style={styles.pageTitle}>Scan History</Text>
+          <Text style={styles.pageTitle}>{t("history.title")}</Text>
         </View>
 
         {scans.length === 0 ? (
           <EmptyState
             icon={History}
-            title="No scans yet"
-            body="Scans you save on this device will appear here."
+            title={t("history.noScansTitle")}
+            body={t("history.noScansBody")}
           />
         ) : (
           <View style={styles.list}>
@@ -43,7 +46,7 @@ export function HistoryScreen({ scans, onBack, onOpenScan, onOpenProfile }: Hist
                 >
                   <View style={styles.itemHeader}>
                     <View style={styles.itemText}>
-                      <Text style={styles.itemTitle}>{scan.restaurantName ?? "Menu scan"}</Text>
+                      <Text style={styles.itemTitle}>{scan.restaurantName ?? t("home.menuScan")}</Text>
                       <Text style={styles.itemDate}>{formatDateTime(scan.createdAt)}</Text>
                     </View>
                     <View style={[styles.badge, { backgroundColor: meta.background }]}>
@@ -54,8 +57,13 @@ export function HistoryScreen({ scans, onBack, onOpenScan, onOpenProfile }: Hist
                       )}
                       <Text style={[styles.badgeText, { color: meta.color }]}>
                         {scan.scanSummary.overallRisk === "low_risk"
-                          ? "No Obvious Risks"
-                          : `${Math.max(1, scan.dishes.filter((dish) => dish.riskLevel !== "low_risk").length)} Risks Found`}
+                          ? t("history.noObviousRisks")
+                          : t("history.risksFound", {
+                              count: Math.max(
+                                1,
+                                scan.dishes.filter((dish) => dish.riskLevel !== "low_risk").length
+                              )
+                            })}
                       </Text>
                     </View>
                   </View>

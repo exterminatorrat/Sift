@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 import { History, Home, UserRound } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { useI18n } from "../i18n/I18nProvider";
 
 let lastActiveIndex = 0;
 
@@ -13,6 +14,7 @@ type BottomNavBarProps = {
 };
 
 export function BottomNavBar({ active, onHome, onHistory, onProfile }: BottomNavBarProps) {
+  const { t } = useI18n();
   const activeIndex = active === "home" ? 0 : active === "history" ? 1 : 2;
   const [barWidth, setBarWidth] = useState(0);
   const slide = useRef(new Animated.Value(lastActiveIndex)).current;
@@ -49,9 +51,9 @@ export function BottomNavBar({ active, onHome, onHistory, onProfile }: BottomNav
             ]}
           />
         )}
-        <NavItem active={active === "home"} icon={Home} label="Home" onPress={onHome} />
-        <NavItem active={active === "history"} icon={History} label="History" onPress={onHistory} />
-        <NavItem active={active === "profile"} icon={UserRound} label="Profile" onPress={onProfile} />
+        <NavItem active={active === "home"} icon={Home} label={t("nav.home")} onPress={onHome} />
+        <NavItem active={active === "history"} icon={History} label={t("nav.history")} onPress={onHistory} />
+        <NavItem active={active === "profile"} icon={UserRound} label={t("nav.profile")} onPress={onProfile} />
       </View>
     </View>
   );
