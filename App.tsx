@@ -320,7 +320,7 @@ export default function App() {
             }}
           </Stack.Screen>
 
-          <Stack.Screen name="Settings">
+          <Stack.Screen name="Settings" options={{ animation: "slide_from_right" }}>
             {({ navigation }) => (
               <SettingsScreen
                 profile={profile}
