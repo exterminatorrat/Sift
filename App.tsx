@@ -344,7 +344,12 @@ export default function App() {
           </Stack.Screen>
 
           <Stack.Screen name="SettingsSubscription" options={{ animation: "slide_from_right" }}>
-            {({ navigation }) => <SubscriptionScreen onBack={() => navigation.goBack()} />}
+            {({ navigation }) => (
+              <SubscriptionScreen
+                onBack={() => navigation.goBack()}
+                onOpenSupport={() => navigation.navigate("SettingsHelp")}
+              />
+            )}
           </Stack.Screen>
 
           <Stack.Screen name="SettingsLanguage" options={{ animation: "slide_from_right" }}>

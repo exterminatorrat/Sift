@@ -18,6 +18,10 @@ type BasicSettingsScreenProps = {
   onBack: () => void;
 };
 
+type SubscriptionScreenProps = BasicSettingsScreenProps & {
+  onOpenSupport: () => void;
+};
+
 type LanguageSettingsScreenProps = BasicSettingsScreenProps & {
   profile: UserProfile;
   onChangeProfile: (profile: UserProfile) => void | Promise<void>;
@@ -25,7 +29,7 @@ type LanguageSettingsScreenProps = BasicSettingsScreenProps & {
 
 const appLanguages = ["English", "French", "Italian", "Japanese"];
 
-export function SubscriptionScreen({ onBack }: BasicSettingsScreenProps) {
+export function SubscriptionScreen({ onBack, onOpenSupport }: SubscriptionScreenProps) {
   return (
     <SettingsShell onBack={onBack}>
       <Header title="Sift Premium" body="Elevate menu scanning with deeper tools designed for peace of mind." />
@@ -54,7 +58,9 @@ export function SubscriptionScreen({ onBack }: BasicSettingsScreenProps) {
 
       <View style={styles.supportBlock}>
         <Text style={styles.supportTitle}>Have questions about your plan?</Text>
-        <Text style={styles.supportLink}>Visit the Support Center</Text>
+        <Pressable accessibilityRole="button" onPress={onOpenSupport} hitSlop={8}>
+          <Text style={styles.supportLink}>Visit the Support Center</Text>
+        </Pressable>
       </View>
     </SettingsShell>
   );
