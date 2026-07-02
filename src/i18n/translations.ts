@@ -115,6 +115,11 @@ export const languageNameByCode: Record<AppLanguageCode, string> = {
   es: "Spanish"
 };
 
+export const languageAutonymByCode: Record<AppLanguageCode, string> = {
+  en: "English",
+  es: "Español"
+};
+
 export const getLanguageCode = (language?: string | null): AppLanguageCode => {
   if (!language) {
     return "en";

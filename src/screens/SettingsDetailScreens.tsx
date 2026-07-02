@@ -15,6 +15,7 @@ import { colors } from "../constants/colors";
 import { UserProfile } from "../types/allergy";
 import { useI18n } from "../i18n/I18nProvider";
 import {
+  languageAutonymByCode,
   languageNameByCode,
   plannedAppLanguages,
   supportedAppLanguages
@@ -95,7 +96,7 @@ export function LanguageTranslationScreen({
         label={t("language.appLanguage")}
         body={t("language.appLanguageBody")}
         options={supportedAppLanguages.map((language) => ({
-          label: t(language.labelKey),
+          label: languageAutonymByCode[language.code],
           value: languageNameByCode[language.code]
         }))}
         selected={selectedAppLanguage}
