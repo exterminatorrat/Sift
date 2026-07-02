@@ -16,8 +16,8 @@ type ImagePreviewScreenProps = {
 export function ImagePreviewScreen({ image, onRetake, onUsePhoto }: ImagePreviewScreenProps) {
   return (
     <SafeAreaView style={styles.screen}>
-      <AppTopBar showBack onBack={onRetake} />
       <ScrollView contentContainerStyle={styles.content}>
+        <AppTopBar showBack onBack={onRetake} />
         <View style={styles.hero}>
           <Text style={styles.title}>Use this menu photo?</Text>
           <Text style={styles.body}>If text is cut off or blurry, retake it before analysis.</Text>
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
   content: {
     gap: 24,
     padding: 24,
-    paddingTop: 48
+    paddingTop: 0
   },
   hero: {
     gap: 12
