@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Bell,
@@ -12,23 +12,16 @@ import {
 } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { AppTopBar } from "../components/AppTopBar";
-import { UserProfile } from "../types/allergy";
-
-const profileAvatar = require("../../assets/profile-avatar.png");
 
 type SettingsScreenProps = {
-  profile: UserProfile;
   scanCount: number;
   onBack: () => void;
-  onEditProfile: () => void;
   onClearHistory: () => void;
 };
 
 export function SettingsScreen({
-  profile,
   scanCount,
   onBack,
-  onEditProfile,
   onClearHistory
 }: SettingsScreenProps) {
   const confirmClearHistory = () => {
@@ -42,15 +35,6 @@ export function SettingsScreen({
     <SafeAreaView style={styles.screen}>
       <AppTopBar showBack onBack={onBack} />
       <ScrollView contentContainerStyle={styles.content}>
-        <Pressable accessibilityRole="button" onPress={onEditProfile} style={styles.profileCard}>
-          <Image source={profileAvatar} resizeMode="cover" style={styles.avatar} />
-          <View style={styles.profileText}>
-            <Text style={styles.profileName}>{profile.name || "Profile"}</Text>
-            <Text style={styles.profileEmail}>{profile.allergies.length} active filters</Text>
-          </View>
-          <ChevronRight color={colors.borderStrong} size={20} strokeWidth={2} />
-        </Pressable>
-
         <View style={styles.menuList}>
           <SettingsRow icon={CreditCard} label="Subscription" />
           <SettingsRow icon={Bell} label="Notifications" />
@@ -93,46 +77,10 @@ const styles = StyleSheet.create({
     flex: 1
   },
   content: {
-    gap: 80,
+    gap: 36,
     padding: 24,
     paddingBottom: 138,
-    paddingTop: 48
-  },
-  profileCard: {
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    elevation: 2,
-    flexDirection: "row",
-    gap: 24,
-    minHeight: 112,
-    padding: 24,
-    shadowColor: colors.primaryDark,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.04,
-    shadowRadius: 20
-  },
-  avatar: {
-    borderRadius: 999,
-    height: 64,
-    width: 64
-  },
-  profileText: {
-    flex: 1,
-    gap: 4
-  },
-  profileName: {
-    color: colors.ink,
-    fontSize: 18,
-    fontWeight: "400",
-    letterSpacing: 0,
-    lineHeight: 30
-  },
-  profileEmail: {
-    color: colors.inkMuted,
-    fontSize: 16,
-    letterSpacing: 0,
-    lineHeight: 26
+    paddingTop: 14
   },
   menuList: {
     gap: 8

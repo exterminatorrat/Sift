@@ -323,13 +323,8 @@ export default function App() {
           <Stack.Screen name="Settings" options={{ animation: "slide_from_right" }}>
             {({ navigation }) => (
               <SettingsScreen
-                profile={profile}
                 scanCount={scanHistory.length}
                 onBack={() => navigation.goBack()}
-                onEditProfile={() => {
-                  setMainTab("profile");
-                  navigation.navigate("Home");
-                }}
                 onClearHistory={async () => {
                   setScanHistory([]);
                   await clearScanHistory();
