@@ -14,12 +14,7 @@ import { AppTopBar } from "../components/AppTopBar";
 import { colors } from "../constants/colors";
 import { UserProfile } from "../types/allergy";
 import { useI18n } from "../i18n/I18nProvider";
-import {
-  languageAutonymByCode,
-  languageNameByCode,
-  plannedAppLanguages,
-  supportedAppLanguages
-} from "../i18n/translations";
+import { waveOneAppLanguages } from "../i18n/translations";
 
 type BasicSettingsScreenProps = {
   onBack: () => void;
@@ -36,31 +31,47 @@ type LanguageSettingsScreenProps = BasicSettingsScreenProps & {
 
 export function SubscriptionScreen({ onBack, onOpenSupport }: SubscriptionScreenProps) {
   const { t } = useI18n();
+  const plans = [
+    {
+      body: t("subscription.freeBody"),
+      current: true,
+      name: t("subscription.free"),
+      price: t("subscription.freePrice")
+    },
+    {
+      body: t("subscription.plusBody"),
+      name: t("subscription.plus"),
+      price: t("subscription.plusPrice")
+    },
+    {
+      body: t("subscription.premiumBody"),
+      name: t("subscription.premium"),
+      price: t("subscription.premiumPrice")
+    },
+    {
+      body: t("subscription.familyBody"),
+      name: t("subscription.family"),
+      price: t("subscription.familyPrice")
+    }
+  ];
 
   return (
     <SettingsShell onBack={onBack}>
       <Header title={t("subscription.title")} body={t("subscription.body")} />
 
-      <View style={styles.subscriptionCard}>
-        <View style={styles.planTop}>
-          <View>
-            <Text style={styles.eyebrow}>{t("subscription.currentPlan")}</Text>
-            <Text style={styles.planName}>{t("subscription.freeMvp")}</Text>
-          </View>
-          <View style={styles.priceBlock}>
-            <Text style={styles.price}>$0</Text>
-            <Text style={styles.priceMeta}>{t("subscription.now")}</Text>
-          </View>
-        </View>
-
-        <Text style={styles.sectionTitle}>{t("subscription.plannedBenefits")}</Text>
-        <Benefit title={t("subscription.unlimitedScans")} body={t("subscription.unlimitedScansBody")} />
-        <Benefit title={t("subscription.translationCards")} body={t("subscription.translationCardsBody")} />
-        <Benefit title={t("subscription.detailedRisk")} body={t("subscription.detailedRiskBody")} />
-
-        <Pressable accessibilityRole="button" style={styles.primaryAction}>
-          <Text style={styles.primaryActionText}>{t("subscription.manage")}</Text>
-        </Pressable>
+      <View style={styles.planList}>
+        <Text style={styles.sectionTitle}>{t("subscription.plans")}</Text>
+        {plans.map((plan) => (
+          <PlanCard
+            body={plan.body}
+            current={plan.current}
+            currentLabel={t("subscription.current")}
+            key={plan.name}
+            name={plan.name}
+            price={plan.price}
+            unavailableLabel={t("subscription.unavailable")}
+          />
+        ))}
       </View>
 
       <View style={styles.supportBlock}>
@@ -95,21 +106,15 @@ export function LanguageTranslationScreen({
       <OptionSection
         label={t("language.appLanguage")}
         body={t("language.appLanguageBody")}
-        options={supportedAppLanguages.map((language) => ({
-          label: languageAutonymByCode[language.code],
-          value: languageNameByCode[language.code]
+        options={waveOneAppLanguages.map((language) => ({
+          disabled: !language.enabled,
+          label: language.label,
+          meta: language.enabled ? undefined : t("language.comingSoon"),
+          value: language.value
         }))}
         selected={selectedAppLanguage}
         onSelect={(preferredLanguage) => updateProfile({ preferredLanguage })}
       />
-
-      <View style={styles.plannedLanguages}>
-        <Text style={styles.optionMeta}>
-          {t("language.comingLater", {
-            languages: plannedAppLanguages.map((language) => t(language)).join(", ")
-          })}
-        </Text>
-      </View>
     </SettingsShell>
   );
 }
@@ -279,7 +284,7 @@ function OptionSection({
 }: {
   label: string;
   body: string;
-  options: Array<{ label: string; value: string }>;
+  options: Array<{ disabled?: boolean; label: string; meta?: string; value: string }>;
   selected: string;
   recommended?: string;
   onSelect: (option: string) => void;
@@ -296,13 +301,17 @@ function OptionSection({
           return (
             <Pressable
               accessibilityRole="button"
+              disabled={option.disabled}
               key={option.value}
               onPress={() => onSelect(option.value)}
-              style={styles.optionRow}
+              style={[styles.optionRow, option.disabled && styles.optionRowDisabled]}
             >
               <View style={styles.rowText}>
-                <Text style={styles.optionTitle}>{option.label}</Text>
+                <Text style={[styles.optionTitle, option.disabled && styles.optionTitleDisabled]}>
+                  {option.label}
+                </Text>
                 {recommended === option.value && <Text style={styles.optionMeta}>Recommended</Text>}
+                {option.meta && <Text style={styles.optionMeta}>{option.meta}</Text>}
               </View>
               {active && <Check color={colors.primaryDark} size={20} strokeWidth={2.5} />}
             </Pressable>
@@ -313,14 +322,38 @@ function OptionSection({
   );
 }
 
-function Benefit({ title, body }: { title: string; body: string }) {
+function PlanCard({
+  body,
+  current,
+  currentLabel,
+  name,
+  price,
+  unavailableLabel
+}: {
+  body: string;
+  current?: boolean;
+  currentLabel: string;
+  name: string;
+  price: string;
+  unavailableLabel: string;
+}) {
   return (
-    <View style={styles.benefit}>
-      <Check color={colors.primaryDark} size={18} strokeWidth={2.5} />
-      <View style={styles.rowText}>
-        <Text style={styles.benefitTitle}>{title}</Text>
-        <Text style={styles.benefitBody}>{body}</Text>
+    <View style={styles.subscriptionCard}>
+      <View style={styles.planTop}>
+        <View style={styles.planNameRow}>
+          <Text style={styles.planName}>{name}</Text>
+          {current && (
+            <View style={styles.currentPill}>
+              <Text style={styles.currentPillText}>{currentLabel}</Text>
+            </View>
+          )}
+        </View>
+        <Text style={styles.price}>{price}</Text>
       </View>
+      <Text style={styles.benefitBody}>{body}</Text>
+      <Pressable accessibilityRole="button" disabled style={styles.unavailableAction}>
+        <Text style={styles.unavailableActionText}>{unavailableLabel}</Text>
+      </Pressable>
     </View>
   );
 }
@@ -429,9 +462,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 18
   },
-  plannedLanguages: {
-    marginTop: -16
-  },
   optionRow: {
     alignItems: "center",
     borderBottomColor: colors.surfaceMuted,
@@ -440,6 +470,9 @@ const styles = StyleSheet.create({
     minHeight: 70,
     paddingHorizontal: 24
   },
+  optionRowDisabled: {
+    opacity: 0.55
+  },
   optionTitle: {
     color: colors.ink,
     fontSize: 18,
@@ -447,52 +480,66 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     lineHeight: 30
   },
+  optionTitleDisabled: {
+    color: colors.inkMuted
+  },
   optionMeta: {
     color: colors.inkSubtle,
     fontSize: 13,
     letterSpacing: 0,
     lineHeight: 18
   },
+  planList: {
+    gap: 16
+  },
   subscriptionCard: {
     backgroundColor: colors.surface,
-    borderRadius: 24,
-    elevation: 4,
-    gap: 24,
-    padding: 32,
+    borderRadius: 22,
+    elevation: 2,
+    gap: 18,
+    padding: 24,
     shadowColor: colors.primaryDark,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 18
   },
   planTop: {
-    borderBottomColor: colors.surfaceMuted,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    alignItems: "flex-start",
     flexDirection: "row",
-    justifyContent: "space-between",
-    paddingBottom: 24
+    gap: 18,
+    justifyContent: "space-between"
+  },
+  planNameRow: {
+    flex: 1,
+    gap: 8
   },
   planName: {
     color: colors.ink,
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "600",
     letterSpacing: 0,
-    lineHeight: 32
+    lineHeight: 30
   },
-  priceBlock: {
-    alignItems: "flex-end"
+  currentPill: {
+    alignSelf: "flex-start",
+    backgroundColor: colors.primarySoft,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6
+  },
+  currentPillText: {
+    color: colors.primaryDark,
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0
   },
   price: {
     color: colors.primaryDark,
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "700",
     letterSpacing: 0,
-    lineHeight: 32
-  },
-  priceMeta: {
-    color: colors.inkSubtle,
-    fontSize: 13,
-    letterSpacing: 0,
-    lineHeight: 18
+    lineHeight: 28,
+    textAlign: "right"
   },
   sectionTitle: {
     color: colors.ink,
@@ -501,22 +548,25 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     lineHeight: 30
   },
-  benefit: {
-    flexDirection: "row",
-    gap: 14
-  },
-  benefitTitle: {
-    color: colors.ink,
-    fontSize: 16,
-    fontWeight: "600",
-    letterSpacing: 0,
-    lineHeight: 26
-  },
   benefitBody: {
     color: colors.inkMuted,
     fontSize: 14,
     letterSpacing: 0,
     lineHeight: 20
+  },
+  unavailableAction: {
+    alignItems: "center",
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: 999,
+    minHeight: 46,
+    justifyContent: "center",
+    paddingHorizontal: 20
+  },
+  unavailableActionText: {
+    color: colors.inkSubtle,
+    fontSize: 14,
+    fontWeight: "800",
+    letterSpacing: 0
   },
   primaryAction: {
     alignItems: "center",

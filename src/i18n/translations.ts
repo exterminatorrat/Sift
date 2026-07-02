@@ -41,14 +41,21 @@ export type TranslationKey =
   | "subscription.currentPlan"
   | "subscription.freeMvp"
   | "subscription.now"
-  | "subscription.plannedBenefits"
-  | "subscription.unlimitedScans"
-  | "subscription.unlimitedScansBody"
-  | "subscription.translationCards"
-  | "subscription.translationCardsBody"
-  | "subscription.detailedRisk"
-  | "subscription.detailedRiskBody"
-  | "subscription.manage"
+  | "subscription.plans"
+  | "subscription.free"
+  | "subscription.plus"
+  | "subscription.premium"
+  | "subscription.family"
+  | "subscription.freePrice"
+  | "subscription.plusPrice"
+  | "subscription.premiumPrice"
+  | "subscription.familyPrice"
+  | "subscription.freeBody"
+  | "subscription.plusBody"
+  | "subscription.premiumBody"
+  | "subscription.familyBody"
+  | "subscription.unavailable"
+  | "subscription.current"
   | "subscription.questions"
   | "subscription.supportCenter"
   | "language.title"
@@ -60,7 +67,13 @@ export type TranslationKey =
   | "language.french"
   | "language.italian"
   | "language.japanese"
-  | "language.comingLater"
+  | "language.german"
+  | "language.korean"
+  | "language.chineseSimplified"
+  | "language.chineseTraditional"
+  | "language.portuguese"
+  | "language.thai"
+  | "language.comingSoon"
   | "safety.title"
   | "safety.body"
   | "safety.visibleTitle"
@@ -100,17 +113,6 @@ export const languageCodesByName: Record<string, AppLanguageCode> = {
   es: "es"
 };
 
-export const supportedAppLanguages: Array<{ code: AppLanguageCode; labelKey: TranslationKey }> = [
-  { code: "en", labelKey: "language.english" },
-  { code: "es", labelKey: "language.spanish" }
-];
-
-export const plannedAppLanguages: TranslationKey[] = [
-  "language.french",
-  "language.italian",
-  "language.japanese"
-];
-
 export const languageNameByCode: Record<AppLanguageCode, string> = {
   en: "English",
   es: "Spanish"
@@ -120,6 +122,26 @@ export const languageAutonymByCode: Record<AppLanguageCode, string> = {
   en: "English",
   es: "Español"
 };
+
+export type AppLanguageOption = {
+  label: string;
+  value: string;
+  enabled: boolean;
+};
+
+export const waveOneAppLanguages: AppLanguageOption[] = [
+  { label: "English", value: "English", enabled: true },
+  { label: "Español", value: "Spanish", enabled: true },
+  { label: "Français", value: "French", enabled: false },
+  { label: "Italiano", value: "Italian", enabled: false },
+  { label: "日本語", value: "Japanese", enabled: false },
+  { label: "Deutsch", value: "German", enabled: false },
+  { label: "한국어", value: "Korean", enabled: false },
+  { label: "简体中文", value: "Chinese Simplified", enabled: false },
+  { label: "繁體中文", value: "Chinese Traditional", enabled: false },
+  { label: "Português", value: "Portuguese", enabled: false },
+  { label: "ไทย", value: "Thai", enabled: false }
+];
 
 export const getLanguageCode = (language?: string | null): AppLanguageCode => {
   if (!language) {
@@ -173,17 +195,21 @@ export const translations: Record<AppLanguageCode, Record<TranslationKey, string
     "subscription.currentPlan": "Current plan",
     "subscription.freeMvp": "Free MVP",
     "subscription.now": "now",
-    "subscription.plannedBenefits": "Planned benefits",
-    "subscription.unlimitedScans": "Unlimited scans",
-    "subscription.unlimitedScansBody":
-      "Scan menus without monthly limits when subscriptions launch.",
-    "subscription.translationCards": "Translation cards",
-    "subscription.translationCardsBody":
-      "Show restaurant staff a clear allergy message in travel languages.",
-    "subscription.detailedRisk": "Detailed risk analysis",
-    "subscription.detailedRiskBody":
-      "Deeper hidden-ingredient and cross-contact explanations.",
-    "subscription.manage": "Manage Subscription",
+    "subscription.plans": "Plans",
+    "subscription.free": "Free",
+    "subscription.plus": "Plus",
+    "subscription.premium": "Premium",
+    "subscription.family": "Family",
+    "subscription.freePrice": "$0",
+    "subscription.plusPrice": "$4.99/mo",
+    "subscription.premiumPrice": "$8.99/mo",
+    "subscription.familyPrice": "$12.99/mo",
+    "subscription.freeBody": "3 scans/month, 1 profile, basic risk cards, and recent local history.",
+    "subscription.plusBody": "50 scans/month, full local history, translation cards, and richer dish details.",
+    "subscription.premiumBody": "200 scans/month, travel mode, offline allergy cards, export, and advanced risk detail.",
+    "subscription.familyBody": "500 scans/month, multiple family profiles, child profiles, and shared allergy cards.",
+    "subscription.unavailable": "Unavailable right now",
+    "subscription.current": "Current",
     "subscription.questions": "Have questions about your plan?",
     "subscription.supportCenter": "Visit the Support Center",
     "language.title": "Language",
@@ -196,7 +222,13 @@ export const translations: Record<AppLanguageCode, Record<TranslationKey, string
     "language.french": "French",
     "language.italian": "Italian",
     "language.japanese": "Japanese",
-    "language.comingLater": "{languages} coming later.",
+    "language.german": "German",
+    "language.korean": "Korean",
+    "language.chineseSimplified": "Chinese Simplified",
+    "language.chineseTraditional": "Chinese Traditional",
+    "language.portuguese": "Portuguese",
+    "language.thai": "Thai",
+    "language.comingSoon": "Coming soon",
     "safety.title": "Safety Disclaimer",
     "safety.body": "Please read carefully before using Sift for menu decisions.",
     "safety.visibleTitle": "1. Visible menu text only",
@@ -277,17 +309,21 @@ export const translations: Record<AppLanguageCode, Record<TranslationKey, string
     "subscription.currentPlan": "Plan actual",
     "subscription.freeMvp": "MVP gratis",
     "subscription.now": "ahora",
-    "subscription.plannedBenefits": "Beneficios planeados",
-    "subscription.unlimitedScans": "Escaneos ilimitados",
-    "subscription.unlimitedScansBody":
-      "Escanea menus sin limites mensuales cuando lancemos suscripciones.",
-    "subscription.translationCards": "Tarjetas de traduccion",
-    "subscription.translationCardsBody":
-      "Muestra al personal un mensaje claro sobre tus alergias en idiomas de viaje.",
-    "subscription.detailedRisk": "Analisis de riesgo detallado",
-    "subscription.detailedRiskBody":
-      "Explicaciones mas profundas sobre ingredientes ocultos y contacto cruzado.",
-    "subscription.manage": "Gestionar suscripcion",
+    "subscription.plans": "Planes",
+    "subscription.free": "Gratis",
+    "subscription.plus": "Plus",
+    "subscription.premium": "Premium",
+    "subscription.family": "Familia",
+    "subscription.freePrice": "$0",
+    "subscription.plusPrice": "$4.99/mes",
+    "subscription.premiumPrice": "$8.99/mes",
+    "subscription.familyPrice": "$12.99/mes",
+    "subscription.freeBody": "3 escaneos/mes, 1 perfil, tarjetas de riesgo basicas e historial local reciente.",
+    "subscription.plusBody": "50 escaneos/mes, historial local completo, tarjetas de traduccion y mas detalles.",
+    "subscription.premiumBody": "200 escaneos/mes, modo viaje, tarjetas offline, exportacion y analisis avanzado.",
+    "subscription.familyBody": "500 escaneos/mes, perfiles familiares, perfiles infantiles y tarjetas compartidas.",
+    "subscription.unavailable": "No disponible por ahora",
+    "subscription.current": "Actual",
     "subscription.questions": "Tienes preguntas sobre tu plan?",
     "subscription.supportCenter": "Visitar el centro de ayuda",
     "language.title": "Idioma",
@@ -300,7 +336,13 @@ export const translations: Record<AppLanguageCode, Record<TranslationKey, string
     "language.french": "Frances",
     "language.italian": "Italiano",
     "language.japanese": "Japones",
-    "language.comingLater": "{languages} llegaran mas adelante.",
+    "language.german": "Aleman",
+    "language.korean": "Coreano",
+    "language.chineseSimplified": "Chino simplificado",
+    "language.chineseTraditional": "Chino tradicional",
+    "language.portuguese": "Portugues",
+    "language.thai": "Tailandes",
+    "language.comingSoon": "Proximamente",
     "safety.title": "Aviso de seguridad",
     "safety.body": "Lee esto con cuidado antes de usar Sift para decidir sobre menus.",
     "safety.visibleTitle": "1. Solo texto visible del menu",
