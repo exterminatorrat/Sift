@@ -1,5 +1,5 @@
-import React from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Check,
@@ -137,8 +137,29 @@ export function SafetyDisclaimerScreen({ onBack }: BasicSettingsScreenProps) {
 }
 
 export function HelpSupportScreen({ onBack }: BasicSettingsScreenProps) {
-  const showComingSoon = (title: string) => {
-    Alert.alert(title, "This support option is a placeholder for the MVP.");
+  const [supportVisible, setSupportVisible] = useState(false);
+
+  const openUrl = async (url: string, fallbackTitle: string) => {
+    try {
+      const canOpen = await Linking.canOpenURL(url);
+      if (!canOpen) {
+        throw new Error("URL is not available.");
+      }
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert(fallbackTitle, "We could not open this link on your device.");
+    }
+  };
+
+  const openFeedbackEmail = () => {
+    const subject = encodeURIComponent("Sift feedback");
+    const body = encodeURIComponent(
+      "What happened?\n\nWhat would you like Sift to improve?\n\nDevice/App version if relevant:\n"
+    );
+    void openUrl(
+      `mailto:feedback@siftallergy.app?subject=${subject}&body=${body}`,
+      "Email feedback"
+    );
   };
 
   return (
@@ -150,21 +171,54 @@ export function HelpSupportScreen({ onBack }: BasicSettingsScreenProps) {
           icon={CircleHelp}
           title="Frequently Asked Questions"
           body="Find quick answers to common issues."
-          onPress={() => showComingSoon("Frequently Asked Questions")}
+          onPress={() => openUrl("https://faq.siftallergy.app", "Open FAQ")}
         />
         <SupportOption
           icon={MessageCircle}
           title="Contact Support"
           body="Reach out to our team directly."
-          onPress={() => showComingSoon("Contact Support")}
+          onPress={() => setSupportVisible(true)}
         />
         <SupportOption
           icon={Sparkles}
           title="Submit Feedback"
           body="Help us improve your Sift experience."
-          onPress={() => showComingSoon("Submit Feedback")}
+          onPress={openFeedbackEmail}
         />
       </View>
+
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setSupportVisible(false)}
+        transparent
+        visible={supportVisible}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.supportModal}>
+            <Text style={styles.modalTitle}>Contact Support</Text>
+            <Text style={styles.modalBody}>
+              Email us at support@siftallergy.app. We usually respond within 2-5 business days.
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                const subject = encodeURIComponent("Sift support request");
+                void openUrl(`mailto:support@siftallergy.app?subject=${subject}`, "Email support");
+              }}
+              style={styles.modalPrimary}
+            >
+              <Text style={styles.modalPrimaryText}>Email Support</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setSupportVisible(false)}
+              style={styles.modalSecondary}
+            >
+              <Text style={styles.modalSecondaryText}>Close</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SettingsShell>
   );
 }
@@ -540,5 +594,60 @@ const styles = StyleSheet.create({
     fontSize: 16,
     letterSpacing: 0,
     lineHeight: 24
+  },
+  modalOverlay: {
+    alignItems: "center",
+    backgroundColor: "rgba(26, 28, 28, 0.32)",
+    flex: 1,
+    justifyContent: "center",
+    padding: 24
+  },
+  supportModal: {
+    backgroundColor: colors.surface,
+    borderRadius: 24,
+    gap: 18,
+    maxWidth: 342,
+    padding: 24,
+    width: "100%"
+  },
+  modalTitle: {
+    color: colors.ink,
+    fontSize: 22,
+    fontWeight: "700",
+    letterSpacing: 0,
+    lineHeight: 30,
+    textAlign: "center"
+  },
+  modalBody: {
+    color: colors.inkMuted,
+    fontSize: 16,
+    letterSpacing: 0,
+    lineHeight: 24,
+    textAlign: "center"
+  },
+  modalPrimary: {
+    alignItems: "center",
+    backgroundColor: colors.primaryDark,
+    borderRadius: 999,
+    minHeight: 48,
+    justifyContent: "center",
+    paddingHorizontal: 20
+  },
+  modalPrimaryText: {
+    color: colors.surface,
+    fontSize: 14,
+    fontWeight: "800",
+    letterSpacing: 0
+  },
+  modalSecondary: {
+    alignItems: "center",
+    minHeight: 40,
+    justifyContent: "center"
+  },
+  modalSecondaryText: {
+    color: colors.primaryDark,
+    fontSize: 14,
+    fontWeight: "700",
+    letterSpacing: 0
   }
 });
