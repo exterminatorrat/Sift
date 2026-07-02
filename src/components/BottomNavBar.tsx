@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   },
   labelActive: {
     color: colors.textInverse,
-    fontFamily: typography.badge.fontFamily,
-    fontWeight: "800"
+    fontFamily: typography.nav.fontFamily,
+    fontWeight: "600"
   }
 });

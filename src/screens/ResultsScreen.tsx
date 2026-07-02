@@ -236,8 +236,8 @@ const styles = StyleSheet.create({
   translationTitle: {
     color: colors.ink,
     ...typography.label,
-    fontFamily: typography.badge.fontFamily,
-    fontWeight: "800"
+    fontFamily: typography.label.fontFamily,
+    fontWeight: "600"
   },
   translationBody: {
     color: colors.inkMuted,

@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   action: {
     marginTop: 16,
     ...typography.label,
-    fontFamily: typography.badge.fontFamily,
-    fontWeight: "800"
+    fontFamily: typography.label.fontFamily,
+    fontWeight: "600"
   }
 });

@@ -586,8 +586,8 @@ const styles = StyleSheet.create({
   profilePillName: {
     color: colors.ink,
     ...typography.label,
-    fontFamily: typography.badge.fontFamily,
-    fontWeight: "800"
+    fontFamily: typography.label.fontFamily,
+    fontWeight: "600"
   },
   profilePillNameActive: {
     color: colors.primary

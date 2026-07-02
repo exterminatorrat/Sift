@@ -5,12 +5,14 @@ export const fontFamilies = {
   headingMedium: "SourceSerif4_500Medium",
   headingSemiBold: "SourceSerif4_600SemiBold",
   headingBold: "SourceSerif4_700Bold",
-  body: "Inter_400Regular",
-  bodyMedium: "Inter_500Medium",
-  bodySemiBold: "Inter_600SemiBold",
-  bodyBold: "Inter_700Bold",
-  bodyExtraBold: "Inter_800ExtraBold",
-  bodyBlack: "Inter_900Black"
+  body: "SourceSerif4_400Regular",
+  bodyMedium: "SourceSerif4_500Medium",
+  bodySemiBold: "SourceSerif4_600SemiBold",
+  bodyBold: "SourceSerif4_700Bold",
+  ui: "Inter_400Regular",
+  uiMedium: "Inter_500Medium",
+  uiSemiBold: "Inter_600SemiBold",
+  uiBold: "Inter_700Bold"
 } as const;
 
 export const typography = {
@@ -71,28 +73,28 @@ export const typography = {
     lineHeight: 18
   },
   label: {
-    fontFamily: fontFamilies.bodySemiBold,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: "500",
     letterSpacing: 0,
     lineHeight: 18
   },
   button: {
-    fontFamily: fontFamilies.bodyBold,
+    fontFamily: fontFamilies.bodySemiBold,
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "600",
     letterSpacing: 0,
     lineHeight: 21
   },
   badge: {
-    fontFamily: fontFamilies.bodyExtraBold,
+    fontFamily: fontFamilies.bodySemiBold,
     fontSize: 12,
-    fontWeight: "800",
+    fontWeight: "600",
     letterSpacing: 0,
     lineHeight: 16
   },
   nav: {
-    fontFamily: fontFamilies.bodySemiBold,
+    fontFamily: fontFamilies.uiSemiBold,
     fontSize: 11,
     fontWeight: "600",
     letterSpacing: 0,
