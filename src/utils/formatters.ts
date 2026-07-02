@@ -8,8 +8,8 @@ export function formatAllergySummary(allergies: Allergy[]) {
   return allergies.map((allergy) => allergy.name).join(", ");
 }
 
-export function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en", {
+export function formatDateTime(value: string, locale = "en") {
+  return new Intl.DateTimeFormat(locale, {
     month: "short",
     day: "numeric",
     hour: "numeric",

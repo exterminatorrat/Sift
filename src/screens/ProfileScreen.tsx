@@ -19,6 +19,8 @@ import { commonAllergens } from "../constants/commonAllergens";
 import { AllergyChip } from "../components/AllergyChip";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { BottomNavBar } from "../components/BottomNavBar";
+import { useI18n } from "../i18n/I18nProvider";
+import { TranslationKey } from "../i18n/translations";
 
 type ProfileScreenProps = {
   profile: UserProfile;
@@ -35,6 +37,27 @@ type ProfileScreenProps = {
 
 const severities: AllergySeverity[] = ["mild", "moderate", "severe"];
 
+const severityLabelKeys: Record<AllergySeverity, TranslationKey> = {
+  mild: "severity.mild",
+  moderate: "severity.moderate",
+  severe: "severity.severe"
+};
+
+const allergenLabelKeys: Record<string, TranslationKey> = {
+  Dairy: "allergen.dairy",
+  Egg: "allergen.egg",
+  Fish: "allergen.fish",
+  Mango: "allergen.mango",
+  Mustard: "allergen.mustard",
+  Peanut: "allergen.peanut",
+  Sesame: "allergen.sesame",
+  Shellfish: "allergen.shellfish",
+  Soy: "allergen.soy",
+  Sulfites: "allergen.sulfites",
+  "Tree nuts": "allergen.treeNuts",
+  "Wheat/gluten": "allergen.wheatGluten"
+};
+
 export function ProfileScreen({
   profile,
   profiles,
@@ -47,6 +70,7 @@ export function ProfileScreen({
   onHome,
   onOpenHistory
 }: ProfileScreenProps) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState<UserProfile>(profile);
   const [customAllergen, setCustomAllergen] = useState("");
   const [savedNoticeVisible, setSavedNoticeVisible] = useState(false);
@@ -100,10 +124,10 @@ export function ProfileScreen({
   };
 
   const confirmDeleteProfile = (profileId: string, profileName: string) => {
-    Alert.alert("Delete profile?", `Delete ${profileName || "this profile"} from this device?`, [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("profile.deleteProfileTitle"), t("profile.deleteProfileBody", { name: profileName || t("profile.profileFallback") }), [
+      { text: t("settings.cancel"), style: "cancel" },
       {
-        text: "Delete",
+        text: t("history.deleteScan"),
         style: "destructive",
         onPress: () => {
           void onDeleteProfile(profileId, draft);
@@ -185,27 +209,31 @@ export function ProfileScreen({
     outputRange: [30, 0]
   });
 
+  const formatAllergenName = (name: string) => {
+    const key = allergenLabelKeys[name];
+    return key ? t(key) : name;
+  };
+
+  const formatSeverity = (severity: AllergySeverity) => t(severityLabelKeys[severity]);
+
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={styles.title}>Allergy Profile</Text>
-          <Text style={styles.subtitle}>
-            Choose allergies and severity. Sift uses this profile to scan menus and prepare
-            questions.
-          </Text>
+          <Text style={styles.title}>{t("profile.title")}</Text>
+          <Text style={styles.subtitle}>{t("profile.body")}</Text>
         </View>
 
         <View style={styles.fieldGroup}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.label}>Saved profiles</Text>
+            <Text style={styles.label}>{t("profile.savedProfiles")}</Text>
             <Pressable
               accessibilityRole="button"
               onPress={() => onCreateProfile(draft)}
               style={styles.newProfileButton}
             >
               <Plus color={colors.primary} size={16} strokeWidth={2.4} />
-              <Text style={styles.newProfileText}>New</Text>
+              <Text style={styles.newProfileText}>{t("profile.new")}</Text>
             </Pressable>
           </View>
           <ScrollView
@@ -224,10 +252,12 @@ export function ProfileScreen({
                 >
                   <View style={styles.profilePillHeader}>
                     <Text style={[styles.profilePillName, active && styles.profilePillNameActive]}>
-                      {savedProfile.name || "Profile"}
+                      {savedProfile.name || t("profile.profileFallback")}
                     </Text>
                     <Pressable
-                      accessibilityLabel={`Delete ${savedProfile.name || "profile"}`}
+                      accessibilityLabel={t("profile.deleteProfileBody", {
+                        name: savedProfile.name || t("profile.profileFallback")
+                      })}
                       accessibilityRole="button"
                       hitSlop={8}
                       onPress={(event) => {
@@ -238,7 +268,9 @@ export function ProfileScreen({
                       <Trash2 color={colors.inkSubtle} size={14} strokeWidth={2.1} />
                     </Pressable>
                   </View>
-                  <Text style={styles.profilePillMeta}>{savedProfile.allergies.length} allergies</Text>
+                  <Text style={styles.profilePillMeta}>
+                    {t("profile.allergiesCount", { count: savedProfile.allergies.length })}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -246,7 +278,7 @@ export function ProfileScreen({
         </View>
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Profile name</Text>
+          <Text style={styles.label}>{t("profile.profileName")}</Text>
           <TextInput
             value={draft.name}
             onChangeText={(name) => setDraft((current) => ({ ...current, name }))}
@@ -258,7 +290,7 @@ export function ProfileScreen({
 
         <View style={styles.languageRow}>
           <View style={styles.languageField}>
-            <Text style={styles.label}>Your language</Text>
+            <Text style={styles.label}>{t("profile.yourLanguage")}</Text>
             <TextInput
               value={draft.preferredLanguage}
               onChangeText={(preferredLanguage) =>
@@ -270,7 +302,7 @@ export function ProfileScreen({
             />
           </View>
           <View style={styles.languageField}>
-            <Text style={styles.label}>Restaurant language</Text>
+            <Text style={styles.label}>{t("profile.restaurantLanguage")}</Text>
             <TextInput
               value={draft.restaurantLanguage ?? ""}
               onChangeText={(restaurantLanguage) =>
@@ -285,8 +317,10 @@ export function ProfileScreen({
 
         <View style={styles.fieldGroup}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.label}>Common allergens</Text>
-            <Text style={styles.sectionMeta}>{draft.allergies.length} selected</Text>
+            <Text style={styles.label}>{t("profile.commonAllergens")}</Text>
+            <Text style={styles.sectionMeta}>
+              {t("profile.selectedCount", { count: draft.allergies.length })}
+            </Text>
           </View>
           <View style={styles.quickList}>
             {commonAllergens.map((name) => {
@@ -301,11 +335,13 @@ export function ProfileScreen({
                     style={styles.quickRowTop}
                   >
                     <View style={styles.quickBody}>
-                      <Text style={styles.quickName}>{name}</Text>
+                      <Text style={styles.quickName}>{formatAllergenName(name)}</Text>
                       {selectedAllergy && (
                         <Text style={styles.quickMeta}>
-                          {selectedAllergy.severity} severity
-                          {selectedAllergy.avoidCrossContact ? " - cross-contact" : ""}
+                          {t("profile.severityMeta", {
+                            severity: formatSeverity(selectedAllergy.severity)
+                          })}
+                          {selectedAllergy.avoidCrossContact ? ` - ${t("profile.crossContactMeta")}` : ""}
                         </Text>
                       )}
                     </View>
@@ -332,18 +368,18 @@ export function ProfileScreen({
                                   active && styles.quickSegmentTextActive
                                 ]}
                               >
-                                {severity}
+                                {formatSeverity(severity)}
                               </Text>
                             </Pressable>
                           );
                         })}
                       </View>
                       <View style={styles.specificsField}>
-                        <Text style={styles.specificsLabel}>Custom details</Text>
+                        <Text style={styles.specificsLabel}>{t("profile.customDetails")}</Text>
                         <TextInput
                           value={selectedAllergy.notes ?? ""}
                           onChangeText={(notes) => updateAllergy(selectedAllergy.id, { notes })}
-                          placeholder="Peanut oil, sesame oil, traces, shared fryer..."
+                          placeholder={t("profile.customDetailsPlaceholder")}
                           placeholderTextColor={colors.inkSubtle}
                           style={styles.specificsInput}
                           multiline
@@ -361,16 +397,16 @@ export function ProfileScreen({
           <TextInput
             value={customAllergen}
             onChangeText={setCustomAllergen}
-            placeholder="Custom allergen"
+            placeholder={t("profile.customAllergen")}
             placeholderTextColor={colors.inkSubtle}
             style={[styles.input, styles.addInput]}
           />
-          <PrimaryButton label="Add" icon={Plus} onPress={() => addAllergy(customAllergen)} />
+          <PrimaryButton label={t("profile.add")} icon={Plus} onPress={() => addAllergy(customAllergen)} />
         </View>
 
         {draft.allergies.length > 0 && (
           <View style={styles.allergyList}>
-            <Text style={styles.label}>Selected details</Text>
+            <Text style={styles.label}>{t("profile.selectedDetails")}</Text>
             {draft.allergies.map((allergy) => {
               const commonAllergen = commonAllergens.some(
                 (name) => name.toLowerCase() === allergy.name.toLowerCase()
@@ -380,7 +416,7 @@ export function ProfileScreen({
                 <View key={allergy.id} style={styles.allergyCard}>
                   <View style={styles.allergyHeader}>
                     <AllergyChip
-                      label={allergy.name}
+                      label={formatAllergenName(allergy.name)}
                       severity={allergy.severity}
                       onRemove={() => removeAllergy(allergy.id)}
                     />
@@ -397,7 +433,7 @@ export function ProfileScreen({
                           style={[styles.segment, active && styles.segmentActive]}
                         >
                           <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
-                            {severity}
+                            {formatSeverity(severity)}
                           </Text>
                         </Pressable>
                       );
@@ -406,8 +442,8 @@ export function ProfileScreen({
 
                   <View style={styles.switchRow}>
                     <View style={styles.switchText}>
-                      <Text style={styles.switchTitle}>Cross-contact sensitive</Text>
-                      <Text style={styles.switchBody}>Ask about shared equipment and prep.</Text>
+                      <Text style={styles.switchTitle}>{t("profile.crossContactSensitive")}</Text>
+                      <Text style={styles.switchBody}>{t("profile.crossContactBody")}</Text>
                     </View>
                     <Switch
                       value={allergy.avoidCrossContact}
@@ -423,7 +459,7 @@ export function ProfileScreen({
                     <TextInput
                       value={allergy.notes ?? ""}
                       onChangeText={(notes) => updateAllergy(allergy.id, { notes })}
-                      placeholder="Custom details, such as oils, traces, or tolerated forms"
+                      placeholder={t("profile.customDetailsLongPlaceholder")}
                       placeholderTextColor={colors.inkSubtle}
                       style={[styles.input, styles.notesInput]}
                       multiline
@@ -444,7 +480,7 @@ export function ProfileScreen({
         />
       )}
       <Pressable
-        accessibilityLabel="Save profile"
+        accessibilityLabel={t("profile.saveProfile")}
         accessibilityRole="button"
         onPress={() => {
           void save();
@@ -463,7 +499,7 @@ export function ProfileScreen({
             }
           ]}
         >
-          <Text style={styles.toastText}>Allergy profile saved</Text>
+          <Text style={styles.toastText}>{t("profile.savedToast")}</Text>
         </Animated.View>
       )}
     </SafeAreaView>

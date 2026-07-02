@@ -80,7 +80,7 @@ type SwipeableScanCardProps = {
 };
 
 function SwipeableScanCard({ scan, onOpen, onDelete }: SwipeableScanCardProps) {
-  const { t } = useI18n();
+  const { languageCode, t } = useI18n();
   const translateX = useRef(new Animated.Value(0)).current;
   const openOffset = -92;
   const currentOffset = useRef(0);
@@ -141,7 +141,7 @@ function SwipeableScanCard({ scan, onOpen, onDelete }: SwipeableScanCardProps) {
           <View style={styles.itemHeader}>
             <View style={styles.itemText}>
               <Text style={styles.itemTitle}>{scan.restaurantName ?? t("home.menuScan")}</Text>
-              <Text style={styles.itemDate}>{formatDateTime(scan.createdAt)}</Text>
+              <Text style={styles.itemDate}>{formatDateTime(scan.createdAt, languageCode)}</Text>
             </View>
             <View style={[styles.badge, { backgroundColor: meta.background }]}>
               {scan.scanSummary.overallRisk === "low_risk" ? (

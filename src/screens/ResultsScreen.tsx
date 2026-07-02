@@ -10,6 +10,7 @@ import { RiskCard } from "../components/RiskCard";
 import { riskMeta } from "../utils/riskLabels";
 import { formatDateTime } from "../utils/formatters";
 import { AppTopBar } from "../components/AppTopBar";
+import { useI18n } from "../i18n/I18nProvider";
 
 type ResultsScreenProps = {
   scanResult: ScanResult;
@@ -26,6 +27,7 @@ export function ResultsScreen({
   onOpenDish,
   onOpenHistory
 }: ResultsScreenProps) {
+  const { languageCode } = useI18n();
   const summaryMeta = riskMeta[scanResult.scanSummary.overallRisk];
 
   return (
@@ -49,7 +51,7 @@ export function ResultsScreen({
                 {summaryMeta.label}
               </Text>
             </View>
-            <Text style={styles.date}>{formatDateTime(scanResult.createdAt)}</Text>
+            <Text style={styles.date}>{formatDateTime(scanResult.createdAt, languageCode)}</Text>
           </View>
           <Text style={styles.summaryTitle}>{scanResult.scanSummary.summary}</Text>
           <Text style={styles.limitations}>{scanResult.scanSummary.limitations}</Text>

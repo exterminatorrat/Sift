@@ -38,7 +38,7 @@ export function HomeScreen({
   onOpenScan,
   onOpenSettings
 }: HomeScreenProps) {
-  const { t } = useI18n();
+  const { languageCode, t } = useI18n();
   const hasAllergies = profile.allergies.length > 0;
   const visibleScans = recentScans.slice(0, 3);
 
@@ -118,7 +118,7 @@ export function HomeScreen({
                   >
                     <View style={styles.recentText}>
                       <Text style={styles.recentName}>{scan.restaurantName ?? t("home.menuScan")}</Text>
-                      <Text style={styles.recentDate}>{formatDateTime(scan.createdAt)}</Text>
+                      <Text style={styles.recentDate}>{formatDateTime(scan.createdAt, languageCode)}</Text>
                     </View>
                     <View style={styles.recentRight}>
                       {isLowRisk ? (
