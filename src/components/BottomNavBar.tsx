@@ -67,20 +67,35 @@ type NavItemProps = {
 };
 
 function NavItem({ active, icon: Icon, label, onPress }: NavItemProps) {
+  const pressScale = useRef(new Animated.Value(1)).current;
+
+  const animatePress = (toValue: number) => {
+    Animated.timing(pressScale, {
+      duration: toValue < 1 ? 80 : 140,
+      easing: Easing.out(Easing.cubic),
+      toValue,
+      useNativeDriver: true
+    }).start();
+  };
+
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.item,
-        active && styles.itemActive,
-        pressed && styles.itemPressed
-      ]}
-    >
-      <Icon color={active ? colors.surface : colors.inkSubtle} size={21} strokeWidth={2.4} />
-      <Text style={[styles.label, active && styles.labelActive]}>{label}</Text>
-    </Pressable>
+    <Animated.View style={[styles.itemShell, { transform: [{ scale: pressScale }] }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ selected: active }}
+        onPress={onPress}
+        onPressIn={() => animatePress(0.96)}
+        onPressOut={() => animatePress(1)}
+        style={({ pressed }) => [
+          styles.item,
+          active && styles.itemActive,
+          pressed && styles.itemPressed
+        ]}
+      >
+        <Icon color={active ? colors.surface : colors.inkSubtle} size={21} strokeWidth={2.4} />
+        <Text style={[styles.label, active && styles.labelActive]}>{label}</Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -111,11 +126,15 @@ const styles = StyleSheet.create({
   item: {
     alignItems: "center",
     borderRadius: 999,
-    flex: 1,
     gap: 2,
+    height: "100%",
     minHeight: 54,
     justifyContent: "center",
     paddingHorizontal: 4,
+    width: "100%"
+  },
+  itemShell: {
+    flex: 1,
     zIndex: 2
   },
   itemActive: {

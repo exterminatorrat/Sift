@@ -1,5 +1,5 @@
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   AlertTriangle,
   Ban,
@@ -29,38 +29,72 @@ type RiskCardProps = {
 export function RiskCard({ dish, onPress }: RiskCardProps) {
   const meta = riskMeta[dish.riskLevel];
   const Icon = iconsByRisk[dish.riskLevel];
+  const entry = useRef(new Animated.Value(0)).current;
+  const pressScale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.timing(entry, {
+      duration: 260,
+      easing: Easing.out(Easing.cubic),
+      toValue: 1,
+      useNativeDriver: true
+    }).start();
+  }, [entry]);
+
+  const animatePress = (toValue: number) => {
+    Animated.timing(pressScale, {
+      duration: toValue < 1 ? 90 : 150,
+      easing: Easing.out(Easing.cubic),
+      toValue,
+      useNativeDriver: true
+    }).start();
+  };
+
+  const translateY = entry.interpolate({
+    inputRange: [0, 1],
+    outputRange: [10, 0]
+  });
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+    <Animated.View
+      style={{
+        opacity: entry,
+        transform: [{ translateY }, { scale: pressScale }]
+      }}
     >
-      <View style={[styles.accent, { backgroundColor: meta.color }]} />
-      <View style={styles.topRow}>
-        <View style={[styles.status, { backgroundColor: meta.background }]}>
-          <Icon color={meta.color} size={16} strokeWidth={2.2} />
-          <Text style={[styles.statusText, { color: meta.color }]}>{meta.label}</Text>
-        </View>
-        <ChevronRight color={colors.inkSubtle} size={18} />
-      </View>
-
-      <Text style={styles.title}>{dish.dishName}</Text>
-      {dish.menuDescription && <Text style={styles.description}>{dish.menuDescription}</Text>}
-      <Text style={styles.reason}>{dish.conservativeLanguage}</Text>
-
-      <View style={styles.chips}>
-        {(dish.possibleAllergens.length > 0
-          ? dish.possibleAllergens.slice(0, 4)
-          : ["No obvious listed allergen"]
-        ).map((allergen) => (
-          <View key={allergen} style={styles.chip}>
-            <Text style={styles.chipText}>{allergen}</Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={onPress}
+        onPressIn={() => animatePress(0.985)}
+        onPressOut={() => animatePress(1)}
+        style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      >
+        <View style={[styles.accent, { backgroundColor: meta.color }]} />
+        <View style={styles.topRow}>
+          <View style={[styles.status, { backgroundColor: meta.background }]}>
+            <Icon color={meta.color} size={16} strokeWidth={2.2} />
+            <Text style={[styles.statusText, { color: meta.color }]}>{meta.label}</Text>
           </View>
-        ))}
-      </View>
-      <Text style={[styles.action, { color: meta.color }]}>{meta.action}</Text>
-    </Pressable>
+          <ChevronRight color={colors.inkSubtle} size={18} />
+        </View>
+
+        <Text style={styles.title}>{dish.dishName}</Text>
+        {dish.menuDescription && <Text style={styles.description}>{dish.menuDescription}</Text>}
+        <Text style={styles.reason}>{dish.conservativeLanguage}</Text>
+
+        <View style={styles.chips}>
+          {(dish.possibleAllergens.length > 0
+            ? dish.possibleAllergens.slice(0, 4)
+            : ["No obvious listed allergen"]
+          ).map((allergen) => (
+            <View key={allergen} style={styles.chip}>
+              <Text style={styles.chipText}>{allergen}</Text>
+            </View>
+          ))}
+        </View>
+        <Text style={[styles.action, { color: meta.color }]}>{meta.action}</Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 

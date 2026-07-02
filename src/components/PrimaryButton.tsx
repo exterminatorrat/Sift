@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   GestureResponderEvent,
   Pressable,
   StyleSheet,
@@ -31,31 +33,45 @@ export function PrimaryButton({
 }: PrimaryButtonProps) {
   const isPrimary = tone === "primary";
   const iconColor = isPrimary ? "#F5F1EC" : colors.primary;
+  const pressScale = useRef(new Animated.Value(1)).current;
+
+  const animatePress = (toValue: number) => {
+    Animated.timing(pressScale, {
+      duration: toValue < 1 ? 90 : 140,
+      easing: Easing.out(Easing.cubic),
+      toValue,
+      useNativeDriver: true
+    }).start();
+  };
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={disabled || loading}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.button,
-        tone === "primary" && styles.primary,
-        tone === "secondary" && styles.secondary,
-        tone === "quiet" && styles.quiet,
-        (pressed || disabled) && styles.pressed
-      ]}
-    >
-      <View style={styles.content}>
-        {loading ? (
-          <ActivityIndicator color={iconColor} />
-        ) : (
-          Icon && <Icon color={iconColor} size={18} strokeWidth={2.2} />
-        )}
-        <Text style={[styles.label, isPrimary ? styles.primaryLabel : styles.secondaryLabel]}>
-          {label}
-        </Text>
-      </View>
-    </Pressable>
+    <Animated.View style={{ transform: [{ scale: pressScale }] }}>
+      <Pressable
+        accessibilityRole="button"
+        disabled={disabled || loading}
+        onPress={onPress}
+        onPressIn={() => animatePress(0.975)}
+        onPressOut={() => animatePress(1)}
+        style={({ pressed }) => [
+          styles.button,
+          tone === "primary" && styles.primary,
+          tone === "secondary" && styles.secondary,
+          tone === "quiet" && styles.quiet,
+          (pressed || disabled) && styles.pressed
+        ]}
+      >
+        <View style={styles.content}>
+          {loading ? (
+            <ActivityIndicator color={iconColor} />
+          ) : (
+            Icon && <Icon color={iconColor} size={18} strokeWidth={2.2} />
+          )}
+          <Text style={[styles.label, isPrimary ? styles.primaryLabel : styles.secondaryLabel]}>
+            {label}
+          </Text>
+        </View>
+      </Pressable>
+    </Animated.View>
   );
 }
 

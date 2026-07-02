@@ -1,35 +1,106 @@
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { ScanSearch } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { AppTopBar } from "./AppTopBar";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type LoadingAnalysisProps = {
   showTopBar?: boolean;
+  showBack?: boolean;
   onBack?: () => void;
 };
 
-export function LoadingAnalysis({ showTopBar = false, onBack }: LoadingAnalysisProps) {
+export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }: LoadingAnalysisProps) {
+  const pulse = useRef(new Animated.Value(0)).current;
+  const copyIn = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(copyIn, {
+      duration: 320,
+      easing: Easing.out(Easing.cubic),
+      toValue: 1,
+      useNativeDriver: true
+    }).start();
+
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          duration: 1450,
+          easing: Easing.inOut(Easing.cubic),
+          toValue: 1,
+          useNativeDriver: true
+        }),
+        Animated.timing(pulse, {
+          duration: 1450,
+          easing: Easing.inOut(Easing.cubic),
+          toValue: 0,
+          useNativeDriver: true
+        })
+      ])
+    );
+    loop.start();
+
+    return () => loop.stop();
+  }, [copyIn, pulse]);
+
+  const ambientScale = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.98, 1.03]
+  });
+  const rippleScale = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.94, 1.08]
+  });
+  const rippleOpacity = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.45, 0.18]
+  });
+  const coreScale = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.025]
+  });
+  const copyTranslateY = copyIn.interpolate({
+    inputRange: [0, 1],
+    outputRange: [12, 0]
+  });
+
   return (
-    <View style={styles.screen}>
-      {showTopBar && <AppTopBar showBack onBack={onBack} />}
+    <SafeAreaView style={styles.screen}>
+      {showTopBar && <AppTopBar showBack={showBack} onBack={onBack} />}
       <View style={styles.content}>
         <View style={styles.pulseWrap}>
-          <View style={styles.ambient} />
-          <View style={styles.ripple} />
-          <View style={styles.coreOuter}>
+          <Animated.View style={[styles.ambient, { transform: [{ scale: ambientScale }] }]} />
+          <Animated.View
+            style={[
+              styles.ripple,
+              {
+                opacity: rippleOpacity,
+                transform: [{ scale: rippleScale }]
+              }
+            ]}
+          />
+          <Animated.View style={[styles.coreOuter, { transform: [{ scale: coreScale }] }]}>
             <View style={styles.coreInner}>
               <ScanSearch color={colors.primary} size={30} strokeWidth={1.7} />
             </View>
-          </View>
+          </Animated.View>
         </View>
 
-        <View style={styles.copy}>
+        <Animated.View
+          style={[
+            styles.copy,
+            {
+              opacity: copyIn,
+              transform: [{ translateY: copyTranslateY }]
+            }
+          ]}
+        >
           <Text style={styles.title}>Reading menu{"\n"}ingredients...</Text>
           <Text style={styles.subtitle}>Scanning for traces and hidden{"\n"}aliases</Text>
-        </View>
+        </Animated.View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -42,7 +113,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 142
+    paddingTop: 56,
+    justifyContent: "flex-start"
   },
   pulseWrap: {
     alignItems: "center",
