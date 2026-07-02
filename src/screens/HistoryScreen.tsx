@@ -1,5 +1,13 @@
-import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useRef } from "react";
+import {
+  Animated,
+  PanResponder,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AlertTriangle, CircleCheck, History } from "lucide-react-native";
 import { colors } from "../constants/colors";
@@ -14,10 +22,17 @@ type HistoryScreenProps = {
   scans: ScanResult[];
   onBack: () => void;
   onOpenScan: (scanId: string) => void;
+  onDeleteScan?: (scanId: string) => void;
   onOpenProfile?: () => void;
 };
 
-export function HistoryScreen({ scans, onBack, onOpenScan, onOpenProfile }: HistoryScreenProps) {
+export function HistoryScreen({
+  scans,
+  onBack,
+  onOpenScan,
+  onDeleteScan,
+  onOpenProfile
+}: HistoryScreenProps) {
   const { t } = useI18n();
 
   return (
@@ -35,52 +50,14 @@ export function HistoryScreen({ scans, onBack, onOpenScan, onOpenProfile }: Hist
           />
         ) : (
           <View style={styles.list}>
-            {scans.map((scan) => {
-              const meta = riskMeta[scan.scanSummary.overallRisk];
-              return (
-                <Pressable
-                  accessibilityRole="button"
-                  key={scan.id}
-                  onPress={() => onOpenScan(scan.id)}
-                  style={styles.item}
-                >
-                  <View style={styles.itemHeader}>
-                    <View style={styles.itemText}>
-                      <Text style={styles.itemTitle}>{scan.restaurantName ?? t("home.menuScan")}</Text>
-                      <Text style={styles.itemDate}>{formatDateTime(scan.createdAt)}</Text>
-                    </View>
-                    <View style={[styles.badge, { backgroundColor: meta.background }]}>
-                      {scan.scanSummary.overallRisk === "low_risk" ? (
-                        <CircleCheck color={meta.color} size={13} strokeWidth={2.4} />
-                      ) : (
-                        <AlertTriangle color={meta.color} size={13} strokeWidth={2.4} />
-                      )}
-                      <Text style={[styles.badgeText, { color: meta.color }]}>
-                        {scan.scanSummary.overallRisk === "low_risk"
-                          ? t("history.noObviousRisks")
-                          : t("history.risksFound", {
-                              count: Math.max(
-                                1,
-                                scan.dishes.filter((dish) => dish.riskLevel !== "low_risk").length
-                              )
-                            })}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.chips}>
-                    {scan.dishes
-                      .flatMap((dish) => dish.possibleAllergens)
-                      .filter((value, index, list) => list.indexOf(value) === index)
-                      .slice(0, 3)
-                      .map((allergen) => (
-                        <View key={allergen} style={styles.chip}>
-                          <Text style={styles.chipText}>{allergen}</Text>
-                        </View>
-                      ))}
-                  </View>
-                </Pressable>
-              );
-            })}
+            {scans.map((scan) => (
+              <SwipeableScanCard
+                key={scan.id}
+                scan={scan}
+                onDelete={onDeleteScan}
+                onOpen={onOpenScan}
+              />
+            ))}
           </View>
         )}
       </ScrollView>
@@ -93,6 +70,106 @@ export function HistoryScreen({ scans, onBack, onOpenScan, onOpenProfile }: Hist
         />
       )}
     </SafeAreaView>
+  );
+}
+
+type SwipeableScanCardProps = {
+  scan: ScanResult;
+  onOpen: (scanId: string) => void;
+  onDelete?: (scanId: string) => void;
+};
+
+function SwipeableScanCard({ scan, onOpen, onDelete }: SwipeableScanCardProps) {
+  const { t } = useI18n();
+  const translateX = useRef(new Animated.Value(0)).current;
+  const openOffset = -92;
+  const currentOffset = useRef(0);
+
+  const animateTo = (toValue: number) => {
+    currentOffset.current = toValue;
+    Animated.spring(translateX, {
+      toValue,
+      damping: 18,
+      stiffness: 220,
+      mass: 0.7,
+      useNativeDriver: true
+    }).start();
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gesture) =>
+        Math.abs(gesture.dx) > 10 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
+      onPanResponderMove: (_, gesture) => {
+        const nextOffset = Math.max(openOffset, Math.min(0, currentOffset.current + gesture.dx));
+        translateX.setValue(nextOffset);
+      },
+      onPanResponderRelease: (_, gesture) => {
+        const shouldOpen = currentOffset.current + gesture.dx < -46 || gesture.vx < -0.55;
+        animateTo(shouldOpen ? openOffset : 0);
+      },
+      onPanResponderTerminate: () => animateTo(0)
+    })
+  ).current;
+
+  const meta = riskMeta[scan.scanSummary.overallRisk];
+  const riskCount = Math.max(1, scan.dishes.filter((dish) => dish.riskLevel !== "low_risk").length);
+
+  return (
+    <View style={styles.swipeShell}>
+      {onDelete && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => onDelete(scan.id)}
+          style={styles.deleteAction}
+        >
+          <Text style={styles.deleteText}>{t("history.deleteScan")}</Text>
+        </Pressable>
+      )}
+      <Animated.View style={{ transform: [{ translateX }] }} {...panResponder.panHandlers}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            if (currentOffset.current < 0) {
+              animateTo(0);
+              return;
+            }
+            onOpen(scan.id);
+          }}
+          style={styles.item}
+        >
+          <View style={styles.itemHeader}>
+            <View style={styles.itemText}>
+              <Text style={styles.itemTitle}>{scan.restaurantName ?? t("home.menuScan")}</Text>
+              <Text style={styles.itemDate}>{formatDateTime(scan.createdAt)}</Text>
+            </View>
+            <View style={[styles.badge, { backgroundColor: meta.background }]}>
+              {scan.scanSummary.overallRisk === "low_risk" ? (
+                <CircleCheck color={meta.color} size={13} strokeWidth={2.4} />
+              ) : (
+                <AlertTriangle color={meta.color} size={13} strokeWidth={2.4} />
+              )}
+              <Text style={[styles.badgeText, { color: meta.color }]}>
+                {scan.scanSummary.overallRisk === "low_risk"
+                  ? t("history.noObviousRisks")
+                  : t("history.risksFound", { count: riskCount })}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.chips}>
+            {scan.dishes
+              .flatMap((dish) => dish.possibleAllergens)
+              .filter((value, index, list) => list.indexOf(value) === index)
+              .slice(0, 3)
+              .map((allergen) => (
+                <View key={allergen} style={styles.chip}>
+                  <Text style={styles.chipText}>{allergen}</Text>
+                </View>
+              ))}
+          </View>
+        </Pressable>
+      </Animated.View>
+    </View>
   );
 }
 
@@ -122,6 +199,26 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 24
+  },
+  swipeShell: {
+    borderRadius: 12,
+    overflow: "hidden"
+  },
+  deleteAction: {
+    alignItems: "center",
+    backgroundColor: colors.high,
+    bottom: 0,
+    justifyContent: "center",
+    position: "absolute",
+    right: 0,
+    top: 0,
+    width: 92
+  },
+  deleteText: {
+    color: colors.surface,
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0
   },
   item: {
     backgroundColor: colors.surface,

@@ -25,6 +25,7 @@ export type TranslationKey =
   | "history.noScansBody"
   | "history.noObviousRisks"
   | "history.risksFound"
+  | "history.deleteScan"
   | "settings.subscription"
   | "settings.language"
   | "settings.safetyDisclaimer"
@@ -155,6 +156,7 @@ export const translations: Record<AppLanguageCode, Record<TranslationKey, string
     "history.noScansBody": "Scans you save on this device will appear here.",
     "history.noObviousRisks": "No Obvious Risks",
     "history.risksFound": "{count} Risks Found",
+    "history.deleteScan": "Delete",
     "settings.subscription": "Subscription",
     "settings.language": "Language",
     "settings.safetyDisclaimer": "Safety Disclaimer",
@@ -258,6 +260,7 @@ export const translations: Record<AppLanguageCode, Record<TranslationKey, string
     "history.noScansBody": "Los escaneos que guardes en este dispositivo apareceran aqui.",
     "history.noObviousRisks": "Sin riesgos obvios",
     "history.risksFound": "{count} riesgos encontrados",
+    "history.deleteScan": "Borrar",
     "settings.subscription": "Suscripcion",
     "settings.language": "Idioma",
     "settings.safetyDisclaimer": "Aviso de seguridad",

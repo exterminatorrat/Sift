@@ -90,6 +90,14 @@ export default function App() {
     await saveScanHistory(nextHistory);
   }, []);
 
+  const deleteScan = useCallback(
+    async (scanId: string) => {
+      const nextHistory = scanHistory.filter((scan) => scan.id !== scanId);
+      await persistScanHistory(nextHistory);
+    },
+    [persistScanHistory, scanHistory]
+  );
+
   const persistProfiles = useCallback(async (nextProfiles: UserProfile[], nextActiveProfileId: string) => {
     setProfiles(nextProfiles);
     setActiveProfileId(nextActiveProfileId);
@@ -134,6 +142,9 @@ export default function App() {
                   scans={scanHistory}
                   onBack={() => setMainTab("home")}
                   onOpenScan={(scanId) => navigation.navigate("Results", { scanId })}
+                  onDeleteScan={(scanId) => {
+                    void deleteScan(scanId);
+                  }}
                   onOpenProfile={() => setMainTab("profile")}
                 />
               ) : mainTab === "profile" ? (
@@ -264,6 +275,9 @@ export default function App() {
                       navigation.navigate("Home");
                     }}
                     onOpenScan={(scanId) => navigation.replace("Results", { scanId })}
+                    onDeleteScan={(scanId) => {
+                      void deleteScan(scanId);
+                    }}
                     onOpenProfile={() => {
                       setMainTab("profile");
                       navigation.navigate("Home");
@@ -309,6 +323,9 @@ export default function App() {
                       navigation.navigate("Home");
                     }}
                     onOpenScan={(scanId) => navigation.replace("Results", { scanId })}
+                    onDeleteScan={(scanId) => {
+                      void deleteScan(scanId);
+                    }}
                     onOpenProfile={() => {
                       setMainTab("profile");
                       navigation.navigate("Home");
