@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import React from "react";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Check,
@@ -24,7 +24,6 @@ type LanguageSettingsScreenProps = BasicSettingsScreenProps & {
 };
 
 const appLanguages = ["English", "French", "Italian", "Japanese"];
-const restaurantLanguages = ["Match App Language", "English", "French", "Italian", "Japanese"];
 
 export function SubscriptionScreen({ onBack }: BasicSettingsScreenProps) {
   return (
@@ -61,46 +60,12 @@ export function SubscriptionScreen({ onBack }: BasicSettingsScreenProps) {
   );
 }
 
-export function NotificationsScreen({ onBack }: BasicSettingsScreenProps) {
-  const [scanReminders, setScanReminders] = useState(true);
-  const [safetyUpdates, setSafetyUpdates] = useState(true);
-  const [accountAlerts, setAccountAlerts] = useState(false);
-
-  return (
-    <SettingsShell onBack={onBack}>
-      <Header title="Notifications" body="Manage how Sift communicates with you." large />
-
-      <View style={styles.flatList}>
-        <ToggleRow
-          title="Scan reminders"
-          body="Get prompted to review new menu items."
-          value={scanReminders}
-          onValueChange={setScanReminders}
-        />
-        <ToggleRow
-          title="Safety updates"
-          body="Important updates about allergy guidance and product behavior."
-          value={safetyUpdates}
-          onValueChange={setSafetyUpdates}
-        />
-        <ToggleRow
-          title="Account alerts"
-          body="Notifications about subscription and billing."
-          value={accountAlerts}
-          onValueChange={setAccountAlerts}
-        />
-      </View>
-    </SettingsShell>
-  );
-}
-
 export function LanguageTranslationScreen({
   profile,
   onBack,
   onChangeProfile
 }: LanguageSettingsScreenProps) {
   const selectedAppLanguage = profile.preferredLanguage || "English";
-  const selectedRestaurantLanguage = profile.restaurantLanguage || "Match App Language";
 
   const updateProfile = (patch: Partial<UserProfile>) => {
     void onChangeProfile({ ...profile, ...patch });
@@ -108,7 +73,10 @@ export function LanguageTranslationScreen({
 
   return (
     <SettingsShell onBack={onBack}>
-      <Header title="Language & Translation" body="Customize allergy messages and restaurant-facing translations." />
+      <Header
+        title="Language"
+        body="Choose the language Sift should use around the app. Restaurant language stays with your allergy profile."
+      />
 
       <OptionSection
         label="App language"
@@ -116,20 +84,6 @@ export function LanguageTranslationScreen({
         options={appLanguages}
         selected={selectedAppLanguage}
         onSelect={(preferredLanguage) => updateProfile({ preferredLanguage })}
-      />
-
-      <OptionSection
-        label="Translation target"
-        body="Generate restaurant-facing messages in this language."
-        options={restaurantLanguages}
-        selected={selectedRestaurantLanguage}
-        onSelect={(restaurantLanguage) =>
-          updateProfile({
-            restaurantLanguage:
-              restaurantLanguage === "Match App Language" ? undefined : restaurantLanguage
-          })
-        }
-        recommended="Match App Language"
       />
     </SettingsShell>
   );
@@ -235,33 +189,6 @@ function Header({
         {title}
       </Text>
       <Text style={[styles.headerBody, centered && styles.textCentered]}>{body}</Text>
-    </View>
-  );
-}
-
-function ToggleRow({
-  title,
-  body,
-  value,
-  onValueChange
-}: {
-  title: string;
-  body: string;
-  value: boolean;
-  onValueChange: (value: boolean) => void;
-}) {
-  return (
-    <View style={styles.toggleRow}>
-      <View style={styles.rowText}>
-        <Text style={styles.rowTitle}>{title}</Text>
-        <Text style={styles.rowBody}>{body}</Text>
-      </View>
-      <Switch
-        value={value}
-        onValueChange={onValueChange}
-        trackColor={{ false: colors.borderStrong, true: colors.primarySoft }}
-        thumbColor={value ? colors.primaryDark : colors.inkSubtle}
-      />
     </View>
   );
 }
@@ -393,31 +320,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     lineHeight: 26
   },
-  flatList: {
-    gap: 24
-  },
-  toggleRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 16,
-    minHeight: 111
-  },
   rowText: {
     flex: 1,
     gap: 4
-  },
-  rowTitle: {
-    color: colors.ink,
-    fontSize: 18,
-    fontWeight: "500",
-    letterSpacing: 0,
-    lineHeight: 30
-  },
-  rowBody: {
-    color: colors.inkMuted,
-    fontSize: 16,
-    letterSpacing: 0,
-    lineHeight: 26
   },
   optionSection: {
     gap: 24

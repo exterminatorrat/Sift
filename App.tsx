@@ -33,7 +33,6 @@ import { SettingsScreen } from "./src/screens/SettingsScreen";
 import {
   HelpSupportScreen,
   LanguageTranslationScreen,
-  NotificationsScreen,
   SafetyDisclaimerScreen,
   SubscriptionScreen
 } from "./src/screens/SettingsDetailScreens";
@@ -333,7 +332,6 @@ export default function App() {
                 scanCount={scanHistory.length}
                 onBack={() => navigation.goBack()}
                 onOpenSubscription={() => navigation.navigate("SettingsSubscription")}
-                onOpenNotifications={() => navigation.navigate("SettingsNotifications")}
                 onOpenLanguage={() => navigation.navigate("SettingsLanguage")}
                 onOpenSafety={() => navigation.navigate("SettingsSafety")}
                 onOpenHelp={() => navigation.navigate("SettingsHelp")}
@@ -347,10 +345,6 @@ export default function App() {
 
           <Stack.Screen name="SettingsSubscription" options={{ animation: "slide_from_right" }}>
             {({ navigation }) => <SubscriptionScreen onBack={() => navigation.goBack()} />}
-          </Stack.Screen>
-
-          <Stack.Screen name="SettingsNotifications" options={{ animation: "slide_from_right" }}>
-            {({ navigation }) => <NotificationsScreen onBack={() => navigation.goBack()} />}
           </Stack.Screen>
 
           <Stack.Screen name="SettingsLanguage" options={{ animation: "slide_from_right" }}>

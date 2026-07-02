@@ -2,7 +2,6 @@ import React from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  Bell,
   ChevronRight,
   CircleHelp,
   CreditCard,
@@ -17,7 +16,6 @@ type SettingsScreenProps = {
   scanCount: number;
   onBack: () => void;
   onOpenSubscription: () => void;
-  onOpenNotifications: () => void;
   onOpenLanguage: () => void;
   onOpenSafety: () => void;
   onOpenHelp: () => void;
@@ -28,7 +26,6 @@ export function SettingsScreen({
   scanCount,
   onBack,
   onOpenSubscription,
-  onOpenNotifications,
   onOpenLanguage,
   onOpenSafety,
   onOpenHelp,
@@ -47,8 +44,7 @@ export function SettingsScreen({
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.menuList}>
           <SettingsRow icon={CreditCard} label="Subscription" onPress={onOpenSubscription} />
-          <SettingsRow icon={Bell} label="Notifications" onPress={onOpenNotifications} />
-          <SettingsRow icon={Languages} label="Language & Translation" onPress={onOpenLanguage} />
+          <SettingsRow icon={Languages} label="Language" onPress={onOpenLanguage} />
           <SettingsRow icon={ShieldPlus} label="Safety Disclaimer" onPress={onOpenSafety} />
           <View style={styles.divider} />
           <SettingsRow icon={Trash2} label={`Clear Scan History (${scanCount})`} onPress={confirmClearHistory} />

@@ -8,7 +8,6 @@ export type RootStackParamList = {
   DishDetail: { scanId: string; dishId: string };
   Settings: undefined;
   SettingsSubscription: undefined;
-  SettingsNotifications: undefined;
   SettingsLanguage: undefined;
   SettingsSafety: undefined;
   SettingsHelp: undefined;
