@@ -16,12 +16,22 @@ import { AppTopBar } from "../components/AppTopBar";
 type SettingsScreenProps = {
   scanCount: number;
   onBack: () => void;
+  onOpenSubscription: () => void;
+  onOpenNotifications: () => void;
+  onOpenLanguage: () => void;
+  onOpenSafety: () => void;
+  onOpenHelp: () => void;
   onClearHistory: () => void;
 };
 
 export function SettingsScreen({
   scanCount,
   onBack,
+  onOpenSubscription,
+  onOpenNotifications,
+  onOpenLanguage,
+  onOpenSafety,
+  onOpenHelp,
   onClearHistory
 }: SettingsScreenProps) {
   const confirmClearHistory = () => {
@@ -36,13 +46,13 @@ export function SettingsScreen({
       <AppTopBar showBack onBack={onBack} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.menuList}>
-          <SettingsRow icon={CreditCard} label="Subscription" />
-          <SettingsRow icon={Bell} label="Notifications" />
-          <SettingsRow icon={Languages} label="Language & Translation" />
-          <SettingsRow icon={ShieldPlus} label="Safety Disclaimer" />
+          <SettingsRow icon={CreditCard} label="Subscription" onPress={onOpenSubscription} />
+          <SettingsRow icon={Bell} label="Notifications" onPress={onOpenNotifications} />
+          <SettingsRow icon={Languages} label="Language & Translation" onPress={onOpenLanguage} />
+          <SettingsRow icon={ShieldPlus} label="Safety Disclaimer" onPress={onOpenSafety} />
           <View style={styles.divider} />
           <SettingsRow icon={Trash2} label={`Clear Scan History (${scanCount})`} onPress={confirmClearHistory} />
-          <SettingsRow icon={CircleHelp} label="Help / Support" />
+          <SettingsRow icon={CircleHelp} label="Help / Support" onPress={onOpenHelp} />
         </View>
 
         <Pressable accessibilityRole="button" style={styles.logout}>

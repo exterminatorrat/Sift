@@ -30,6 +30,13 @@ import { ResultsScreen } from "./src/screens/ResultsScreen";
 import { DishDetailScreen } from "./src/screens/DishDetailScreen";
 import { HistoryScreen } from "./src/screens/HistoryScreen";
 import { SettingsScreen } from "./src/screens/SettingsScreen";
+import {
+  HelpSupportScreen,
+  LanguageTranslationScreen,
+  NotificationsScreen,
+  SafetyDisclaimerScreen,
+  SubscriptionScreen
+} from "./src/screens/SettingsDetailScreens";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 type MainTab = "home" | "history" | "profile";
@@ -325,12 +332,48 @@ export default function App() {
               <SettingsScreen
                 scanCount={scanHistory.length}
                 onBack={() => navigation.goBack()}
+                onOpenSubscription={() => navigation.navigate("SettingsSubscription")}
+                onOpenNotifications={() => navigation.navigate("SettingsNotifications")}
+                onOpenLanguage={() => navigation.navigate("SettingsLanguage")}
+                onOpenSafety={() => navigation.navigate("SettingsSafety")}
+                onOpenHelp={() => navigation.navigate("SettingsHelp")}
                 onClearHistory={async () => {
                   setScanHistory([]);
                   await clearScanHistory();
                 }}
               />
             )}
+          </Stack.Screen>
+
+          <Stack.Screen name="SettingsSubscription" options={{ animation: "slide_from_right" }}>
+            {({ navigation }) => <SubscriptionScreen onBack={() => navigation.goBack()} />}
+          </Stack.Screen>
+
+          <Stack.Screen name="SettingsNotifications" options={{ animation: "slide_from_right" }}>
+            {({ navigation }) => <NotificationsScreen onBack={() => navigation.goBack()} />}
+          </Stack.Screen>
+
+          <Stack.Screen name="SettingsLanguage" options={{ animation: "slide_from_right" }}>
+            {({ navigation }) => (
+              <LanguageTranslationScreen
+                profile={profile}
+                onBack={() => navigation.goBack()}
+                onChangeProfile={async (nextProfile) => {
+                  const nextProfiles = profiles.some((item) => item.id === nextProfile.id)
+                    ? profiles.map((item) => (item.id === nextProfile.id ? nextProfile : item))
+                    : [...profiles, nextProfile];
+                  await persistProfiles(nextProfiles, nextProfile.id);
+                }}
+              />
+            )}
+          </Stack.Screen>
+
+          <Stack.Screen name="SettingsSafety" options={{ animation: "slide_from_right" }}>
+            {({ navigation }) => <SafetyDisclaimerScreen onBack={() => navigation.goBack()} />}
+          </Stack.Screen>
+
+          <Stack.Screen name="SettingsHelp" options={{ animation: "slide_from_right" }}>
+            {({ navigation }) => <HelpSupportScreen onBack={() => navigation.goBack()} />}
           </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>
