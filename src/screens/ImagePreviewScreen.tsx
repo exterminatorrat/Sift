@@ -3,6 +3,7 @@ import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RotateCcw, ScanSearch } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { PreparedMenuImage } from "../types/image";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { AppTopBar } from "../components/AppTopBar";
@@ -70,20 +71,15 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.ink,
-    fontSize: 32,
-    fontWeight: "300",
-    letterSpacing: 0,
-    lineHeight: 40
+    ...typography.title
   },
   body: {
     color: colors.inkMuted,
-    fontSize: 15,
-    letterSpacing: 0,
-    lineHeight: 22
+    ...typography.body
   },
   preview: {
     aspectRatio: 3 / 4,
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.surfaceWarm,
     borderColor: colors.border,
     borderRadius: 24,
     borderWidth: StyleSheet.hairlineWidth,
@@ -92,7 +88,7 @@ const styles = StyleSheet.create({
   emptyPreview: {
     alignItems: "center",
     aspectRatio: 3 / 4,
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.surfaceWarm,
     borderColor: colors.border,
     borderRadius: 24,
     borderWidth: StyleSheet.hairlineWidth,
@@ -101,8 +97,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: colors.inkMuted,
-    fontSize: 14,
-    fontWeight: "700"
+    ...typography.label
   },
   actions: {
     gap: 12

@@ -11,6 +11,7 @@ import {
 import { UserProfile } from "../types/allergy";
 import { ScanResult } from "../types/scan";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { EmptyState } from "../components/EmptyState";
 import { BottomNavBar } from "../components/BottomNavBar";
 import { formatDateTime } from "../utils/formatters";
@@ -175,22 +176,19 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     color: colors.primaryDark,
-    fontSize: 24,
-    fontWeight: "700",
-    letterSpacing: 0,
-    lineHeight: 32,
+    ...typography.pageTitle,
     textAlign: "center"
   },
   headerButton: {
     alignItems: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
     borderRadius: 999,
     elevation: 2,
     height: 40,
     justifyContent: "center",
     position: "absolute",
     right: 0,
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
@@ -202,10 +200,7 @@ const styles = StyleSheet.create({
   },
   sectionEyebrow: {
     color: colors.inkSubtle,
-    fontSize: 13,
-    fontWeight: "700",
-    letterSpacing: 0,
-    lineHeight: 18,
+    ...typography.label,
     textTransform: "uppercase"
   },
   filterWrap: {
@@ -215,7 +210,9 @@ const styles = StyleSheet.create({
   },
   filterChip: {
     alignItems: "center",
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primaryMuted,
+    borderWidth: StyleSheet.hairlineWidth,
     borderRadius: 999,
     flexDirection: "row",
     minHeight: 36,
@@ -223,9 +220,7 @@ const styles = StyleSheet.create({
   },
   filterText: {
     color: colors.ink,
-    fontSize: 13,
-    fontWeight: "500",
-    letterSpacing: 0
+    ...typography.label
   },
   scanArea: {
     alignItems: "center",
@@ -234,14 +229,14 @@ const styles = StyleSheet.create({
   },
   scanCircle: {
     alignItems: "center",
-    backgroundColor: colors.surface,
-    borderColor: "#E3E2E1",
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     elevation: 2,
     height: 300,
     justifyContent: "center",
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.04,
     shadowRadius: 40,
@@ -258,24 +253,21 @@ const styles = StyleSheet.create({
   },
   scanTitle: {
     color: colors.ink,
+    ...typography.sectionTitle,
     fontSize: 24,
-    fontWeight: "400",
-    letterSpacing: 0,
     lineHeight: 32,
     marginBottom: 4
   },
   scanBody: {
     color: colors.inkMuted,
-    fontSize: 15,
-    letterSpacing: 0,
-    lineHeight: 24,
+    ...typography.body,
     maxWidth: 220,
     textAlign: "center"
   },
   uploadLink: {
     alignItems: "center",
-    backgroundColor: colors.surface,
-    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.border,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
@@ -286,9 +278,7 @@ const styles = StyleSheet.create({
   },
   uploadLinkText: {
     color: colors.primaryDark,
-    fontSize: 14,
-    fontWeight: "700",
-    letterSpacing: 0
+    ...typography.label
   },
   recentSection: {
     gap: 24
@@ -300,10 +290,7 @@ const styles = StyleSheet.create({
   },
   recentTitle: {
     color: colors.ink,
-    fontSize: 18,
-    fontWeight: "400",
-    letterSpacing: 0,
-    lineHeight: 30
+    ...typography.sectionTitle
   },
   viewAll: {
     alignItems: "center",
@@ -312,16 +299,14 @@ const styles = StyleSheet.create({
   },
   viewAllText: {
     color: colors.primaryDark,
-    fontSize: 13,
-    fontWeight: "500",
-    letterSpacing: 0
+    ...typography.label
   },
   recentList: {
     gap: 0
   },
   recentItem: {
     alignItems: "center",
-    borderBottomColor: "#E3E2E1",
+    borderBottomColor: colors.borderSoft,
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -334,17 +319,11 @@ const styles = StyleSheet.create({
   },
   recentName: {
     color: colors.ink,
-    fontSize: 16,
-    fontWeight: "400",
-    letterSpacing: 0,
-    lineHeight: 26
+    ...typography.bodyLarge
   },
   recentDate: {
     color: colors.inkMuted,
-    fontSize: 13,
-    fontWeight: "500",
-    letterSpacing: 0,
-    lineHeight: 18,
+    ...typography.caption,
     marginTop: 4
   },
   recentRight: {
@@ -358,9 +337,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4
   },
   cautionText: {
-    fontSize: 13,
-    fontWeight: "500",
-    letterSpacing: 0
+    ...typography.label
   },
   lowDot: {
     backgroundColor: colors.primary,
@@ -370,8 +347,6 @@ const styles = StyleSheet.create({
   },
   emptyRecent: {
     color: colors.inkMuted,
-    fontSize: 14,
-    letterSpacing: 0,
-    lineHeight: 22
+    ...typography.bodySmall
   }
 });

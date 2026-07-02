@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { ScanSearch } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { AppTopBar } from "./AppTopBar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useI18n } from "../i18n/I18nProvider";
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
     width: 256
   },
   ambient: {
-    backgroundColor: "#E3E2E1",
+    backgroundColor: colors.accentSoft,
     borderRadius: 999,
     bottom: 0,
     left: 0,
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     top: 0
   },
   ripple: {
-    borderColor: "rgba(206,197,188,0.35)",
+    borderColor: colors.border,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     bottom: 32,
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
   },
   coreInner: {
     alignItems: "center",
-    backgroundColor: colors.background,
+    backgroundColor: colors.surfaceWarm,
     borderRadius: 999,
     height: 96,
     justifyContent: "center",
@@ -172,17 +173,12 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.ink,
-    fontSize: 32,
-    fontWeight: "300",
-    letterSpacing: 0,
-    lineHeight: 40,
+    ...typography.title,
     textAlign: "center"
   },
   subtitle: {
     color: colors.inkMuted,
-    fontSize: 18,
-    letterSpacing: 0,
-    lineHeight: 30,
+    ...typography.bodyLarge,
     textAlign: "center"
   }
 });

@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Check, Plus, Save, Trash2 } from "lucide-react-native";
 import { Allergy, AllergySeverity, UserProfile } from "../types/allergy";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { commonAllergens } from "../constants/commonAllergens";
 import { AllergyChip } from "../components/AllergyChip";
 import { PrimaryButton } from "../components/PrimaryButton";
@@ -347,7 +348,7 @@ export function ProfileScreen({
                       )}
                     </View>
                     <View style={[styles.quickMark, selected && styles.quickMarkActive]}>
-                      {selected && <Check color={colors.surface} size={15} strokeWidth={2.5} />}
+                      {selected && <Check color={colors.textInverse} size={15} strokeWidth={2.5} />}
                     </View>
                   </Pressable>
 
@@ -489,7 +490,7 @@ export function ProfileScreen({
         scaleTo={0.92}
         style={styles.floatingSave}
       >
-        <Save color={colors.surface} size={23} strokeWidth={2.2} />
+        <Save color={colors.textInverse} size={23} strokeWidth={2.2} />
       </AnimatedPressable>
       {savedNoticeVisible && (
         <Animated.View
@@ -525,17 +526,12 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.primaryDark,
-    fontSize: 24,
-    fontWeight: "700",
-    letterSpacing: 0,
-    lineHeight: 32,
+    ...typography.pageTitle,
     textAlign: "center"
   },
   subtitle: {
     color: colors.inkMuted,
-    fontSize: 16,
-    letterSpacing: 0,
-    lineHeight: 25,
+    ...typography.bodyLarge,
     maxWidth: 320,
     textAlign: "center"
   },
@@ -561,16 +557,14 @@ const styles = StyleSheet.create({
   },
   newProfileText: {
     color: colors.primary,
-    fontSize: 13,
-    fontWeight: "900",
-    letterSpacing: 0
+    ...typography.badge
   },
   profileSwitcher: {
     gap: 8,
     paddingRight: 20
   },
   profilePill: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
     borderColor: colors.border,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
@@ -591,18 +585,16 @@ const styles = StyleSheet.create({
   },
   profilePillName: {
     color: colors.ink,
-    fontSize: 14,
-    fontWeight: "900",
-    letterSpacing: 0
+    ...typography.label,
+    fontFamily: typography.badge.fontFamily,
+    fontWeight: "800"
   },
   profilePillNameActive: {
     color: colors.primary
   },
   profilePillMeta: {
     color: colors.inkSubtle,
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0
+    ...typography.badge
   },
   languageRow: {
     flexDirection: "row",
@@ -614,19 +606,16 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.inkSubtle,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0,
+    ...typography.badge,
     textTransform: "uppercase"
   },
   input: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
     borderColor: colors.border,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
     color: colors.ink,
-    fontSize: 16,
-    letterSpacing: 0,
+    ...typography.bodyLarge,
     minHeight: 48,
     paddingHorizontal: 13
   },
@@ -637,23 +626,21 @@ const styles = StyleSheet.create({
   },
   sectionMeta: {
     color: colors.inkSubtle,
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0
+    ...typography.badge
   },
   quickList: {
     gap: 10
   },
   quickRow: {
-    backgroundColor: colors.background,
-    borderColor: "rgba(206, 197, 188, 0.45)",
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: "hidden"
   },
   quickRowActive: {
-    backgroundColor: "#E3E2E1",
-    borderColor: "#E3E2E1"
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primaryMuted
   },
   quickRowTop: {
     alignItems: "center",
@@ -669,15 +656,12 @@ const styles = StyleSheet.create({
   },
   quickName: {
     color: colors.ink,
-    fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0
+    ...typography.label,
+    fontSize: 16
   },
   quickMeta: {
     color: colors.inkSubtle,
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0,
+    ...typography.badge,
     textTransform: "capitalize"
   },
   quickMark: {
@@ -694,7 +678,7 @@ const styles = StyleSheet.create({
     borderColor: colors.primary
   },
   quickSegments: {
-    backgroundColor: "rgba(255, 255, 255, 0.55)",
+    backgroundColor: colors.backgroundAlt,
     borderRadius: 8,
     flexDirection: "row",
     gap: 6,
@@ -710,18 +694,16 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   quickSegmentActive: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
     elevation: 1,
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 4
   },
   quickSegmentText: {
     color: colors.inkMuted,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0,
+    ...typography.badge,
     textTransform: "capitalize"
   },
   quickSegmentTextActive: {
@@ -734,19 +716,17 @@ const styles = StyleSheet.create({
   },
   specificsLabel: {
     color: colors.inkSubtle,
+    ...typography.badge,
     fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 0,
     textTransform: "uppercase"
   },
   specificsInput: {
-    backgroundColor: "rgba(255, 255, 255, 0.68)",
-    borderColor: "rgba(206, 197, 188, 0.55)",
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
     borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
     color: colors.ink,
-    fontSize: 14,
-    letterSpacing: 0,
+    ...typography.bodySmall,
     lineHeight: 20,
     minHeight: 64,
     paddingHorizontal: 12,
@@ -765,7 +745,7 @@ const styles = StyleSheet.create({
     gap: 12
   },
   allergyCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
     borderColor: colors.border,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
@@ -776,7 +756,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start"
   },
   segmented: {
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.backgroundAlt,
     borderRadius: 8,
     flexDirection: "row",
     padding: 4
@@ -789,13 +769,11 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   segmentActive: {
-    backgroundColor: colors.surface
+    backgroundColor: colors.surfaceWarm
   },
   segmentText: {
     color: colors.inkMuted,
-    fontSize: 13,
-    fontWeight: "800",
-    letterSpacing: 0,
+    ...typography.badge,
     textTransform: "capitalize"
   },
   segmentTextActive: {
@@ -813,15 +791,11 @@ const styles = StyleSheet.create({
   },
   switchTitle: {
     color: colors.ink,
-    fontSize: 14,
-    fontWeight: "800",
-    letterSpacing: 0
+    ...typography.label
   },
   switchBody: {
     color: colors.inkMuted,
-    fontSize: 13,
-    letterSpacing: 0,
-    lineHeight: 18
+    ...typography.caption
   },
   notesInput: {
     minHeight: 70,
@@ -830,7 +804,7 @@ const styles = StyleSheet.create({
   },
   floatingSave: {
     alignItems: "center",
-    backgroundColor: colors.primaryDark,
+    backgroundColor: colors.primary,
     borderRadius: 999,
     bottom: 104,
     elevation: 10,
@@ -838,7 +812,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     position: "absolute",
     right: 24,
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18,
     shadowRadius: 18,
@@ -846,7 +820,7 @@ const styles = StyleSheet.create({
   },
   toast: {
     alignSelf: "center",
-    backgroundColor: colors.primaryDark,
+    backgroundColor: colors.primary,
     borderRadius: 999,
     bottom: 116,
     paddingHorizontal: 16,
@@ -854,9 +828,7 @@ const styles = StyleSheet.create({
     position: "absolute"
   },
   toastText: {
-    color: colors.surface,
-    fontSize: 13,
-    fontWeight: "700",
-    letterSpacing: 0
+    color: colors.textInverse,
+    ...typography.label
   }
 });

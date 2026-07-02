@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AlertTriangle, CircleCheck, History } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { EmptyState } from "../components/EmptyState";
 import { ScanResult } from "../types/scan";
 import { getRiskMeta } from "../utils/riskLabels";
@@ -191,10 +192,7 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     color: colors.primaryDark,
-    fontSize: 24,
-    fontWeight: "700",
-    letterSpacing: 0,
-    lineHeight: 32,
+    ...typography.pageTitle,
     textAlign: "center"
   },
   list: {
@@ -215,18 +213,18 @@ const styles = StyleSheet.create({
     width: 92
   },
   deleteText: {
-    color: colors.surface,
-    fontSize: 13,
-    fontWeight: "800",
-    letterSpacing: 0
+    color: colors.textInverse,
+    ...typography.badge
   },
   item: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
     borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
     elevation: 2,
     gap: 16,
     padding: 24,
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
     shadowRadius: 12
@@ -242,16 +240,11 @@ const styles = StyleSheet.create({
   },
   itemTitle: {
     color: colors.ink,
-    fontSize: 18,
-    fontWeight: "500",
-    letterSpacing: 0,
-    lineHeight: 30
+    ...typography.sectionTitle
   },
   itemDate: {
     color: colors.inkMuted,
-    fontSize: 16,
-    letterSpacing: 0,
-    lineHeight: 26
+    ...typography.bodyLarge
   },
   badge: {
     alignItems: "center",
@@ -262,9 +255,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4
   },
   badgeText: {
-    fontSize: 13,
-    fontWeight: "500",
-    letterSpacing: 0
+    ...typography.label
   },
   chips: {
     flexDirection: "row",
@@ -273,16 +264,15 @@ const styles = StyleSheet.create({
   },
   chip: {
     backgroundColor: colors.surfaceMuted,
+    borderColor: colors.borderSoft,
     borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 12,
     paddingVertical: 4
   },
   chipText: {
     color: colors.inkMuted,
-    fontSize: 13,
-    fontWeight: "500",
-    letterSpacing: 0,
-    lineHeight: 18,
+    ...typography.caption,
     textTransform: "capitalize"
   }
 });

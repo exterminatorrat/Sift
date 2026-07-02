@@ -10,6 +10,7 @@ import {
   Trash2
 } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { AppTopBar } from "../components/AppTopBar";
 import { useI18n } from "../i18n/I18nProvider";
 
@@ -113,28 +114,22 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     color: colors.ink,
-    fontSize: 18,
-    fontWeight: "400",
-    letterSpacing: 0,
-    lineHeight: 30
+    ...typography.sectionTitle
   },
   divider: {
-    backgroundColor: "rgba(206,197,188,0.2)",
+    backgroundColor: colors.borderSoft,
     height: StyleSheet.hairlineWidth,
     marginVertical: 12
   },
   logout: {
     alignSelf: "center",
-    backgroundColor: "rgba(255,218,214,0.2)",
+    backgroundColor: colors.dangerSoft,
     borderRadius: 999,
     paddingHorizontal: 32,
     paddingVertical: 12
   },
   logoutText: {
     color: colors.high,
-    fontSize: 13,
-    fontWeight: "500",
-    letterSpacing: 1.3,
-    lineHeight: 18
+    ...typography.badge
   }
 });

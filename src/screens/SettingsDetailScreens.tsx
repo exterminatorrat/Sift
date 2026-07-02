@@ -12,6 +12,7 @@ import {
 } from "lucide-react-native";
 import { AppTopBar } from "../components/AppTopBar";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { UserProfile } from "../types/allergy";
 import { useI18n } from "../i18n/I18nProvider";
 import { waveOneAppLanguages } from "../i18n/translations";
@@ -413,10 +414,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.primaryDark,
-    fontSize: 32,
-    fontWeight: "700",
-    letterSpacing: 0,
-    lineHeight: 40
+    ...typography.title
   },
   titleLarge: {
     fontSize: 40,
@@ -427,9 +425,7 @@ const styles = StyleSheet.create({
   },
   headerBody: {
     color: colors.inkMuted,
-    fontSize: 16,
-    letterSpacing: 0,
-    lineHeight: 26
+    ...typography.bodyLarge
   },
   rowText: {
     flex: 1,
@@ -443,30 +439,29 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     color: colors.inkSubtle,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0,
+    ...typography.badge,
     textTransform: "uppercase"
   },
   optionBody: {
     color: colors.inkMuted,
-    fontSize: 14,
-    letterSpacing: 0,
+    ...typography.bodySmall,
     lineHeight: 20
   },
   optionCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
     borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
     elevation: 2,
     overflow: "hidden",
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.05,
     shadowRadius: 18
   },
   optionRow: {
     alignItems: "center",
-    borderBottomColor: colors.surfaceMuted,
+    borderBottomColor: colors.borderSoft,
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     minHeight: 70,
@@ -477,30 +472,27 @@ const styles = StyleSheet.create({
   },
   optionTitle: {
     color: colors.ink,
-    fontSize: 18,
-    fontWeight: "400",
-    letterSpacing: 0,
-    lineHeight: 30
+    ...typography.sectionTitle
   },
   optionTitleDisabled: {
     color: colors.inkMuted
   },
   optionMeta: {
     color: colors.inkSubtle,
-    fontSize: 13,
-    letterSpacing: 0,
-    lineHeight: 18
+    ...typography.caption
   },
   planList: {
     gap: 16
   },
   subscriptionCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
     borderRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
     elevation: 2,
     gap: 18,
     padding: 24,
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.05,
     shadowRadius: 18
@@ -517,9 +509,8 @@ const styles = StyleSheet.create({
   },
   planName: {
     color: colors.ink,
+    ...typography.sectionTitle,
     fontSize: 22,
-    fontWeight: "600",
-    letterSpacing: 0,
     lineHeight: 30
   },
   currentPill: {
@@ -531,34 +522,25 @@ const styles = StyleSheet.create({
   },
   currentPillText: {
     color: colors.primaryDark,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0
+    ...typography.badge
   },
   price: {
     color: colors.primaryDark,
-    fontSize: 20,
-    fontWeight: "700",
-    letterSpacing: 0,
-    lineHeight: 28,
+    ...typography.sectionTitle,
     textAlign: "right"
   },
   sectionTitle: {
     color: colors.ink,
-    fontSize: 18,
-    fontWeight: "600",
-    letterSpacing: 0,
-    lineHeight: 30
+    ...typography.sectionTitle
   },
   benefitBody: {
     color: colors.inkMuted,
-    fontSize: 14,
-    letterSpacing: 0,
+    ...typography.bodySmall,
     lineHeight: 20
   },
   unavailableAction: {
     alignItems: "center",
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.backgroundAlt,
     borderRadius: 999,
     minHeight: 46,
     justifyContent: "center",
@@ -566,23 +548,19 @@ const styles = StyleSheet.create({
   },
   unavailableActionText: {
     color: colors.inkSubtle,
-    fontSize: 14,
-    fontWeight: "800",
-    letterSpacing: 0
+    ...typography.label
   },
   primaryAction: {
     alignItems: "center",
-    backgroundColor: colors.primaryDark,
+    backgroundColor: colors.primary,
     borderRadius: 999,
     minHeight: 50,
     justifyContent: "center",
     paddingHorizontal: 24
   },
   primaryActionText: {
-    color: colors.surface,
-    fontSize: 14,
-    fontWeight: "700",
-    letterSpacing: 0
+    color: colors.textInverse,
+    ...typography.label
   },
   supportBlock: {
     alignItems: "center",
@@ -590,16 +568,12 @@ const styles = StyleSheet.create({
   },
   supportTitle: {
     color: colors.inkMuted,
-    fontSize: 16,
-    letterSpacing: 0,
-    lineHeight: 26,
+    ...typography.bodyLarge,
     textAlign: "center"
   },
   supportLink: {
     color: colors.primaryDark,
-    fontSize: 13,
-    fontWeight: "700",
-    letterSpacing: 0
+    ...typography.label
   },
   article: {
     gap: 32
@@ -609,9 +583,7 @@ const styles = StyleSheet.create({
   },
   articleBody: {
     color: colors.inkMuted,
-    fontSize: 16,
-    letterSpacing: 0,
-    lineHeight: 26
+    ...typography.bodyLarge
   },
   callout: {
     alignItems: "flex-start",
@@ -624,23 +596,23 @@ const styles = StyleSheet.create({
   calloutText: {
     color: colors.primaryDark,
     flex: 1,
-    fontSize: 16,
-    letterSpacing: 0,
-    lineHeight: 26
+    ...typography.bodyLarge
   },
   supportOptions: {
     gap: 24
   },
   supportOption: {
     alignItems: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
     borderRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
     elevation: 2,
     flexDirection: "row",
     gap: 24,
     minHeight: 150,
     padding: 32,
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.05,
     shadowRadius: 18
@@ -655,27 +627,26 @@ const styles = StyleSheet.create({
   },
   supportOptionTitle: {
     color: colors.ink,
-    fontSize: 18,
-    fontWeight: "600",
-    letterSpacing: 0,
+    ...typography.sectionTitle,
     lineHeight: 28
   },
   supportOptionBody: {
     color: colors.inkMuted,
-    fontSize: 16,
-    letterSpacing: 0,
+    ...typography.bodyLarge,
     lineHeight: 24
   },
   modalOverlay: {
     alignItems: "center",
-    backgroundColor: "rgba(26, 28, 28, 0.32)",
+    backgroundColor: "rgba(24, 35, 33, 0.32)",
     flex: 1,
     justifyContent: "center",
     padding: 24
   },
   supportModal: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
     borderRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
     gap: 18,
     maxWidth: 342,
     padding: 24,
@@ -683,32 +654,28 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     color: colors.ink,
+    ...typography.sectionTitle,
     fontSize: 22,
-    fontWeight: "700",
-    letterSpacing: 0,
     lineHeight: 30,
     textAlign: "center"
   },
   modalBody: {
     color: colors.inkMuted,
-    fontSize: 16,
-    letterSpacing: 0,
+    ...typography.bodyLarge,
     lineHeight: 24,
     textAlign: "center"
   },
   modalPrimary: {
     alignItems: "center",
-    backgroundColor: colors.primaryDark,
+    backgroundColor: colors.primary,
     borderRadius: 999,
     minHeight: 48,
     justifyContent: "center",
     paddingHorizontal: 20
   },
   modalPrimaryText: {
-    color: colors.surface,
-    fontSize: 14,
-    fontWeight: "800",
-    letterSpacing: 0
+    color: colors.textInverse,
+    ...typography.label
   },
   modalSecondary: {
     alignItems: "center",
@@ -717,8 +684,6 @@ const styles = StyleSheet.create({
   },
   modalSecondaryText: {
     color: colors.primaryDark,
-    fontSize: 14,
-    fontWeight: "700",
-    letterSpacing: 0
+    ...typography.label
   }
 });

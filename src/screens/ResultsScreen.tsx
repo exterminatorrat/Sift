@@ -5,6 +5,7 @@ import { Image as ImageIcon, Languages, ScanSearch } from "lucide-react-native";
 import { UserProfile } from "../types/allergy";
 import { DishRisk, ScanResult } from "../types/scan";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { RiskCard } from "../components/RiskCard";
 import { getRiskMeta } from "../utils/riskLabels";
@@ -130,12 +131,12 @@ const styles = StyleSheet.create({
   },
   heroIcon: {
     alignItems: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
     borderRadius: 999,
     elevation: 2,
     height: 64,
     justifyContent: "center",
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.06,
     shadowRadius: 22,
@@ -143,15 +144,15 @@ const styles = StyleSheet.create({
   },
   heroSubtitle: {
     color: colors.inkSubtle,
-    fontSize: 16,
-    letterSpacing: 0,
-    lineHeight: 24,
+    ...typography.bodyLarge,
     maxWidth: 280,
     textAlign: "center"
   },
   summary: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
     borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
     gap: 12,
     padding: 20
   },
@@ -166,38 +167,28 @@ const styles = StyleSheet.create({
     paddingVertical: 7
   },
   badgeText: {
-    fontSize: 12,
-    fontWeight: "900",
-    letterSpacing: 0
+    ...typography.badge
   },
   date: {
     color: colors.inkSubtle,
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0
+    ...typography.badge
   },
   summaryTitle: {
     color: colors.ink,
-    fontSize: 20,
-    fontWeight: "500",
-    letterSpacing: 0,
-    lineHeight: 29
+    ...typography.sectionTitle
   },
   summaryBody: {
     color: colors.inkMuted,
-    fontSize: 15,
-    letterSpacing: 0,
-    lineHeight: 22
+    ...typography.body
   },
   limitations: {
     color: colors.inkMuted,
-    fontSize: 13,
-    letterSpacing: 0,
+    ...typography.caption,
     lineHeight: 19
   },
   qualityRow: {
     alignItems: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
     borderColor: colors.border,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
@@ -208,9 +199,7 @@ const styles = StyleSheet.create({
   qualityText: {
     color: colors.ink,
     flex: 1,
-    fontSize: 14,
-    fontWeight: "700",
-    letterSpacing: 0,
+    ...typography.label,
     textTransform: "capitalize"
   },
   sectionHeader: {
@@ -221,22 +210,18 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: colors.ink,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0,
+    ...typography.badge,
     textTransform: "uppercase"
   },
   sectionMeta: {
     color: colors.inkSubtle,
-    fontSize: 13,
-    fontWeight: "800",
-    letterSpacing: 0
+    ...typography.badge
   },
   cards: {
     gap: 16
   },
   translationPreview: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
     borderColor: colors.border,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
@@ -250,21 +235,17 @@ const styles = StyleSheet.create({
   },
   translationTitle: {
     color: colors.ink,
-    fontSize: 15,
-    fontWeight: "900",
-    letterSpacing: 0
+    ...typography.label,
+    fontFamily: typography.badge.fontFamily,
+    fontWeight: "800"
   },
   translationBody: {
     color: colors.inkMuted,
-    fontSize: 14,
-    letterSpacing: 0,
-    lineHeight: 21
+    ...typography.bodySmall
   },
   savedNote: {
     color: colors.inkSubtle,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0,
+    ...typography.badge,
     textAlign: "center",
     textTransform: "uppercase"
   }

@@ -2,6 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { X } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { AllergySeverity } from "../types/allergy";
 
 type AllergyChipProps = {
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
   chip: {
     alignItems: "center",
     alignSelf: "flex-start",
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
     borderColor: colors.border,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
@@ -57,18 +58,14 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.ink,
-    fontSize: 14,
-    fontWeight: "700",
-    letterSpacing: 0
+    ...typography.label
   },
   selectedLabel: {
     color: colors.primary
   },
   severity: {
     color: colors.inkSubtle,
-    fontSize: 12,
-    fontWeight: "600",
-    letterSpacing: 0,
+    ...typography.badge,
     textTransform: "capitalize"
   }
 });

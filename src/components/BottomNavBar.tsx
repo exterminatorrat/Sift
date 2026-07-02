@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 import { History, Home, UserRound } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { useI18n } from "../i18n/I18nProvider";
 
 let lastActiveIndex = 0;
@@ -92,7 +93,7 @@ function NavItem({ active, icon: Icon, label, onPress }: NavItemProps) {
           pressed && styles.itemPressed
         ]}
       >
-        <Icon color={active ? colors.surface : colors.inkSubtle} size={21} strokeWidth={2.4} />
+        <Icon color={active ? colors.textInverse : colors.inkSubtle} size={21} strokeWidth={2.4} />
         <Text style={[styles.label, active && styles.labelActive]}>{label}</Text>
       </Pressable>
     </Animated.View>
@@ -107,8 +108,8 @@ const styles = StyleSheet.create({
     right: 12
   },
   inner: {
-    backgroundColor: colors.surface,
-    borderColor: "rgba(68,65,61,0.08)",
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     elevation: 14,
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingHorizontal: 8,
     paddingVertical: 7,
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.16,
     shadowRadius: 22
@@ -144,13 +145,13 @@ const styles = StyleSheet.create({
     opacity: 0.75
   },
   activeTrack: {
-    backgroundColor: colors.primaryDark,
+    backgroundColor: colors.primary,
     borderRadius: 999,
     bottom: 7,
     elevation: 3,
     left: 8,
     position: "absolute",
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -159,13 +160,11 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.inkSubtle,
-    fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 0,
-    lineHeight: 14
+    ...typography.nav
   },
   labelActive: {
-    color: colors.surface,
+    color: colors.textInverse,
+    fontFamily: typography.badge.fontFamily,
     fontWeight: "800"
   }
 });

@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { ChevronLeft, LucideIcon, Menu } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { useI18n } from "../i18n/I18nProvider";
 import { AnimatedPressable } from "./AnimatedPressable";
 
@@ -72,7 +73,7 @@ export function AppTopBar({
 const styles = StyleSheet.create({
   bar: {
     alignItems: "center",
-    backgroundColor: "rgba(250,249,248,0.88)",
+    backgroundColor: "rgba(255,248,239,0.9)",
     flexDirection: "row",
     height: 64,
     justifyContent: "space-between",
@@ -92,16 +93,13 @@ const styles = StyleSheet.create({
   circleButton: {
     backgroundColor: colors.surface,
     elevation: 2,
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
     shadowRadius: 12
   },
   brand: {
     color: colors.primaryDark,
-    fontSize: 24,
-    fontWeight: "700",
-    letterSpacing: 0,
-    lineHeight: 32
+    ...typography.pageTitle
   }
 });

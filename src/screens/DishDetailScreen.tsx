@@ -12,6 +12,7 @@ import {
 import { UserProfile } from "../types/allergy";
 import { DishRisk, RestaurantMessage } from "../types/scan";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { getRiskMeta } from "../utils/riskLabels";
@@ -178,32 +179,24 @@ const styles = StyleSheet.create({
     paddingVertical: 7
   },
   badgeText: {
-    fontSize: 12,
-    fontWeight: "900",
-    letterSpacing: 0
+    ...typography.badge
   },
   title: {
     color: colors.ink,
-    fontSize: 32,
-    fontWeight: "300",
-    letterSpacing: 0,
-    lineHeight: 36
+    ...typography.title
   },
   description: {
     color: colors.inkMuted,
-    fontSize: 15,
-    letterSpacing: 0,
-    lineHeight: 22
+    ...typography.body
   },
   summary: {
     color: colors.ink,
+    ...typography.label,
     fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0,
     lineHeight: 23
   },
   section: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
     borderColor: colors.border,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
@@ -217,21 +210,16 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: colors.ink,
-    fontSize: 16,
-    fontWeight: "900",
-    letterSpacing: 0
+    ...typography.label,
+    fontSize: 16
   },
   paragraph: {
     color: colors.ink,
-    fontSize: 14,
-    letterSpacing: 0,
-    lineHeight: 21
+    ...typography.bodySmall
   },
   paragraphMuted: {
     color: colors.inkMuted,
-    fontSize: 14,
-    letterSpacing: 0,
-    lineHeight: 21
+    ...typography.bodySmall
   },
   tokenList: {
     flexDirection: "row",
@@ -240,18 +228,18 @@ const styles = StyleSheet.create({
   },
   token: {
     backgroundColor: colors.surfaceMuted,
+    borderColor: colors.borderSoft,
     borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 10,
     paddingVertical: 7
   },
   tokenText: {
     color: colors.ink,
-    fontSize: 13,
-    fontWeight: "800",
-    letterSpacing: 0
+    ...typography.badge
   },
   alertToken: {
-    backgroundColor: "rgba(186,26,26,0.1)"
+    backgroundColor: colors.dangerSoft
   },
   alertTokenText: {
     color: colors.high
@@ -266,34 +254,29 @@ const styles = StyleSheet.create({
   },
   bullet: {
     color: colors.primary,
+    ...typography.label,
     fontSize: 16,
-    fontWeight: "900",
     lineHeight: 21
   },
   question: {
     color: colors.ink,
     flex: 1,
-    fontSize: 14,
-    letterSpacing: 0,
-    lineHeight: 21
+    ...typography.bodySmall
   },
   messageLabel: {
     color: colors.primary,
-    fontSize: 12,
-    fontWeight: "900",
-    letterSpacing: 0,
+    ...typography.badge,
     textTransform: "uppercase"
   },
   messageText: {
     color: colors.ink,
-    fontSize: 14,
-    letterSpacing: 0,
+    ...typography.bodySmall,
     lineHeight: 22
   },
   profileNote: {
     alignItems: "center",
     backgroundColor: colors.primarySoft,
-    borderColor: colors.border,
+    borderColor: colors.primaryMuted,
     borderRadius: 16,
     borderWidth: 1,
     flexDirection: "row",
@@ -303,17 +286,15 @@ const styles = StyleSheet.create({
   profileNoteText: {
     color: colors.primary,
     flex: 1,
-    fontSize: 13,
-    fontWeight: "700",
-    letterSpacing: 0,
+    ...typography.label,
     lineHeight: 19
   },
   translationCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
     borderRadius: 24,
     elevation: 4,
     overflow: "hidden",
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 20 },
     shadowOpacity: 0.08,
     shadowRadius: 40
@@ -328,52 +309,43 @@ const styles = StyleSheet.create({
   },
   warningText: {
     color: colors.avoid,
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 1.2,
+    ...typography.badge,
     lineHeight: 16,
     textTransform: "uppercase"
   },
   translationPrimary: {
     alignItems: "center",
-    borderBottomColor: "#E3E2E1",
+    borderBottomColor: colors.borderSoft,
     borderBottomWidth: StyleSheet.hairlineWidth,
     gap: 24,
     padding: 24
   },
   translationPrompt: {
     color: colors.inkMuted,
-    fontSize: 18,
-    letterSpacing: 0,
-    lineHeight: 30,
+    ...typography.sectionTitle,
     textAlign: "center"
   },
   translatedText: {
     color: colors.ink,
+    ...typography.title,
     fontSize: 30,
-    fontWeight: "400",
-    letterSpacing: 0,
     lineHeight: 42,
     textAlign: "center"
   },
   translationSecondary: {
     alignItems: "center",
-    backgroundColor: colors.background,
+    backgroundColor: colors.backgroundAlt,
     gap: 12,
     padding: 24
   },
   englishLead: {
     color: colors.ink,
-    fontSize: 18,
-    letterSpacing: 0,
-    lineHeight: 30,
+    ...typography.sectionTitle,
     textAlign: "center"
   },
   englishReference: {
     color: colors.inkMuted,
-    fontSize: 16,
-    letterSpacing: 0,
-    lineHeight: 26,
+    ...typography.bodyLarge,
     marginTop: 8,
     textAlign: "center"
   }

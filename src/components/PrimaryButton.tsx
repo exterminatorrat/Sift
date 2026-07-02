@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { LucideIcon } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 
 type ButtonTone = "primary" | "secondary" | "quiet";
 
@@ -32,7 +33,7 @@ export function PrimaryButton({
   loading = false
 }: PrimaryButtonProps) {
   const isPrimary = tone === "primary";
-  const iconColor = isPrimary ? "#F5F1EC" : colors.primary;
+  const iconColor = isPrimary ? colors.textInverse : colors.primary;
   const pressScale = useRef(new Animated.Value(1)).current;
 
   const animatePress = (toValue: number) => {
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary
   },
   secondary: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
     borderColor: colors.border,
     borderWidth: 1
   },
@@ -103,12 +104,10 @@ const styles = StyleSheet.create({
     opacity: 0.76
   },
   label: {
-    fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0
+    ...typography.button
   },
   primaryLabel: {
-    color: "#F5F1EC"
+    color: colors.textInverse
   },
   secondaryLabel: {
     color: colors.primary

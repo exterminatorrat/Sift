@@ -4,6 +4,21 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import { useFonts } from "expo-font";
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+  Inter_900Black
+} from "@expo-google-fonts/inter";
+import {
+  SourceSerif4_400Regular,
+  SourceSerif4_500Medium,
+  SourceSerif4_600SemiBold,
+  SourceSerif4_700Bold
+} from "@expo-google-fonts/source-serif-4";
 import { UserProfile } from "./src/types/allergy";
 import { PreparedMenuImage } from "./src/types/image";
 import { RootStackParamList } from "./src/types/navigation";
@@ -42,6 +57,18 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 type MainTab = "home" | "history" | "profile";
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_800ExtraBold,
+    Inter_900Black,
+    SourceSerif4_400Regular,
+    SourceSerif4_500Medium,
+    SourceSerif4_600SemiBold,
+    SourceSerif4_700Bold
+  });
   const [isReady, setIsReady] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [mainTab, setMainTab] = useState<MainTab>("home");
@@ -104,7 +131,7 @@ export default function App() {
     await saveProfiles(nextProfiles, nextActiveProfileId);
   }, []);
 
-  if (!isReady) {
+  if (!isReady || !fontsLoaded) {
     return (
       <SafeAreaProvider>
         <StatusBar style="dark" />

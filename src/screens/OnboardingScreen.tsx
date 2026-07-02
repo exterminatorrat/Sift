@@ -3,6 +3,7 @@ import { Image, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowRight } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { AnimatedPressable } from "../components/AnimatedPressable";
 import { useI18n } from "../i18n/I18nProvider";
 
@@ -30,7 +31,7 @@ export function OnboardingScreen({ onGetStarted }: OnboardingScreenProps) {
 
         <AnimatedPressable accessibilityRole="button" onPress={onGetStarted} style={styles.button}>
           <Text style={styles.buttonText}>{t("onboarding.getStarted")}</Text>
-          <ArrowRight color={colors.surface} size={16} strokeWidth={2.1} />
+          <ArrowRight color={colors.textInverse} size={16} strokeWidth={2.1} />
         </AnimatedPressable>
       </View>
     </SafeAreaView>
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
     padding: 24
   },
   imageFrame: {
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.accentSoft,
     borderRadius: 999,
     height: 280,
     overflow: "hidden",
@@ -65,26 +66,19 @@ const styles = StyleSheet.create({
   },
   headline: {
     color: colors.primaryDark,
-    fontSize: 32,
-    fontWeight: "300",
-    letterSpacing: 0,
-    lineHeight: 40,
+    ...typography.display,
     textAlign: "center"
   },
   body: {
     color: colors.inkMuted,
-    fontSize: 16,
-    letterSpacing: 0,
-    lineHeight: 26,
+    ...typography.bodyLarge,
     marginTop: 24,
     maxWidth: 342,
     textAlign: "center"
   },
   safety: {
     color: colors.inkSubtle,
-    fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0,
+    ...typography.label,
     lineHeight: 20,
     marginTop: 14,
     maxWidth: 342,
@@ -103,10 +97,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32
   },
   buttonText: {
-    color: colors.surface,
-    fontSize: 13,
-    fontWeight: "500",
-    letterSpacing: 0,
-    lineHeight: 18
+    color: colors.textInverse,
+    ...typography.label
   }
 });

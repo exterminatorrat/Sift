@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { LucideIcon } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { PrimaryButton } from "./PrimaryButton";
 
 type EmptyStateProps = {
@@ -44,16 +45,12 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.ink,
-    fontSize: 20,
-    fontWeight: "800",
-    letterSpacing: 0,
+    ...typography.sectionTitle,
     textAlign: "center"
   },
   body: {
     color: colors.inkMuted,
-    fontSize: 14,
-    letterSpacing: 0,
-    lineHeight: 21,
+    ...typography.bodySmall,
     textAlign: "center"
   }
 });

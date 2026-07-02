@@ -9,6 +9,7 @@ import {
   MessageCircleQuestion
 } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { DishRisk } from "../types/scan";
 import { RiskLevel } from "../types/risk";
 import { getRiskMeta } from "../utils/riskLabels";
@@ -102,12 +103,14 @@ export function RiskCard({ dish, onPress }: RiskCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
     borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
     elevation: 2,
     overflow: "hidden",
     padding: 24,
-    shadowColor: colors.primaryDark,
+    shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.06,
     shadowRadius: 24
@@ -137,30 +140,23 @@ const styles = StyleSheet.create({
     paddingVertical: 6
   },
   statusText: {
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0
+    ...typography.badge
   },
   title: {
     color: colors.ink,
+    ...typography.sectionTitle,
     fontSize: 23,
-    fontWeight: "500",
-    letterSpacing: 0,
     lineHeight: 31,
     marginTop: 18
   },
   description: {
     color: colors.inkMuted,
-    fontSize: 15,
-    letterSpacing: 0,
-    lineHeight: 23,
+    ...typography.body,
     marginTop: 6
   },
   reason: {
     color: colors.inkMuted,
-    fontSize: 15,
-    letterSpacing: 0,
-    lineHeight: 24,
+    ...typography.body,
     marginTop: 16
   },
   chips: {
@@ -171,20 +167,21 @@ const styles = StyleSheet.create({
   },
   chip: {
     backgroundColor: colors.surfaceMuted,
+    borderColor: colors.borderSoft,
     borderRadius: 6,
+    borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 8,
     paddingVertical: 5
   },
   chipText: {
     color: colors.inkMuted,
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 0
+    ...typography.badge,
+    fontSize: 11
   },
   action: {
     marginTop: 16,
-    fontSize: 13,
-    fontWeight: "800",
-    letterSpacing: 0
+    ...typography.label,
+    fontFamily: typography.badge.fontFamily,
+    fontWeight: "800"
   }
 });

@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Camera, Upload } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { AppTopBar } from "../components/AppTopBar";
@@ -61,16 +62,11 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.ink,
-    fontSize: 32,
-    fontWeight: "300",
-    letterSpacing: 0,
-    lineHeight: 40
+    ...typography.title
   },
   body: {
     color: colors.inkMuted,
-    fontSize: 16,
-    letterSpacing: 0,
-    lineHeight: 24
+    ...typography.bodyLarge
   },
   actions: {
     gap: 12
@@ -81,9 +77,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     color: colors.avoid,
-    fontSize: 14,
-    fontWeight: "700",
-    letterSpacing: 0,
+    ...typography.label,
     lineHeight: 20,
     padding: 14
   }

@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { ShieldAlert } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { typography } from "../constants/typography";
 import { useI18n } from "../i18n/I18nProvider";
 
 type DisclaimerBannerProps = {
@@ -23,7 +24,7 @@ const styles = StyleSheet.create({
   banner: {
     alignItems: "flex-start",
     backgroundColor: colors.primarySoft,
-    borderColor: colors.border,
+    borderColor: colors.primaryMuted,
     borderRadius: 12,
     borderWidth: 1,
     flexDirection: "row",
@@ -36,9 +37,7 @@ const styles = StyleSheet.create({
   text: {
     color: colors.primary,
     flex: 1,
-    fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0,
+    ...typography.label,
     lineHeight: 19
   }
 });
