@@ -228,14 +228,14 @@ export function ProfileScreen({
         <View style={styles.fieldGroup}>
           <View style={styles.sectionHeader}>
             <Text style={styles.label}>{t("profile.savedProfiles")}</Text>
-            <Pressable
+            <AnimatedPressable
               accessibilityRole="button"
-              onPress={() => onCreateProfile(draft)}
               style={styles.newProfileButton}
+              onPress={() => onCreateProfile(draft)}
             >
               <Plus color={colors.primary} size={16} strokeWidth={2.4} />
               <Text style={styles.newProfileText}>{t("profile.new")}</Text>
-            </Pressable>
+            </AnimatedPressable>
           </View>
           <ScrollView
             horizontal
@@ -283,7 +283,7 @@ export function ProfileScreen({
           <TextInput
             value={draft.name}
             onChangeText={(name) => setDraft((current) => ({ ...current, name }))}
-            placeholder="Me"
+            placeholder={t("profile.profileNamePlaceholder")}
             placeholderTextColor={colors.inkSubtle}
             style={styles.input}
           />
@@ -297,7 +297,7 @@ export function ProfileScreen({
               onChangeText={(preferredLanguage) =>
                 setDraft((current) => ({ ...current, preferredLanguage }))
               }
-              placeholder="English"
+              placeholder={t("profile.yourLanguagePlaceholder")}
               placeholderTextColor={colors.inkSubtle}
               style={styles.input}
             />
@@ -309,7 +309,7 @@ export function ProfileScreen({
               onChangeText={(restaurantLanguage) =>
                 setDraft((current) => ({ ...current, restaurantLanguage }))
               }
-              placeholder="Japanese"
+              placeholder={t("profile.restaurantLanguagePlaceholder")}
               placeholderTextColor={colors.inkSubtle}
               style={styles.input}
             />
@@ -549,12 +549,15 @@ const styles = StyleSheet.create({
   },
   newProfileButton: {
     alignItems: "center",
-    backgroundColor: "transparent",
-    borderRadius: 999,
+    backgroundColor: colors.primarySoft,
+    borderRadius: 12,
+    borderColor: colors.border,
+    borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: 4,
     minHeight: 34,
-    paddingHorizontal: 12
+    paddingHorizontal: 14,
+    paddingVertical: 6
   },
   newProfileText: {
     color: colors.primary,

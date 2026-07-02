@@ -6,34 +6,48 @@ import { colors } from "../constants/colors";
 import { PreparedMenuImage } from "../types/image";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { AppTopBar } from "../components/AppTopBar";
+import { useI18n } from "../i18n/I18nProvider";
 
 type ImagePreviewScreenProps = {
   image: PreparedMenuImage | null;
+  onBack: () => void;
   onRetake: () => void;
   onUsePhoto: () => void;
 };
 
-export function ImagePreviewScreen({ image, onRetake, onUsePhoto }: ImagePreviewScreenProps) {
+export function ImagePreviewScreen({
+  image,
+  onBack,
+  onRetake,
+  onUsePhoto
+}: ImagePreviewScreenProps) {
+  const { t } = useI18n();
+
   return (
     <SafeAreaView style={styles.screen}>
+      <AppTopBar showBack onBack={onBack} />
       <ScrollView contentContainerStyle={styles.content}>
-        <AppTopBar showBack onBack={onRetake} />
         <View style={styles.hero}>
-          <Text style={styles.title}>Use this menu photo?</Text>
-          <Text style={styles.body}>If text is cut off or blurry, retake it before analysis.</Text>
+          <Text style={styles.title}>{t("imagePreview.title")}</Text>
+          <Text style={styles.body}>{t("imagePreview.body")}</Text>
         </View>
 
         {image ? (
           <Image source={{ uri: image.uri }} resizeMode="cover" style={styles.preview} />
         ) : (
           <View style={styles.emptyPreview}>
-            <Text style={styles.emptyText}>No image selected.</Text>
+            <Text style={styles.emptyText}>{t("imagePreview.noImage")}</Text>
           </View>
         )}
 
         <View style={styles.actions}>
-          <PrimaryButton label="Use photo" icon={ScanSearch} onPress={onUsePhoto} disabled={!image} />
-          <PrimaryButton label="Retake" icon={RotateCcw} tone="secondary" onPress={onRetake} />
+          <PrimaryButton label={t("imagePreview.usePhoto")} icon={ScanSearch} onPress={onUsePhoto} disabled={!image} />
+          <PrimaryButton
+            label={t("imagePreview.retake")}
+            icon={RotateCcw}
+            tone="secondary"
+            onPress={onRetake}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -46,12 +60,13 @@ const styles = StyleSheet.create({
     flex: 1
   },
   content: {
-    gap: 24,
+    gap: 12,
     padding: 24,
-    paddingTop: 0
+    paddingTop: 0,
+    paddingBottom: 12
   },
   hero: {
-    gap: 12
+    gap: 10
   },
   title: {
     color: colors.ink,

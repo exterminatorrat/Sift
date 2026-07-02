@@ -1,8 +1,10 @@
 import React from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowRight } from "lucide-react-native";
 import { colors } from "../constants/colors";
+import { AnimatedPressable } from "../components/AnimatedPressable";
+import { useI18n } from "../i18n/I18nProvider";
 
 const onboardingPlate = require("../../assets/onboarding-plate.png");
 
@@ -11,6 +13,8 @@ type OnboardingScreenProps = {
 };
 
 export function OnboardingScreen({ onGetStarted }: OnboardingScreenProps) {
+  const { t } = useI18n();
+
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.content}>
@@ -19,17 +23,15 @@ export function OnboardingScreen({ onGetStarted }: OnboardingScreenProps) {
         </View>
 
         <View style={styles.copy}>
-          <Text style={styles.headline}>Know what to{"\n"}ask before you{"\n"}eat.</Text>
-          <Text style={styles.body}>
-            Sift helps you navigate menus with confidence, filtering for your unique dietary needs
-            in a soft, quiet space.
-          </Text>
+          <Text style={styles.headline}>{t("onboarding.headline")}</Text>
+          <Text style={styles.body}>{t("onboarding.body")}</Text>
+          <Text style={styles.safety}>{t("onboarding.safety")}</Text>
         </View>
 
-        <Pressable accessibilityRole="button" onPress={onGetStarted} style={styles.button}>
-          <Text style={styles.buttonText}>Get Started</Text>
+        <AnimatedPressable accessibilityRole="button" onPress={onGetStarted} style={styles.button}>
+          <Text style={styles.buttonText}>{t("onboarding.getStarted")}</Text>
           <ArrowRight color={colors.surface} size={16} strokeWidth={2.1} />
-        </Pressable>
+        </AnimatedPressable>
       </View>
     </SafeAreaView>
   );
@@ -75,6 +77,16 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     lineHeight: 26,
     marginTop: 24,
+    maxWidth: 342,
+    textAlign: "center"
+  },
+  safety: {
+    color: colors.inkSubtle,
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0,
+    lineHeight: 20,
+    marginTop: 14,
     maxWidth: 342,
     textAlign: "center"
   },

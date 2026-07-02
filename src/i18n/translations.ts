@@ -15,6 +15,23 @@ export type TranslationKey =
   | "common.back"
   | "common.close"
   | "common.sift"
+  | "common.itemsCount"
+  | "common.noObviousListedAllergen"
+  | "common.recommended"
+  | "risk.lowRisk"
+  | "risk.lowRiskAction"
+  | "risk.askStaff"
+  | "risk.askStaffAction"
+  | "risk.highRisk"
+  | "risk.highRiskAction"
+  | "risk.avoidUnlessConfirmed"
+  | "risk.avoidUnlessConfirmedAction"
+  | "risk.unclear"
+  | "risk.unclearAction"
+  | "onboarding.headline"
+  | "onboarding.body"
+  | "onboarding.safety"
+  | "onboarding.getStarted"
   | "nav.home"
   | "nav.history"
   | "nav.profile"
@@ -31,6 +48,39 @@ export type TranslationKey =
   | "home.viewAll"
   | "home.menuScan"
   | "home.emptyRecent"
+  | "scanCapture.title"
+  | "scanCapture.body"
+  | "scanCapture.takePhoto"
+  | "scanCapture.uploadPhoto"
+  | "imagePreview.title"
+  | "imagePreview.body"
+  | "imagePreview.noImage"
+  | "imagePreview.usePhoto"
+  | "imagePreview.retake"
+  | "analysis.title"
+  | "analysis.subtitle"
+  | "results.title"
+  | "results.heroSubtitle"
+  | "results.imageReadability"
+  | "results.readability.clear"
+  | "results.readability.partiallyClear"
+  | "results.readability.poor"
+  | "results.dishesFound"
+  | "results.restaurantMessage"
+  | "results.savedToHistory"
+  | "dish.severeAllergyAlert"
+  | "dish.readCarefully"
+  | "dish.allergiesTo"
+  | "dish.whyFlagged"
+  | "dish.possibleAllergens"
+  | "dish.hiddenRiskIngredients"
+  | "dish.crossContactConcerns"
+  | "dish.questionsToAsk"
+  | "dish.profileNote"
+  | "dish.backToResults"
+  | "dish.emptyPossibleAllergens"
+  | "dish.emptyHiddenRisk"
+  | "dish.emptyCrossContact"
   | "profile.title"
   | "profile.body"
   | "profile.savedProfiles"
@@ -40,8 +90,11 @@ export type TranslationKey =
   | "profile.deleteProfileBody"
   | "profile.allergiesCount"
   | "profile.profileName"
+  | "profile.profileNamePlaceholder"
   | "profile.yourLanguage"
+  | "profile.yourLanguagePlaceholder"
   | "profile.restaurantLanguage"
+  | "profile.restaurantLanguagePlaceholder"
   | "profile.commonAllergens"
   | "profile.selectedCount"
   | "profile.severityMeta"
@@ -225,6 +278,25 @@ const en = {
   "common.back": "Go back",
   "common.close": "Close",
   "common.sift": "Sift",
+  "common.itemsCount": "{count} items",
+  "common.noObviousListedAllergen": "No obvious listed allergen",
+  "common.recommended": "Recommended",
+  "risk.lowRisk": "Low Risk",
+  "risk.lowRiskAction": "Confirm if severe",
+  "risk.askStaff": "Ask Staff",
+  "risk.askStaffAction": "Ask before ordering",
+  "risk.highRisk": "High Risk",
+  "risk.highRiskAction": "Avoid unless confirmed",
+  "risk.avoidUnlessConfirmed": "Avoid Unless Confirmed",
+  "risk.avoidUnlessConfirmedAction": "Confirm ingredients first",
+  "risk.unclear": "Unclear",
+  "risk.unclearAction": "Retake or ask directly",
+  "onboarding.headline": "Know what to\nask before you\neat.",
+  "onboarding.body":
+    "Sift helps you scan menus for possible allergen risks, hidden ingredients, and the exact questions to ask staff.",
+  "onboarding.safety":
+    "Sift cannot guarantee food safety. Always confirm with restaurant staff, especially for severe allergies.",
+  "onboarding.getStarted": "Get Started",
   "nav.home": "Home",
   "nav.history": "History",
   "nav.profile": "Profile",
@@ -242,6 +314,39 @@ const en = {
   "home.viewAll": "View All",
   "home.menuScan": "Menu scan",
   "home.emptyRecent": "Scans you save on this device will appear here.",
+  "scanCapture.title": "Capture one clear menu page.",
+  "scanCapture.body": "Keep the page flat, include dish descriptions when possible, and avoid glare.",
+  "scanCapture.takePhoto": "Take photo",
+  "scanCapture.uploadPhoto": "Upload photo",
+  "imagePreview.title": "Use this menu photo?",
+  "imagePreview.body": "If text is cut off or blurry, retake it before analysis.",
+  "imagePreview.noImage": "No image selected.",
+  "imagePreview.usePhoto": "Use photo",
+  "imagePreview.retake": "Retake",
+  "analysis.title": "Reading menu\ningredients...",
+  "analysis.subtitle": "Scanning for traces and hidden\naliases",
+  "results.title": "Scan Results",
+  "results.heroSubtitle": "{restaurantName} for {profileName}",
+  "results.imageReadability": "Image readability: {readability}",
+  "results.readability.clear": "clear",
+  "results.readability.partiallyClear": "partially clear",
+  "results.readability.poor": "poor",
+  "results.dishesFound": "Dishes found",
+  "results.restaurantMessage": "Restaurant message",
+  "results.savedToHistory": "Saved to scan history",
+  "dish.severeAllergyAlert": "Severe allergy alert",
+  "dish.readCarefully": "Please read carefully",
+  "dish.allergiesTo": "I have allergies to:",
+  "dish.whyFlagged": "Why it was flagged",
+  "dish.possibleAllergens": "Possible allergens",
+  "dish.hiddenRiskIngredients": "Hidden-risk ingredients",
+  "dish.crossContactConcerns": "Cross-contact concerns",
+  "dish.questionsToAsk": "Questions to ask staff",
+  "dish.profileNote": "Built for {name}: {allergies}",
+  "dish.backToResults": "Back to results",
+  "dish.emptyPossibleAllergens": "No obvious listed allergen from visible menu text.",
+  "dish.emptyHiddenRisk": "No common hidden ingredient pattern was flagged.",
+  "dish.emptyCrossContact": "No specific cross-contact concern was found.",
   "profile.title": "Allergy Profile",
   "profile.body": "Choose allergies and severity. Sift uses this profile to scan menus and prepare questions.",
   "profile.savedProfiles": "Saved profiles",
@@ -251,8 +356,11 @@ const en = {
   "profile.deleteProfileBody": "Delete {name} from this device?",
   "profile.allergiesCount": "{count} allergies",
   "profile.profileName": "Profile name",
+  "profile.profileNamePlaceholder": "Me",
   "profile.yourLanguage": "Your language",
+  "profile.yourLanguagePlaceholder": "English",
   "profile.restaurantLanguage": "Restaurant language",
+  "profile.restaurantLanguagePlaceholder": "Japanese",
   "profile.commonAllergens": "Common allergens",
   "profile.selectedCount": "{count} selected",
   "profile.severityMeta": "{severity} severity",
@@ -377,6 +485,7 @@ const en = {
 } satisfies Record<TranslationKey, string>;
 
 const es = {
+  ...en,
   "common.back": "Volver",
   "common.close": "Cerrar",
   "common.sift": "Sift",

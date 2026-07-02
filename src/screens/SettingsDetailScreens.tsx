@@ -289,6 +289,8 @@ function OptionSection({
   recommended?: string;
   onSelect: (option: string) => void;
 }) {
+  const { t } = useI18n();
+
   return (
     <View style={styles.optionSection}>
       <View style={styles.optionHeader}>
@@ -310,7 +312,7 @@ function OptionSection({
                 <Text style={[styles.optionTitle, option.disabled && styles.optionTitleDisabled]}>
                   {option.label}
                 </Text>
-                {recommended === option.value && <Text style={styles.optionMeta}>Recommended</Text>}
+                {recommended === option.value && <Text style={styles.optionMeta}>{t("common.recommended")}</Text>}
                 {option.meta && <Text style={styles.optionMeta}>{option.meta}</Text>}
               </View>
               {active && <Check color={colors.primaryDark} size={20} strokeWidth={2.5} />}

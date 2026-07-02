@@ -243,7 +243,13 @@ export default function App() {
             {({ navigation }) => (
               <ImagePreviewScreen
                 image={pendingImage}
-                onRetake={async () => selectImageFromCamera(navigation.navigate)}
+                onBack={() => {
+                  setMainTab("home");
+                  navigation.navigate("Home");
+                }}
+                onRetake={async () => {
+                  await selectImageFromCamera(navigation.navigate);
+                }}
                 onUsePhoto={() => navigation.replace("AnalysisLoading")}
               />
             )}

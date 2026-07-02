@@ -14,8 +14,9 @@ import { DishRisk, RestaurantMessage } from "../types/scan";
 import { colors } from "../constants/colors";
 import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { PrimaryButton } from "../components/PrimaryButton";
-import { riskMeta } from "../utils/riskLabels";
+import { getRiskMeta } from "../utils/riskLabels";
 import { AppTopBar } from "../components/AppTopBar";
+import { useI18n } from "../i18n/I18nProvider";
 
 type DishDetailScreenProps = {
   dish: DishRisk;
@@ -30,7 +31,9 @@ export function DishDetailScreen({
   restaurantMessage,
   onBack
 }: DishDetailScreenProps) {
-  const meta = riskMeta[dish.riskLevel];
+  const { t } = useI18n();
+  const meta = getRiskMeta(dish.riskLevel, t);
+  const allergyNames = profile.allergies.map((allergy) => allergy.name).join(", ");
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -50,18 +53,18 @@ export function DishDetailScreen({
           <View style={styles.translationCard}>
             <View style={styles.warningHeader}>
               <TriangleAlert color={colors.avoid} size={20} strokeWidth={2.2} />
-              <Text style={styles.warningText}>Severe allergy alert</Text>
+              <Text style={styles.warningText}>{t("dish.severeAllergyAlert")}</Text>
             </View>
             <View style={styles.translationPrimary}>
-              <Text style={styles.translationPrompt}>Please read carefully</Text>
+              <Text style={styles.translationPrompt}>{t("dish.readCarefully")}</Text>
               <Text style={styles.translatedText}>
                 {restaurantMessage.translated ?? restaurantMessage.english}
               </Text>
             </View>
             <View style={styles.translationSecondary}>
-              <Text style={styles.englishLead}>I have allergies to:</Text>
+              <Text style={styles.englishLead}>{t("dish.allergiesTo")}</Text>
               <TokenList
-                emptyLabel="No obvious listed allergen from visible menu text."
+                emptyLabel={t("dish.emptyPossibleAllergens")}
                 items={profile.allergies.map((allergy) => allergy.name)}
                 tone="alert"
               />
@@ -70,26 +73,26 @@ export function DishDetailScreen({
           </View>
         )}
 
-        <DetailSection title="Why it was flagged">
+        <DetailSection title={t("dish.whyFlagged")}>
           <Text style={styles.paragraph}>{dish.reason}</Text>
         </DetailSection>
 
-        <DetailSection title="Possible allergens">
+        <DetailSection title={t("dish.possibleAllergens")}>
           <TokenList
-            emptyLabel="No obvious listed allergen from visible menu text."
+            emptyLabel={t("dish.emptyPossibleAllergens")}
             items={dish.possibleAllergens}
           />
         </DetailSection>
 
-        <DetailSection title="Hidden-risk ingredients">
-          <TokenList emptyLabel="No common hidden ingredient pattern was flagged." items={dish.hiddenRiskIngredients} />
+        <DetailSection title={t("dish.hiddenRiskIngredients")}>
+          <TokenList emptyLabel={t("dish.emptyHiddenRisk")} items={dish.hiddenRiskIngredients} />
         </DetailSection>
 
-        <DetailSection title="Cross-contact concerns">
-          <TokenList emptyLabel="No specific cross-contact concern was found." items={dish.crossContactConcerns} />
+        <DetailSection title={t("dish.crossContactConcerns")}>
+          <TokenList emptyLabel={t("dish.emptyCrossContact")} items={dish.crossContactConcerns} />
         </DetailSection>
 
-        <DetailSection title="Questions to ask staff" icon={MessageSquareText}>
+        <DetailSection title={t("dish.questionsToAsk")} icon={MessageSquareText}>
           <View style={styles.questionList}>
             {dish.questionsToAsk.map((question) => (
               <View key={question} style={styles.questionRow}>
@@ -103,11 +106,11 @@ export function DishDetailScreen({
         <View style={styles.profileNote}>
           <ClipboardList color={colors.primary} size={18} strokeWidth={2.1} />
           <Text style={styles.profileNoteText}>
-            Built for {profile.name}: {profile.allergies.map((allergy) => allergy.name).join(", ")}
+            {t("dish.profileNote", { allergies: allergyNames, name: profile.name })}
           </Text>
         </View>
 
-        <PrimaryButton label="Back to results" onPress={onBack} tone="secondary" />
+        <PrimaryButton label={t("dish.backToResults")} onPress={onBack} tone="secondary" />
       </ScrollView>
     </SafeAreaView>
   );

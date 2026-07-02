@@ -14,7 +14,7 @@ import { colors } from "../constants/colors";
 import { EmptyState } from "../components/EmptyState";
 import { BottomNavBar } from "../components/BottomNavBar";
 import { formatDateTime } from "../utils/formatters";
-import { riskMeta } from "../utils/riskLabels";
+import { getRiskMeta } from "../utils/riskLabels";
 import { useI18n } from "../i18n/I18nProvider";
 import { AnimatedPressable } from "../components/AnimatedPressable";
 
@@ -112,7 +112,7 @@ export function HomeScreen({
           {visibleScans.length > 0 ? (
             <View style={styles.recentList}>
               {visibleScans.map((scan) => {
-                const meta = riskMeta[scan.scanSummary.overallRisk];
+                const meta = getRiskMeta(scan.scanSummary.overallRisk, t);
                 const isLowRisk = scan.scanSummary.overallRisk === "low_risk";
 
                 return (

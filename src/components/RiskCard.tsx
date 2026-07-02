@@ -11,7 +11,8 @@ import {
 import { colors } from "../constants/colors";
 import { DishRisk } from "../types/scan";
 import { RiskLevel } from "../types/risk";
-import { riskMeta } from "../utils/riskLabels";
+import { getRiskMeta } from "../utils/riskLabels";
+import { useI18n } from "../i18n/I18nProvider";
 
 const iconsByRisk = {
   low_risk: CircleCheck,
@@ -27,7 +28,8 @@ type RiskCardProps = {
 };
 
 export function RiskCard({ dish, onPress }: RiskCardProps) {
-  const meta = riskMeta[dish.riskLevel];
+  const { t } = useI18n();
+  const meta = getRiskMeta(dish.riskLevel, t);
   const Icon = iconsByRisk[dish.riskLevel];
   const entry = useRef(new Animated.Value(0)).current;
   const pressScale = useRef(new Animated.Value(1)).current;
@@ -85,7 +87,7 @@ export function RiskCard({ dish, onPress }: RiskCardProps) {
         <View style={styles.chips}>
           {(dish.possibleAllergens.length > 0
             ? dish.possibleAllergens.slice(0, 4)
-            : ["No obvious listed allergen"]
+            : [t("common.noObviousListedAllergen")]
           ).map((allergen) => (
             <View key={allergen} style={styles.chip}>
               <Text style={styles.chipText}>{allergen}</Text>

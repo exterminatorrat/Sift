@@ -13,7 +13,7 @@ import { AlertTriangle, CircleCheck, History } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { EmptyState } from "../components/EmptyState";
 import { ScanResult } from "../types/scan";
-import { riskMeta } from "../utils/riskLabels";
+import { getRiskMeta } from "../utils/riskLabels";
 import { formatDateTime } from "../utils/formatters";
 import { BottomNavBar } from "../components/BottomNavBar";
 import { useI18n } from "../i18n/I18nProvider";
@@ -112,7 +112,7 @@ function SwipeableScanCard({ scan, onOpen, onDelete }: SwipeableScanCardProps) {
     })
   ).current;
 
-  const meta = riskMeta[scan.scanSummary.overallRisk];
+  const meta = getRiskMeta(scan.scanSummary.overallRisk, t);
   const riskCount = Math.max(1, scan.dishes.filter((dish) => dish.riskLevel !== "low_risk").length);
 
   return (

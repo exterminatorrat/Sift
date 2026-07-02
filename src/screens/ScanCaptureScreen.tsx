@@ -6,6 +6,7 @@ import { colors } from "../constants/colors";
 import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { AppTopBar } from "../components/AppTopBar";
+import { useI18n } from "../i18n/I18nProvider";
 
 type ScanCaptureScreenProps = {
   error?: string | null;
@@ -20,22 +21,22 @@ export function ScanCaptureScreen({
   onTakePhoto,
   onUploadPhoto
 }: ScanCaptureScreenProps) {
+  const { t } = useI18n();
+
   return (
     <SafeAreaView style={styles.screen}>
       <AppTopBar showBack onBack={onBack} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
-          <Text style={styles.title}>Capture one clear menu page.</Text>
-          <Text style={styles.body}>
-            Keep the page flat, include dish descriptions when possible, and avoid glare.
-          </Text>
+          <Text style={styles.title}>{t("scanCapture.title")}</Text>
+          <Text style={styles.body}>{t("scanCapture.body")}</Text>
         </View>
 
         {error && <Text style={styles.error}>{error}</Text>}
 
         <View style={styles.actions}>
-          <PrimaryButton label="Take photo" icon={Camera} onPress={onTakePhoto} />
-          <PrimaryButton label="Upload photo" icon={Upload} tone="secondary" onPress={onUploadPhoto} />
+          <PrimaryButton label={t("scanCapture.takePhoto")} icon={Camera} onPress={onTakePhoto} />
+          <PrimaryButton label={t("scanCapture.uploadPhoto")} icon={Upload} tone="secondary" onPress={onUploadPhoto} />
         </View>
 
         <DisclaimerBanner compact />

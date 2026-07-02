@@ -2,17 +2,19 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { ShieldAlert } from "lucide-react-native";
 import { colors } from "../constants/colors";
-import { safetyCopy } from "../constants/copy";
+import { useI18n } from "../i18n/I18nProvider";
 
 type DisclaimerBannerProps = {
   compact?: boolean;
 };
 
 export function DisclaimerBanner({ compact = false }: DisclaimerBannerProps) {
+  const { t } = useI18n();
+
   return (
     <View style={[styles.banner, compact && styles.compact]}>
       <ShieldAlert color={colors.primary} size={18} strokeWidth={2.1} />
-      <Text style={styles.text}>{safetyCopy}</Text>
+      <Text style={styles.text}>{t("safety.callout")}</Text>
     </View>
   );
 }

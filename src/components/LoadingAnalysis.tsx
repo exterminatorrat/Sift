@@ -4,6 +4,7 @@ import { ScanSearch } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { AppTopBar } from "./AppTopBar";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useI18n } from "../i18n/I18nProvider";
 
 type LoadingAnalysisProps = {
   showTopBar?: boolean;
@@ -12,6 +13,7 @@ type LoadingAnalysisProps = {
 };
 
 export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }: LoadingAnalysisProps) {
+  const { t } = useI18n();
   const pulse = useRef(new Animated.Value(0)).current;
   const copyIn = useRef(new Animated.Value(0)).current;
 
@@ -96,8 +98,8 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
             }
           ]}
         >
-          <Text style={styles.title}>Reading menu{"\n"}ingredients...</Text>
-          <Text style={styles.subtitle}>Scanning for traces and hidden{"\n"}aliases</Text>
+          <Text style={styles.title}>{t("analysis.title")}</Text>
+          <Text style={styles.subtitle}>{t("analysis.subtitle")}</Text>
         </Animated.View>
       </View>
     </SafeAreaView>

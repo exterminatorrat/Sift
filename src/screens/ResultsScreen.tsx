@@ -7,7 +7,7 @@ import { DishRisk, ScanResult } from "../types/scan";
 import { colors } from "../constants/colors";
 import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { RiskCard } from "../components/RiskCard";
-import { riskMeta } from "../utils/riskLabels";
+import { getRiskMeta } from "../utils/riskLabels";
 import { formatDateTime } from "../utils/formatters";
 import { AppTopBar } from "../components/AppTopBar";
 import { useI18n } from "../i18n/I18nProvider";
@@ -27,12 +27,12 @@ export function ResultsScreen({
   onOpenDish,
   onOpenHistory
 }: ResultsScreenProps) {
-  const { languageCode } = useI18n();
-  const summaryMeta = riskMeta[scanResult.scanSummary.overallRisk];
+  const { languageCode, t } = useI18n();
+  const summaryMeta = getRiskMeta(scanResult.scanSummary.overallRisk, t);
 
   return (
     <SafeAreaView style={styles.screen}>
-      <AppTopBar title="Scan Results" showBack onBack={onBack} />
+      <AppTopBar title={t("results.title")} showBack onBack={onBack} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
@@ -40,7 +40,10 @@ export function ResultsScreen({
             <ScanSearch color={colors.primary} size={30} strokeWidth={1.9} />
           </View>
           <Text style={styles.heroSubtitle}>
-            {scanResult.restaurantName ?? "Menu scan"} for {profile.name}
+            {t("results.heroSubtitle", {
+              profileName: profile.name,
+              restaurantName: scanResult.restaurantName ?? t("home.menuScan")
+            })}
           </Text>
         </View>
 
@@ -60,15 +63,19 @@ export function ResultsScreen({
         <View style={styles.qualityRow}>
           <ImageIcon color={colors.primary} size={18} strokeWidth={2.1} />
           <Text style={styles.qualityText}>
-            Image readability: {scanResult.imageQuality.readability.replace("_", " ")}
+            {t("results.imageReadability", {
+              readability: t(readabilityLabelKey(scanResult.imageQuality.readability))
+            })}
           </Text>
         </View>
 
         <DisclaimerBanner compact />
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Dishes found</Text>
-          <Text style={styles.sectionMeta}>{scanResult.dishes.length} items</Text>
+          <Text style={styles.sectionTitle}>{t("results.dishesFound")}</Text>
+          <Text style={styles.sectionMeta}>
+            {t("common.itemsCount", { count: scanResult.dishes.length })}
+          </Text>
         </View>
 
         <View style={styles.cards}>
@@ -81,7 +88,7 @@ export function ResultsScreen({
           <View style={styles.translationPreview}>
             <View style={styles.translationHeader}>
               <Languages color={colors.primary} size={18} strokeWidth={2.1} />
-              <Text style={styles.translationTitle}>Restaurant message</Text>
+              <Text style={styles.translationTitle}>{t("results.restaurantMessage")}</Text>
             </View>
             <Text style={styles.translationBody}>{scanResult.restaurantMessage.english}</Text>
           </View>
@@ -89,12 +96,22 @@ export function ResultsScreen({
 
         {onOpenHistory && (
           <Text style={styles.savedNote} onPress={onOpenHistory}>
-            Saved to scan history
+            {t("results.savedToHistory")}
           </Text>
         )}
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+function readabilityLabelKey(readability: ScanResult["imageQuality"]["readability"]) {
+  if (readability === "clear") {
+    return "results.readability.clear" as const;
+  }
+  if (readability === "partially_clear") {
+    return "results.readability.partiallyClear" as const;
+  }
+  return "results.readability.poor" as const;
 }
 
 const styles = StyleSheet.create({
