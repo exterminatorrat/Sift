@@ -16,6 +16,7 @@ import { BottomNavBar } from "../components/BottomNavBar";
 import { formatDateTime } from "../utils/formatters";
 import { riskMeta } from "../utils/riskLabels";
 import { useI18n } from "../i18n/I18nProvider";
+import { AnimatedPressable } from "../components/AnimatedPressable";
 
 type HomeScreenProps = {
   profile: UserProfile;
@@ -47,14 +48,14 @@ export function HomeScreen({
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.pageHeader}>
           <Text style={styles.pageTitle}>{t("home.title")}</Text>
-          <Pressable
+          <AnimatedPressable
             accessibilityLabel={t("home.openSettings")}
             accessibilityRole="button"
             onPress={onOpenSettings}
             style={styles.headerButton}
           >
             <Menu color={colors.primaryDark} size={22} strokeWidth={2.1} />
-          </Pressable>
+          </AnimatedPressable>
         </View>
 
         {hasAllergies ? (
@@ -79,17 +80,22 @@ export function HomeScreen({
         )}
 
         <View style={styles.scanArea}>
-          <Pressable accessibilityRole="button" onPress={onStartScan} style={styles.scanCircle}>
+          <AnimatedPressable
+            accessibilityRole="button"
+            onPress={onStartScan}
+            scaleTo={0.985}
+            style={styles.scanCircle}
+          >
             <View style={styles.scanIcon}>
               <ScanLine color={colors.surface} size={32} strokeWidth={1.8} />
             </View>
             <Text style={styles.scanTitle}>{t("home.scanMenu")}</Text>
             <Text style={styles.scanBody}>{t("home.scanBody")}</Text>
-          </Pressable>
-          <Pressable accessibilityRole="button" onPress={onUploadPhoto} style={styles.uploadLink}>
+          </AnimatedPressable>
+          <AnimatedPressable accessibilityRole="button" onPress={onUploadPhoto} style={styles.uploadLink}>
             <Upload color={colors.primaryDark} size={15} strokeWidth={2} />
             <Text style={styles.uploadLinkText}>{t("home.uploadPhoto")}</Text>
-          </Pressable>
+          </AnimatedPressable>
         </View>
 
         <View style={styles.recentSection}>

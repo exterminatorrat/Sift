@@ -21,6 +21,7 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { BottomNavBar } from "../components/BottomNavBar";
 import { useI18n } from "../i18n/I18nProvider";
 import { TranslationKey } from "../i18n/translations";
+import { AnimatedPressable } from "../components/AnimatedPressable";
 
 type ProfileScreenProps = {
   profile: UserProfile;
@@ -479,16 +480,17 @@ export function ProfileScreen({
           onProfile={() => undefined}
         />
       )}
-      <Pressable
+      <AnimatedPressable
         accessibilityLabel={t("profile.saveProfile")}
         accessibilityRole="button"
         onPress={() => {
           void save();
         }}
+        scaleTo={0.92}
         style={styles.floatingSave}
       >
         <Save color={colors.surface} size={23} strokeWidth={2.2} />
-      </Pressable>
+      </AnimatedPressable>
       {savedNoticeVisible && (
         <Animated.View
           style={[

@@ -1,8 +1,9 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { ChevronLeft, LucideIcon, Menu } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { useI18n } from "../i18n/I18nProvider";
+import { AnimatedPressable } from "./AnimatedPressable";
 
 type AppTopBarProps = {
   title?: string;
@@ -31,37 +32,37 @@ export function AppTopBar({
     <View style={styles.bar}>
       <View style={styles.side}>
         {showBack && (
-          <Pressable
+          <AnimatedPressable
             accessibilityLabel={t("common.back")}
             accessibilityRole="button"
             onPress={onBack}
-            style={styles.iconButton}
+            style={[styles.iconButton, styles.circleButton]}
           >
             <ChevronLeft color={colors.primaryDark} size={24} strokeWidth={2.1} />
-          </Pressable>
+          </AnimatedPressable>
         )}
       </View>
       <Text style={styles.brand}>{title}</Text>
       <View style={styles.side}>
         {RightIcon && (
-          <Pressable
+          <AnimatedPressable
             accessibilityLabel={rightAccessibilityLabel}
             accessibilityRole="button"
             onPress={onRightPress}
             style={[styles.iconButton, styles.circleButton]}
           >
             <RightIcon color={colors.primaryDark} size={21} strokeWidth={2.2} />
-          </Pressable>
+          </AnimatedPressable>
         )}
         {!RightIcon && showMenu && (
-          <Pressable
+          <AnimatedPressable
             accessibilityLabel={t("home.openSettings")}
             accessibilityRole="button"
             onPress={onMenu}
             style={[styles.iconButton, styles.circleButton]}
           >
             <Menu color={colors.primaryDark} size={22} strokeWidth={2.1} />
-          </Pressable>
+          </AnimatedPressable>
         )}
       </View>
     </View>
