@@ -23,9 +23,11 @@ import { UserProfile } from "./src/types/allergy";
 import { PreparedMenuImage } from "./src/types/image";
 import { RootStackParamList } from "./src/types/navigation";
 import { ScanResult } from "./src/types/scan";
+import { AuthSession } from "./src/types/auth";
 import { LoadingAnalysis } from "./src/components/LoadingAnalysis";
 import { createDefaultProfile } from "./src/services/mockAnalysisService";
 import { analyzeMenuImage, createUnclearScanResult } from "./src/services/aiAnalysisService";
+import { loadAuthSession, signInWithApple, signOut } from "./src/services/authService";
 import { captureMenuImage, pickMenuImage } from "./src/services/imageService";
 import {
   clearScanHistory,
@@ -36,6 +38,7 @@ import {
 } from "./src/services/storageService";
 import { addScanToHistory } from "./src/utils/scanHistory";
 import { OnboardingScreen } from "./src/screens/OnboardingScreen";
+import { LoginScreen } from "./src/screens/LoginScreen";
 import { ProfileScreen } from "./src/screens/ProfileScreen";
 import { HomeScreen } from "./src/screens/HomeScreen";
 import { ScanCaptureScreen } from "./src/screens/ScanCaptureScreen";
@@ -70,6 +73,9 @@ export default function App() {
     SourceSerif4_700Bold
   });
   const [isReady, setIsReady] = useState(false);
+  const [authSession, setAuthSession] = useState<AuthSession | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [mainTab, setMainTab] = useState<MainTab>("home");
   const [profiles, setProfiles] = useState<UserProfile[]>([createDefaultProfile()]);
@@ -82,12 +88,13 @@ export default function App() {
   useEffect(() => {
     let mounted = true;
 
-    loadStoredAppState()
-      .then((stored) => {
+    Promise.all([loadStoredAppState(), loadAuthSession()])
+      .then(([stored, storedAuthSession]) => {
         if (!mounted) {
           return;
         }
 
+        setAuthSession(storedAuthSession);
         setOnboardingComplete(stored.onboardingComplete);
         const nextProfiles = stored.profiles.length > 0 ? stored.profiles : [stored.profile ?? createDefaultProfile()];
         setProfiles(nextProfiles);
@@ -146,9 +153,32 @@ export default function App() {
       <I18nProvider language={profile.preferredLanguage}>
         <NavigationContainer>
           <Stack.Navigator
-            initialRouteName={onboardingComplete ? "Home" : "Onboarding"}
+            initialRouteName={!authSession ? "Login" : onboardingComplete ? "Home" : "Onboarding"}
             screenOptions={{ animation: "none", headerShown: false }}
           >
+          <Stack.Screen name="Login">
+            {({ navigation }) => (
+              <LoginScreen
+                error={authError}
+                loading={authLoading}
+                onSignInWithApple={async () => {
+                  setAuthLoading(true);
+                  setAuthError(null);
+                  try {
+                    const nextAuthSession = await signInWithApple();
+                    setAuthSession(nextAuthSession);
+                    navigation.replace(onboardingComplete ? "Home" : "Onboarding");
+                  } catch (error) {
+                    const message = error instanceof Error ? error.message : "Could not sign in with Apple.";
+                    setAuthError(message);
+                  } finally {
+                    setAuthLoading(false);
+                  }
+                }}
+              />
+            )}
+          </Stack.Screen>
+
           <Stack.Screen name="Onboarding">
             {({ navigation }) => (
               <OnboardingScreen
@@ -390,6 +420,14 @@ export default function App() {
                 onClearHistory={async () => {
                   setScanHistory([]);
                   await clearScanHistory();
+                }}
+                onLogout={async () => {
+                  await signOut();
+                  setAuthSession(null);
+                  setOnboardingComplete(false);
+                  setMainTab("home");
+                  await saveOnboardingComplete(false);
+                  navigation.replace("Login");
                 }}
               />
             )}

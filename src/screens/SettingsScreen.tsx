@@ -22,6 +22,7 @@ type SettingsScreenProps = {
   onOpenSafety: () => void;
   onOpenHelp: () => void;
   onClearHistory: () => void;
+  onLogout: () => void;
 };
 
 export function SettingsScreen({
@@ -31,7 +32,8 @@ export function SettingsScreen({
   onOpenLanguage,
   onOpenSafety,
   onOpenHelp,
-  onClearHistory
+  onClearHistory,
+  onLogout
 }: SettingsScreenProps) {
   const { t } = useI18n();
 
@@ -59,7 +61,7 @@ export function SettingsScreen({
           <SettingsRow icon={CircleHelp} label={t("settings.helpSupport")} onPress={onOpenHelp} />
         </View>
 
-        <Pressable accessibilityRole="button" style={styles.logout}>
+        <Pressable accessibilityRole="button" onPress={onLogout} style={styles.logout}>
           <Text style={styles.logoutText}>{t("settings.logout")}</Text>
         </Pressable>
       </ScrollView>

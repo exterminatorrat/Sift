@@ -11,6 +11,7 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
+      "usesAppleSignIn": true,
       "bundleIdentifier": "app.sift.mvp",
       "infoPlist": {
         "NSCameraUsageDescription": "Sift uses your camera to scan restaurant menus for possible allergen risks.",
