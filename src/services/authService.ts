@@ -75,6 +75,12 @@ export async function signInWithApple(): Promise<AuthSession> {
     });
 
     if (error || !data.user) {
+      if (error && isProviderDisabledError(error.message)) {
+        const session = createLocalAppleSession(credential, fullName);
+        await saveLocalAuthSession(session);
+        return session;
+      }
+
       throw new Error(error?.message ?? "Could not sign in with Apple.");
     }
 
@@ -90,14 +96,7 @@ export async function signInWithApple(): Promise<AuthSession> {
     return session;
   }
 
-  const session: AuthSession = {
-    email: credential.email ?? null,
-    fullName,
-    id: credential.user,
-    mode: "local_apple",
-    provider: "apple",
-    signedInAt: new Date().toISOString()
-  };
+  const session = createLocalAppleSession(credential, fullName);
   await saveLocalAuthSession(session);
   return session;
 }
@@ -126,4 +125,23 @@ function formatAppleName(fullName: AppleAuthentication.AppleAuthenticationFullNa
 
   const name = [fullName.givenName, fullName.familyName].filter(Boolean).join(" ").trim();
   return name.length > 0 ? name : null;
+}
+
+function createLocalAppleSession(
+  credential: AppleAuthentication.AppleAuthenticationCredential,
+  fullName: string | null
+): AuthSession {
+  return {
+    email: credential.email ?? null,
+    fullName,
+    id: credential.user,
+    mode: "local_apple",
+    provider: "apple",
+    signedInAt: new Date().toISOString()
+  };
+}
+
+function isProviderDisabledError(message: string) {
+  const normalizedMessage = message.toLowerCase();
+  return normalizedMessage.includes("provider") && normalizedMessage.includes("not enabled");
 }
