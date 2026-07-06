@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { Alert } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Alert, Animated, Easing } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -194,94 +194,96 @@ export default function App() {
 
           <Stack.Screen name="Home">
             {({ navigation }) => (
-              mainTab === "history" ? (
-                <HistoryScreen
-                  scans={scanHistory}
-                  onBack={() => setMainTab("home")}
-                  onOpenScan={(scanId) => navigation.navigate("Results", { scanId, from: "history" })}
-                  onDeleteScan={(scanId) => {
-                    void deleteScan(scanId);
-                  }}
-                  onOpenProfile={() => setMainTab("profile")}
-                />
-              ) : mainTab === "profile" ? (
-                <ProfileScreen
-                  profile={profile}
-                  profiles={profiles}
-                  activeProfileId={activeProfileId}
-                  onChangeProfile={async (nextProfile) => {
-                    const nextProfiles = profiles.some((item) => item.id === nextProfile.id)
-                      ? profiles.map((item) => (item.id === nextProfile.id ? nextProfile : item))
-                      : [...profiles, nextProfile];
-                    await persistProfiles(nextProfiles, nextProfile.id);
-                  }}
-                  onSelectProfile={async (profileId, currentProfile) => {
-                    const nextProfiles = profiles.map((item) =>
-                      item.id === currentProfile.id ? currentProfile : item
-                    );
-                    await persistProfiles(nextProfiles, profileId);
-                  }}
-                  onCreateProfile={async (currentProfile) => {
-                    const profileNumber = profiles.length + 1;
-                    const nextProfile: UserProfile = {
-                      ...createDefaultProfile(),
-                      id: `profile-${Date.now()}`,
-                      name: `Profile ${profileNumber}`
-                    };
-                    const nextProfiles = profiles.map((item) =>
-                      item.id === currentProfile.id ? currentProfile : item
-                    );
-                    await persistProfiles([...nextProfiles, nextProfile], nextProfile.id);
-                  }}
-                  onDeleteProfile={async (profileId, currentProfile) => {
-                    const savedCurrentProfiles = profiles.map((item) =>
-                      item.id === currentProfile.id && item.id !== profileId ? currentProfile : item
-                    );
-                    const remainingProfiles = savedCurrentProfiles.filter((item) => item.id !== profileId);
-                    const nextProfiles =
-                      remainingProfiles.length > 0
-                        ? remainingProfiles
-                        : [
-                            {
-                              ...createDefaultProfile(),
-                              id: `profile-${Date.now()}`,
-                              name: "Profile 1"
-                            }
-                          ];
-                    const nextActiveProfileId =
-                      profileId === activeProfileId ? nextProfiles[0].id : activeProfileId;
+              <MainTabTransition activeTab={mainTab}>
+                {mainTab === "history" ? (
+                  <HistoryScreen
+                    scans={scanHistory}
+                    onBack={() => setMainTab("home")}
+                    onOpenScan={(scanId) => navigation.navigate("Results", { scanId, from: "history" })}
+                    onDeleteScan={(scanId) => {
+                      void deleteScan(scanId);
+                    }}
+                    onOpenProfile={() => setMainTab("profile")}
+                  />
+                ) : mainTab === "profile" ? (
+                  <ProfileScreen
+                    profile={profile}
+                    profiles={profiles}
+                    activeProfileId={activeProfileId}
+                    onChangeProfile={async (nextProfile) => {
+                      const nextProfiles = profiles.some((item) => item.id === nextProfile.id)
+                        ? profiles.map((item) => (item.id === nextProfile.id ? nextProfile : item))
+                        : [...profiles, nextProfile];
+                      await persistProfiles(nextProfiles, nextProfile.id);
+                    }}
+                    onSelectProfile={async (profileId, currentProfile) => {
+                      const nextProfiles = profiles.map((item) =>
+                        item.id === currentProfile.id ? currentProfile : item
+                      );
+                      await persistProfiles(nextProfiles, profileId);
+                    }}
+                    onCreateProfile={async (currentProfile) => {
+                      const profileNumber = profiles.length + 1;
+                      const nextProfile: UserProfile = {
+                        ...createDefaultProfile(),
+                        id: `profile-${Date.now()}`,
+                        name: `Profile ${profileNumber}`
+                      };
+                      const nextProfiles = profiles.map((item) =>
+                        item.id === currentProfile.id ? currentProfile : item
+                      );
+                      await persistProfiles([...nextProfiles, nextProfile], nextProfile.id);
+                    }}
+                    onDeleteProfile={async (profileId, currentProfile) => {
+                      const savedCurrentProfiles = profiles.map((item) =>
+                        item.id === currentProfile.id && item.id !== profileId ? currentProfile : item
+                      );
+                      const remainingProfiles = savedCurrentProfiles.filter((item) => item.id !== profileId);
+                      const nextProfiles =
+                        remainingProfiles.length > 0
+                          ? remainingProfiles
+                          : [
+                              {
+                                ...createDefaultProfile(),
+                                id: `profile-${Date.now()}`,
+                                name: "Profile 1"
+                              }
+                            ];
+                      const nextActiveProfileId =
+                        profileId === activeProfileId ? nextProfiles[0].id : activeProfileId;
 
-                    await persistProfiles(nextProfiles, nextActiveProfileId);
-                  }}
-                  onDone={() => setMainTab("home")}
-                  onHome={() => setMainTab("home")}
-                  onOpenHistory={() => setMainTab("history")}
-                />
-              ) : (
-                <HomeScreen
-                  profile={profile}
-                  recentScans={scanHistory}
-                  onOpenProfile={() => setMainTab("profile")}
-                  onOpenSettings={() => navigation.navigate("Settings")}
-                  onOpenHistory={() => setMainTab("history")}
-                  onOpenScan={(scanId) => navigation.navigate("Results", { scanId })}
-                  onStartScan={() => {
-                    if (profile.allergies.length === 0) {
-                      setMainTab("profile");
-                      return;
-                    }
-                    setScanError(null);
-                    void selectImageFromCamera(navigation.navigate);
-                  }}
-                  onUploadPhoto={async () => {
-                    if (profile.allergies.length === 0) {
-                      setMainTab("profile");
-                      return;
-                    }
-                    await selectImageFromLibrary(navigation.navigate);
-                  }}
-                />
-              )
+                      await persistProfiles(nextProfiles, nextActiveProfileId);
+                    }}
+                    onDone={() => setMainTab("home")}
+                    onHome={() => setMainTab("home")}
+                    onOpenHistory={() => setMainTab("history")}
+                  />
+                ) : (
+                  <HomeScreen
+                    profile={profile}
+                    recentScans={scanHistory}
+                    onOpenProfile={() => setMainTab("profile")}
+                    onOpenSettings={() => navigation.navigate("Settings")}
+                    onOpenHistory={() => setMainTab("history")}
+                    onOpenScan={(scanId) => navigation.navigate("Results", { scanId })}
+                    onStartScan={() => {
+                      if (profile.allergies.length === 0) {
+                        setMainTab("profile");
+                        return;
+                      }
+                      setScanError(null);
+                      void selectImageFromCamera(navigation.navigate);
+                    }}
+                    onUploadPhoto={async () => {
+                      if (profile.allergies.length === 0) {
+                        setMainTab("profile");
+                        return;
+                      }
+                      await selectImageFromLibrary(navigation.navigate);
+                    }}
+                  />
+                )}
+              </MainTabTransition>
             )}
           </Stack.Screen>
 
@@ -536,4 +538,53 @@ export default function App() {
       setPendingImage(null);
     }
   }
+}
+
+const mainTabOrder: Record<MainTab, number> = {
+  profile: 0,
+  home: 1,
+  history: 2
+};
+
+type MainTabTransitionProps = {
+  activeTab: MainTab;
+  children: React.ReactNode;
+};
+
+function MainTabTransition({ activeTab, children }: MainTabTransitionProps) {
+  const previousTab = useRef(activeTab);
+  const opacity = useRef(new Animated.Value(1)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (previousTab.current === activeTab) {
+      return;
+    }
+
+    const direction = mainTabOrder[activeTab] > mainTabOrder[previousTab.current] ? 1 : -1;
+    previousTab.current = activeTab;
+    opacity.setValue(0.94);
+    translateX.setValue(direction * 14);
+
+    Animated.parallel([
+      Animated.timing(opacity, {
+        duration: 170,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true
+      }),
+      Animated.timing(translateX, {
+        duration: 170,
+        easing: Easing.out(Easing.cubic),
+        toValue: 0,
+        useNativeDriver: true
+      })
+    ]).start();
+  }, [activeTab, opacity, translateX]);
+
+  return (
+    <Animated.View style={{ flex: 1, opacity, transform: [{ translateX }] }}>
+      {children}
+    </Animated.View>
+  );
 }
