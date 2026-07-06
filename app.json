@@ -14,8 +14,8 @@
       "usesAppleSignIn": true,
       "bundleIdentifier": "app.sift.mvp",
       "infoPlist": {
-        "NSCameraUsageDescription": "Sift uses your camera to scan restaurant menus for possible allergen risks.",
-        "NSPhotoLibraryUsageDescription": "Sift lets you upload menu photos for possible allergen risk analysis."
+        "NSCameraUsageDescription": "Sift uses the camera only when you choose to scan a menu, so it can read visible menu text and flag possible allergen risks.",
+        "NSPhotoLibraryUsageDescription": "Sift uses photo library access only when you choose a menu photo to analyze for possible allergen risks."
       }
     },
     "android": {
