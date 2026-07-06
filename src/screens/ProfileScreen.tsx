@@ -12,13 +12,12 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Check, Plus, Save, Trash2 } from "lucide-react-native";
+import { ChevronDown, Plus, Save, Trash2 } from "lucide-react-native";
 import { Allergy, AllergySeverity, UserProfile } from "../types/allergy";
 import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
 import { commonAllergens } from "../constants/commonAllergens";
 import { AllergyChip } from "../components/AllergyChip";
-import { PrimaryButton } from "../components/PrimaryButton";
 import { BottomNavBar } from "../components/BottomNavBar";
 import { useI18n } from "../i18n/I18nProvider";
 import { TranslationKey } from "../i18n/translations";
@@ -75,6 +74,7 @@ export function ProfileScreen({
   const { t } = useI18n();
   const [draft, setDraft] = useState<UserProfile>(profile);
   const [customAllergen, setCustomAllergen] = useState("");
+  const [expandedAllergyId, setExpandedAllergyId] = useState<string | null>(null);
   const [savedNoticeVisible, setSavedNoticeVisible] = useState(false);
   const savedNoticeProgress = useRef(new Animated.Value(0)).current;
   const savedNoticeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -82,6 +82,7 @@ export function ProfileScreen({
   useEffect(() => {
     setDraft(profile);
     setCustomAllergen("");
+    setExpandedAllergyId(null);
   }, [profile]);
 
   useEffect(() => {
@@ -149,7 +150,7 @@ export function ProfileScreen({
   const getAllergyByName = (name: string) =>
     draft.allergies.find((allergy) => allergy.name.toLowerCase() === name.toLowerCase());
 
-  const addAllergy = (name: string) => {
+  const addAllergy = (name: string, expandAfterAdd = false) => {
     const trimmedName = name.trim();
     if (!trimmedName) {
       return;
@@ -163,8 +164,9 @@ export function ProfileScreen({
       return;
     }
 
+    const nextAllergyId = `${trimmedName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
     const nextAllergy: Allergy = {
-      id: `${trimmedName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`,
+      id: nextAllergyId,
       name: trimmedName,
       severity: "severe",
       avoidCrossContact: true
@@ -175,6 +177,9 @@ export function ProfileScreen({
       allergies: [...current.allergies, nextAllergy]
     }));
     setCustomAllergen("");
+    if (expandAfterAdd) {
+      setExpandedAllergyId(nextAllergyId);
+    }
   };
 
   const toggleQuickAllergen = (name: string) => {
@@ -204,6 +209,9 @@ export function ProfileScreen({
       ...current,
       allergies: current.allergies.filter((allergy) => allergy.id !== id)
     }));
+    if (expandedAllergyId === id) {
+      setExpandedAllergyId(null);
+    }
   };
 
   const savedNoticeTranslateY = savedNoticeProgress.interpolate({
@@ -324,148 +332,138 @@ export function ProfileScreen({
               {t("profile.selectedCount", { count: draft.allergies.length })}
             </Text>
           </View>
-          <View style={styles.quickList}>
+          <View style={styles.chipGrid}>
             {commonAllergens.map((name) => {
               const selectedAllergy = getAllergyByName(name);
               const selected = Boolean(selectedAllergy);
 
               return (
-                <View key={name} style={[styles.quickRow, selected && styles.quickRowActive]}>
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={() => toggleQuickAllergen(name)}
-                    style={styles.quickRowTop}
-                  >
-                    <View style={styles.quickBody}>
-                      <Text style={styles.quickName}>{formatAllergenName(name)}</Text>
-                      {selectedAllergy && (
-                        <Text style={styles.quickMeta}>
-                          {t("profile.severityMeta", {
-                            severity: formatSeverity(selectedAllergy.severity)
-                          })}
-                          {selectedAllergy.avoidCrossContact ? ` - ${t("profile.crossContactMeta")}` : ""}
-                        </Text>
-                      )}
-                    </View>
-                    <View style={[styles.quickMark, selected && styles.quickMarkActive]}>
-                      {selected && <Check color={colors.textInverse} size={15} strokeWidth={2.5} />}
-                    </View>
-                  </Pressable>
-
-                  {selectedAllergy && (
-                    <>
-                      <View style={styles.quickSegments}>
-                        {severities.map((severity) => {
-                          const active = selectedAllergy.severity === severity;
-                          return (
-                            <Pressable
-                              accessibilityRole="button"
-                              key={severity}
-                              onPress={() => updateAllergy(selectedAllergy.id, { severity })}
-                              style={[styles.quickSegment, active && styles.quickSegmentActive]}
-                            >
-                              <Text
-                                style={[
-                                  styles.quickSegmentText,
-                                  active && styles.quickSegmentTextActive
-                                ]}
-                              >
-                                {formatSeverity(severity)}
-                              </Text>
-                            </Pressable>
-                          );
-                        })}
-                      </View>
-                      <View style={styles.specificsField}>
-                        <Text style={styles.specificsLabel}>{t("profile.customDetails")}</Text>
-                        <TextInput
-                          value={selectedAllergy.notes ?? ""}
-                          onChangeText={(notes) => updateAllergy(selectedAllergy.id, { notes })}
-                          placeholder={t("profile.customDetailsPlaceholder")}
-                          placeholderTextColor={colors.inkSubtle}
-                          style={styles.specificsInput}
-                          multiline
-                        />
-                      </View>
-                    </>
-                  )}
-                </View>
+                <AllergyChip
+                  key={name}
+                  label={formatAllergenName(name)}
+                  selected={selected}
+                  onPress={() => toggleQuickAllergen(name)}
+                />
               );
             })}
           </View>
         </View>
 
-        <View style={styles.addRow}>
-          <TextInput
-            value={customAllergen}
-            onChangeText={setCustomAllergen}
-            placeholder={t("profile.customAllergen")}
-            placeholderTextColor={colors.inkSubtle}
-            style={[styles.input, styles.addInput]}
-          />
-          <PrimaryButton label={t("profile.add")} icon={Plus} onPress={() => addAllergy(customAllergen)} />
+        <View style={[styles.fieldGroup, styles.compactFieldGroup]}>
+          <Text style={styles.label}>{t("profile.customAllergen")}</Text>
+          <View style={styles.addRow}>
+            <TextInput
+              value={customAllergen}
+              onChangeText={setCustomAllergen}
+              placeholder={t("profile.customAllergen")}
+              placeholderTextColor={colors.inkSubtle}
+              style={[styles.input, styles.addInput]}
+            />
+            <AnimatedPressable
+              accessibilityLabel={t("profile.add")}
+              accessibilityRole="button"
+              onPress={() => addAllergy(customAllergen, true)}
+              style={styles.addButton}
+            >
+              <Plus color={colors.textInverse} size={20} strokeWidth={2.4} />
+            </AnimatedPressable>
+          </View>
         </View>
 
         {draft.allergies.length > 0 && (
           <View style={styles.allergyList}>
             <Text style={styles.label}>{t("profile.selectedDetails")}</Text>
             {draft.allergies.map((allergy) => {
-              const commonAllergen = commonAllergens.some(
-                (name) => name.toLowerCase() === allergy.name.toLowerCase()
-              );
+              const expanded = expandedAllergyId === allergy.id;
 
               return (
-                <View key={allergy.id} style={styles.allergyCard}>
-                  <View style={styles.allergyHeader}>
-                    <AllergyChip
-                      label={formatAllergenName(allergy.name)}
-                      severity={allergy.severity}
-                      onRemove={() => removeAllergy(allergy.id)}
-                    />
-                  </View>
-
-                  <View style={styles.segmented}>
-                    {severities.map((severity) => {
-                      const active = allergy.severity === severity;
-                      return (
-                        <Pressable
-                          accessibilityRole="button"
-                          key={severity}
-                          onPress={() => updateAllergy(allergy.id, { severity })}
-                          style={[styles.segment, active && styles.segmentActive]}
-                        >
-                          <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
-                            {formatSeverity(severity)}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-
-                  <View style={styles.switchRow}>
-                    <View style={styles.switchText}>
-                      <Text style={styles.switchTitle}>{t("profile.crossContactSensitive")}</Text>
-                      <Text style={styles.switchBody}>{t("profile.crossContactBody")}</Text>
+                <View key={allergy.id} style={[styles.allergyCard, expanded && styles.allergyCardExpanded]}>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => setExpandedAllergyId(expanded ? null : allergy.id)}
+                    style={styles.allergyCardHeader}
+                  >
+                    <View style={styles.allergyHeaderText}>
+                      <Text style={styles.allergyName}>{formatAllergenName(allergy.name)}</Text>
+                      <View style={styles.allergyMetaRow}>
+                        <View style={styles.severityPill}>
+                          <Text style={styles.severityPillText}>{formatSeverity(allergy.severity)}</Text>
+                        </View>
+                        {allergy.avoidCrossContact && (
+                          <View style={styles.crossContactPill}>
+                            <Text style={styles.crossContactPillText}>{t("profile.crossContactMeta")}</Text>
+                          </View>
+                        )}
+                      </View>
                     </View>
-                    <Switch
-                      value={allergy.avoidCrossContact}
-                      onValueChange={(avoidCrossContact) =>
-                        updateAllergy(allergy.id, { avoidCrossContact })
-                      }
-                      trackColor={{ false: colors.borderStrong, true: colors.primarySoft }}
-                      thumbColor={allergy.avoidCrossContact ? colors.primary : colors.inkSubtle}
-                    />
-                  </View>
+                    <View style={styles.cardActions}>
+                      <Pressable
+                        accessibilityLabel={t("history.deleteScan")}
+                        accessibilityRole="button"
+                        hitSlop={8}
+                        onPress={(event) => {
+                          event.stopPropagation();
+                          removeAllergy(allergy.id);
+                        }}
+                      >
+                        <Trash2 color={colors.inkSubtle} size={17} strokeWidth={2.1} />
+                      </Pressable>
+                      <ChevronDown
+                        color={colors.inkSubtle}
+                        size={19}
+                        strokeWidth={2.1}
+                        style={expanded && styles.chevronExpanded}
+                      />
+                    </View>
+                  </Pressable>
 
-                  {!commonAllergen && (
-                    <TextInput
-                      value={allergy.notes ?? ""}
-                      onChangeText={(notes) => updateAllergy(allergy.id, { notes })}
-                      placeholder={t("profile.customDetailsLongPlaceholder")}
-                      placeholderTextColor={colors.inkSubtle}
-                      style={[styles.input, styles.notesInput]}
-                      multiline
-                    />
+                  {expanded && (
+                    <View style={styles.expandedDetails}>
+                      <View style={styles.segmented}>
+                        {severities.map((severity) => {
+                          const active = allergy.severity === severity;
+                          return (
+                            <Pressable
+                              accessibilityRole="button"
+                              key={severity}
+                              onPress={() => updateAllergy(allergy.id, { severity })}
+                              style={[styles.segment, active && styles.segmentActive]}
+                            >
+                              <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
+                                {formatSeverity(severity)}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+
+                      <View style={styles.switchRow}>
+                        <View style={styles.switchText}>
+                          <Text style={styles.switchTitle}>{t("profile.crossContactSensitive")}</Text>
+                          <Text style={styles.switchBody}>{t("profile.crossContactBody")}</Text>
+                        </View>
+                        <Switch
+                          value={allergy.avoidCrossContact}
+                          onValueChange={(avoidCrossContact) =>
+                            updateAllergy(allergy.id, { avoidCrossContact })
+                          }
+                          trackColor={{ false: colors.borderStrong, true: colors.primarySoft }}
+                          thumbColor={allergy.avoidCrossContact ? colors.primary : colors.inkSubtle}
+                        />
+                      </View>
+
+                      <View style={styles.notesField}>
+                        <Text style={styles.notesLabel}>{t("profile.customDetails")}</Text>
+                        <TextInput
+                          value={allergy.notes ?? ""}
+                          onChangeText={(notes) => updateAllergy(allergy.id, { notes })}
+                          placeholder={t("profile.customDetailsLongPlaceholder")}
+                          placeholderTextColor={colors.inkSubtle}
+                          style={[styles.input, styles.notesInput]}
+                          multiline
+                        />
+                      </View>
+                    </View>
                   )}
                 </View>
               );
@@ -515,14 +513,14 @@ const styles = StyleSheet.create({
     flex: 1
   },
   content: {
-    gap: 24,
+    gap: 18,
     padding: 24,
     paddingTop: 18,
     paddingBottom: 154
   },
   header: {
     alignItems: "center",
-    gap: 12
+    gap: 8
   },
   title: {
     color: colors.primaryDark,
@@ -531,12 +529,15 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: colors.inkMuted,
-    ...typography.bodyLarge,
+    ...typography.bodySmall,
     maxWidth: 320,
     textAlign: "center"
   },
   fieldGroup: {
-    gap: 12
+    gap: 10
+  },
+  compactFieldGroup: {
+    marginTop: -4
   },
   sectionHeader: {
     alignItems: "center",
@@ -622,116 +623,12 @@ const styles = StyleSheet.create({
   chipGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8
+    gap: 8,
+    rowGap: 8
   },
   sectionMeta: {
     color: colors.inkSubtle,
     ...typography.badge
-  },
-  quickList: {
-    gap: 10
-  },
-  quickRow: {
-    backgroundColor: colors.surfaceWarm,
-    borderColor: colors.borderSoft,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: "hidden"
-  },
-  quickRowActive: {
-    backgroundColor: colors.primarySoft,
-    borderColor: colors.primaryMuted
-  },
-  quickRowTop: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
-    minHeight: 66,
-    paddingHorizontal: 16,
-    paddingVertical: 14
-  },
-  quickBody: {
-    flex: 1,
-    gap: 3
-  },
-  quickName: {
-    color: colors.ink,
-    ...typography.label,
-    fontSize: 16
-  },
-  quickMeta: {
-    color: colors.inkSubtle,
-    ...typography.badge,
-    textTransform: "capitalize"
-  },
-  quickMark: {
-    borderColor: colors.borderStrong,
-    borderRadius: 999,
-    borderWidth: 1,
-    height: 24,
-    width: 24,
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  quickMarkActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary
-  },
-  quickSegments: {
-    backgroundColor: colors.backgroundAlt,
-    borderRadius: 8,
-    flexDirection: "row",
-    gap: 6,
-    marginBottom: 10,
-    marginHorizontal: 16,
-    padding: 4
-  },
-  quickSegment: {
-    alignItems: "center",
-    borderRadius: 6,
-    flex: 1,
-    minHeight: 34,
-    justifyContent: "center"
-  },
-  quickSegmentActive: {
-    backgroundColor: colors.surfaceWarm,
-    elevation: 1,
-    shadowColor: colors.ink,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4
-  },
-  quickSegmentText: {
-    color: colors.inkMuted,
-    ...typography.badge,
-    textTransform: "capitalize"
-  },
-  quickSegmentTextActive: {
-    color: colors.primaryDark
-  },
-  specificsField: {
-    gap: 7,
-    marginBottom: 16,
-    marginHorizontal: 16
-  },
-  specificsLabel: {
-    color: colors.inkSubtle,
-    ...typography.badge,
-    fontSize: 11,
-    textTransform: "uppercase"
-  },
-  specificsInput: {
-    backgroundColor: colors.surfaceWarm,
-    borderColor: colors.borderSoft,
-    borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    color: colors.ink,
-    ...typography.bodySmall,
-    lineHeight: 20,
-    minHeight: 64,
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    textAlignVertical: "top"
   },
   addRow: {
     alignItems: "center",
@@ -741,19 +638,86 @@ const styles = StyleSheet.create({
   addInput: {
     flex: 1
   },
+  addButton: {
+    alignItems: "center",
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    height: 48,
+    justifyContent: "center",
+    width: 48
+  },
   allergyList: {
-    gap: 12
+    gap: 10
   },
   allergyCard: {
     backgroundColor: colors.surfaceWarm,
     borderColor: colors.border,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    gap: 14,
-    padding: 14
+    overflow: "hidden"
   },
-  allergyHeader: {
-    alignItems: "flex-start"
+  allergyCardExpanded: {
+    borderColor: colors.primaryMuted
+  },
+  allergyCardHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 12,
+    justifyContent: "space-between",
+    minHeight: 70,
+    paddingHorizontal: 14,
+    paddingVertical: 12
+  },
+  allergyHeaderText: {
+    flex: 1,
+    gap: 7
+  },
+  allergyName: {
+    color: colors.ink,
+    ...typography.bodyLarge,
+    lineHeight: 22
+  },
+  allergyMetaRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6
+  },
+  severityPill: {
+    backgroundColor: colors.primarySoft,
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 4
+  },
+  severityPillText: {
+    color: colors.primaryDark,
+    ...typography.badge,
+    textTransform: "capitalize"
+  },
+  crossContactPill: {
+    backgroundColor: colors.accentSoft,
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 4
+  },
+  crossContactPillText: {
+    color: colors.accentMuted,
+    ...typography.badge,
+    textTransform: "capitalize"
+  },
+  cardActions: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 12
+  },
+  chevronExpanded: {
+    transform: [{ rotate: "180deg" }]
+  },
+  expandedDetails: {
+    borderTopColor: colors.borderSoft,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: 14,
+    padding: 14,
+    paddingTop: 12
   },
   segmented: {
     backgroundColor: colors.backgroundAlt,
@@ -801,6 +765,14 @@ const styles = StyleSheet.create({
     minHeight: 70,
     paddingTop: 12,
     textAlignVertical: "top"
+  },
+  notesField: {
+    gap: 8
+  },
+  notesLabel: {
+    color: colors.inkSubtle,
+    ...typography.badge,
+    textTransform: "uppercase"
   },
   floatingSave: {
     alignItems: "center",
