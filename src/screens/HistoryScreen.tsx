@@ -1,8 +1,6 @@
 import React, { useRef } from "react";
 import {
   Alert,
-  Animated,
-  PanResponder,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,7 +8,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AlertTriangle, CircleCheck, History, Pencil } from "lucide-react-native";
+import { AlertTriangle, CircleCheck, History } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
 import { EmptyState } from "../components/EmptyState";
@@ -19,7 +17,6 @@ import { getRiskMeta } from "../utils/riskLabels";
 import { formatAllergenLabel, formatDateTime } from "../utils/formatters";
 import { BottomNavBar } from "../components/BottomNavBar";
 import { useI18n } from "../i18n/I18nProvider";
-import { AppLanguageCode } from "../i18n/translations";
 
 type HistoryScreenProps = {
   scans: ScanResult[];
@@ -30,20 +27,6 @@ type HistoryScreenProps = {
   onOpenProfile?: () => void;
 };
 
-const historyLanguageNotes: Record<AppLanguageCode, string> = {
-  de: "Gespeicherte Scan-Details bleiben in der Sprache der Analyse. Allergen-Tags werden in deiner aktuellen App-Sprache angezeigt.",
-  en: "Saved scan details stay in the language used during analysis. Common allergen tags update with your current app language.",
-  es: "Los detalles guardados permanecen en el idioma usado durante el análisis. Las etiquetas comunes de alérgenos se muestran en el idioma actual de la app.",
-  fr: "Les détails enregistrés restent dans la langue utilisée lors de l'analyse. Les étiquettes d'allergènes courants suivent la langue actuelle de l'app.",
-  it: "I dettagli salvati restano nella lingua usata durante l'analisi. Le etichette comuni degli allergeni seguono la lingua attuale dell'app.",
-  ja: "保存済みの解析内容は、スキャン時の言語のまま残ります。一般的なアレルゲンタグは現在のアプリ言語で表示されます。",
-  ko: "저장된 스캔 내용은 분석 당시 언어로 유지됩니다. 일반 알레르겐 태그는 현재 앱 언어로 표시됩니다.",
-  pt: "Os detalhes salvos ficam no idioma usado na análise. Tags comuns de alérgenos aparecem no idioma atual do app.",
-  th: "รายละเอียดสแกนที่บันทึกไว้จะคงเป็นภาษาที่ใช้ตอนวิเคราะห์ แท็กสารก่อภูมิแพ้ทั่วไปจะแสดงตามภาษาแอปปัจจุบัน",
-  "zh-Hans": "已保存的扫描详情会保留分析时使用的语言。常见过敏原标签会按当前应用语言显示。",
-  "zh-Hant": "已儲存的掃描詳情會保留分析時使用的語言。常見過敏原標籤會依目前 App 語言顯示。"
-};
-
 export function HistoryScreen({
   scans,
   onBack,
@@ -52,7 +35,7 @@ export function HistoryScreen({
   onRenameScan,
   onOpenProfile
 }: HistoryScreenProps) {
-  const { languageCode, t } = useI18n();
+  const { t } = useI18n();
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -68,22 +51,17 @@ export function HistoryScreen({
             body={t("history.noScansBody")}
           />
         ) : (
-          <>
-            <View style={styles.languageNote}>
-              <Text style={styles.languageNoteText}>{historyLanguageNotes[languageCode]}</Text>
-            </View>
-            <View style={styles.list}>
-              {scans.map((scan) => (
-                <SwipeableScanCard
-                  key={scan.id}
-                  scan={scan}
-                  onDelete={onDeleteScan}
-                  onOpen={onOpenScan}
-                  onRename={onRenameScan}
-                />
-              ))}
-            </View>
-          </>
+          <View style={styles.list}>
+            {scans.map((scan) => (
+              <SwipeableScanCard
+                key={scan.id}
+                scan={scan}
+                onDelete={onDeleteScan}
+                onOpen={onOpenScan}
+                onRename={onRenameScan}
+              />
+            ))}
+          </View>
         )}
       </ScrollView>
       {onOpenProfile && (
@@ -107,37 +85,7 @@ type SwipeableScanCardProps = {
 
 function SwipeableScanCard({ scan, onOpen, onDelete, onRename }: SwipeableScanCardProps) {
   const { languageCode, t } = useI18n();
-  const translateX = useRef(new Animated.Value(0)).current;
-  const openOffset = -92;
-  const currentOffset = useRef(0);
-
-  const animateTo = (toValue: number) => {
-    currentOffset.current = toValue;
-    Animated.spring(translateX, {
-      toValue,
-      damping: 18,
-      stiffness: 220,
-      mass: 0.7,
-      useNativeDriver: true
-    }).start();
-  };
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gesture) =>
-        Math.abs(gesture.dx) > 10 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
-      onPanResponderMove: (_, gesture) => {
-        const nextOffset = Math.max(openOffset, Math.min(0, currentOffset.current + gesture.dx));
-        translateX.setValue(nextOffset);
-      },
-      onPanResponderRelease: (_, gesture) => {
-        const shouldOpen = currentOffset.current + gesture.dx < -46 || gesture.vx < -0.55;
-        animateTo(shouldOpen ? openOffset : 0);
-      },
-      onPanResponderTerminate: () => animateTo(0)
-    })
-  ).current;
-
+  const didLongPress = useRef(false);
   const meta = getRiskMeta(scan.scanSummary.overallRisk, t);
   const riskCount = Math.max(1, scan.dishes.filter((dish) => dish.riskLevel !== "low_risk").length);
   const scanTitle = scan.restaurantName ?? t("home.menuScan");
@@ -166,73 +114,77 @@ function SwipeableScanCard({ scan, onOpen, onDelete, onRename }: SwipeableScanCa
     );
   };
 
+  const openActions = () => {
+    didLongPress.current = true;
+    const actions = [
+      onRename
+        ? {
+            text: "Rename",
+            onPress: promptRename
+          }
+        : null,
+      onDelete
+        ? {
+            text: t("history.deleteScan"),
+            style: "destructive" as const,
+            onPress: () => onDelete(scan.id)
+          }
+        : null,
+      { text: "Cancel", style: "cancel" as const }
+    ].filter(Boolean) as Array<{
+      onPress?: () => void;
+      style?: "cancel" | "destructive";
+      text: string;
+    }>;
+
+    if (actions.length > 1) {
+      Alert.alert("Scan options", scanTitle, actions);
+    }
+  };
+
   return (
-    <View style={styles.swipeShell}>
-      {onDelete && (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => onDelete(scan.id)}
-          style={styles.deleteAction}
-        >
-          <Text style={styles.deleteText}>{t("history.deleteScan")}</Text>
-        </Pressable>
-      )}
-      <Animated.View style={{ transform: [{ translateX }] }} {...panResponder.panHandlers}>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => {
-            if (currentOffset.current < 0) {
-              animateTo(0);
-              return;
-            }
-            onOpen(scan.id);
-          }}
-          style={styles.item}
-        >
-          <View style={styles.itemHeader}>
-            <View style={styles.itemText}>
-              <Text style={styles.itemTitle}>{scanTitle}</Text>
-              <Text style={styles.itemDate}>{formatDateTime(scan.createdAt, languageCode)}</Text>
-            </View>
-            <View style={styles.itemActions}>
-              {onRename && (
-                <Pressable
-                  accessibilityLabel="Rename scan"
-                  accessibilityRole="button"
-                  onPress={promptRename}
-                  style={styles.renameButton}
-                >
-                  <Pencil color={colors.primaryDark} size={14} strokeWidth={2.2} />
-                </Pressable>
-              )}
-              <View style={[styles.badge, { backgroundColor: meta.background }]}>
-                {scan.scanSummary.overallRisk === "low_risk" ? (
-                  <CircleCheck color={meta.color} size={13} strokeWidth={2.4} />
-                ) : (
-                  <AlertTriangle color={meta.color} size={13} strokeWidth={2.4} />
-                )}
-                <Text style={[styles.badgeText, { color: meta.color }]}>
-                  {scan.scanSummary.overallRisk === "low_risk"
-                    ? t("history.noObviousRisks")
-                    : t("history.risksFound", { count: riskCount })}
-                </Text>
-              </View>
-            </View>
+    <Pressable
+      accessibilityRole="button"
+      onLongPress={openActions}
+      onPress={() => {
+        if (didLongPress.current) {
+          didLongPress.current = false;
+          return;
+        }
+        onOpen(scan.id);
+      }}
+      style={styles.item}
+    >
+      <View style={styles.itemHeader}>
+        <View style={styles.itemText}>
+          <Text style={styles.itemTitle}>{scanTitle}</Text>
+          <Text style={styles.itemDate}>{formatDateTime(scan.createdAt, languageCode)}</Text>
+        </View>
+        <View style={[styles.badge, { backgroundColor: meta.background }]}>
+          {scan.scanSummary.overallRisk === "low_risk" ? (
+            <CircleCheck color={meta.color} size={13} strokeWidth={2.4} />
+          ) : (
+            <AlertTriangle color={meta.color} size={13} strokeWidth={2.4} />
+          )}
+          <Text style={[styles.badgeText, { color: meta.color }]}>
+            {scan.scanSummary.overallRisk === "low_risk"
+              ? t("history.noObviousRisks")
+              : t("history.risksFound", { count: riskCount })}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.chips}>
+        {scan.dishes
+          .flatMap((dish) => dish.possibleAllergens)
+          .filter((value, index, list) => list.indexOf(value) === index)
+          .slice(0, 3)
+          .map((allergen) => (
+            <View key={allergen} style={styles.chip}>
+              <Text style={styles.chipText}>{formatAllergenLabel(allergen, t)}</Text>
           </View>
-          <View style={styles.chips}>
-            {scan.dishes
-              .flatMap((dish) => dish.possibleAllergens)
-              .filter((value, index, list) => list.indexOf(value) === index)
-              .slice(0, 3)
-              .map((allergen) => (
-                <View key={allergen} style={styles.chip}>
-                  <Text style={styles.chipText}>{formatAllergenLabel(allergen, t)}</Text>
-                </View>
-              ))}
-          </View>
-        </Pressable>
-      </Animated.View>
-    </View>
+          ))}
+      </View>
+    </Pressable>
   );
 }
 
@@ -259,35 +211,6 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 24
-  },
-  languageNote: {
-    backgroundColor: colors.surfaceWarm,
-    borderColor: colors.borderSoft,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 13
-  },
-  languageNoteText: {
-    color: colors.inkMuted,
-    ...typography.caption
-  },
-  swipeShell: {
-    borderRadius: 12,
-    overflow: "hidden"
-  },
-  deleteAction: {
-    alignItems: "center",
-    backgroundColor: colors.high,
-    bottom: 0,
-    justifyContent: "center",
-    position: "absolute",
-    right: 0,
-    top: 0,
-    width: 92
-  },
-  deleteText: {
-    color: colors.textInverse,
-    ...typography.badge
   },
   item: {
     backgroundColor: colors.surfaceWarm,
@@ -330,20 +253,6 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     ...typography.label
-  },
-  itemActions: {
-    alignItems: "flex-end",
-    gap: 8
-  },
-  renameButton: {
-    alignItems: "center",
-    backgroundColor: colors.primarySoft,
-    borderColor: colors.primaryMuted,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: 30,
-    justifyContent: "center",
-    width: 30
   },
   chips: {
     flexDirection: "row",

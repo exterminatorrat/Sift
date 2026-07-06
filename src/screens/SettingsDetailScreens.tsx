@@ -15,7 +15,7 @@ import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
 import { UserProfile } from "../types/allergy";
 import { useI18n } from "../i18n/I18nProvider";
-import { TranslationKey, waveOneAppLanguages } from "../i18n/translations";
+import { AppLanguageCode, TranslationKey, waveOneAppLanguages } from "../i18n/translations";
 
 const UNKNOWN_RESTAURANT_LANGUAGE = "__unknown_restaurant_language__";
 const restaurantLanguageOptions: Array<{ key: TranslationKey; value: string }> = [
@@ -31,6 +31,20 @@ const restaurantLanguageOptions: Array<{ key: TranslationKey; value: string }> =
   { key: "language.portuguese", value: "Portuguese" },
   { key: "language.thai", value: "Thai" }
 ];
+
+const scanLanguageNotes: Record<AppLanguageCode, string> = {
+  de: "Gespeicherte Scan-Details bleiben in der Sprache, die bei der Analyse aktiv war. Häufige Allergen-Tags können in deiner aktuellen App-Sprache angezeigt werden.",
+  en: "Saved scan details stay in the app language used during analysis. Common allergen tags may update with your current app language.",
+  es: "Los detalles guardados permanecen en el idioma de la app usado durante el análisis. Las etiquetas comunes de alérgenos pueden actualizarse al idioma actual.",
+  fr: "Les détails enregistrés restent dans la langue de l'app utilisée lors de l'analyse. Les étiquettes d'allergènes courants peuvent suivre la langue actuelle.",
+  it: "I dettagli salvati restano nella lingua dell'app usata durante l'analisi. Le etichette comuni degli allergeni possono seguire la lingua attuale.",
+  ja: "保存済みの解析内容は、スキャン時に使われていたアプリ言語のまま残ります。一般的なアレルゲンタグは現在のアプリ言語で表示される場合があります。",
+  ko: "저장된 스캔 내용은 분석 당시 앱 언어로 유지됩니다. 일반 알레르겐 태그는 현재 앱 언어로 표시될 수 있습니다.",
+  pt: "Os detalhes salvos ficam no idioma do app usado na análise. Tags comuns de alérgenos podem seguir o idioma atual do app.",
+  th: "รายละเอียดสแกนที่บันทึกไว้จะคงเป็นภาษาแอปที่ใช้ตอนวิเคราะห์ แท็กสารก่อภูมิแพ้ทั่วไปอาจแสดงตามภาษาแอปปัจจุบัน",
+  "zh-Hans": "已保存的扫描详情会保留分析时使用的应用语言。常见过敏原标签可能会按当前应用语言显示。",
+  "zh-Hant": "已儲存的掃描詳情會保留分析時使用的 App 語言。常見過敏原標籤可能會依目前 App 語言顯示。"
+};
 
 type BasicSettingsScreenProps = {
   onBack: () => void;
@@ -105,7 +119,7 @@ export function LanguageTranslationScreen({
   onBack,
   onChangeProfile
 }: LanguageSettingsScreenProps) {
-  const { t } = useI18n();
+  const { languageCode, t } = useI18n();
   const selectedAppLanguage = profile.preferredLanguage || "English";
   const selectedRestaurantLanguage = profile.restaurantLanguage || UNKNOWN_RESTAURANT_LANGUAGE;
 
@@ -132,6 +146,10 @@ export function LanguageTranslationScreen({
         selected={selectedAppLanguage}
         onSelect={(preferredLanguage) => updateProfile({ preferredLanguage })}
       />
+
+      <View style={styles.languageNote}>
+        <Text style={styles.languageNoteText}>{scanLanguageNotes[languageCode]}</Text>
+      </View>
 
       <OptionSection
         label={t("language.restaurantLanguage")}
@@ -496,6 +514,17 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.05,
     shadowRadius: 18
+  },
+  languageNote: {
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14
+  },
+  languageNoteText: {
+    color: colors.inkMuted,
+    ...typography.caption
   },
   optionRow: {
     alignItems: "center",

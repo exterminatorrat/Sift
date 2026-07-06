@@ -1,7 +1,6 @@
 import { ScanResult } from "../types/scan";
 
 const MAX_HISTORY_ITEMS = 20;
-const MAX_SCAN_TITLE_LENGTH = 42;
 
 export function addScanToHistory(scanHistory: ScanResult[], scanResult: ScanResult) {
   const preparedScan = prepareScanForHistory(scanResult);
@@ -51,18 +50,40 @@ function prepareScanForHistory(scanResult: ScanResult): ScanResult {
 }
 
 function generateScanTitle(scanResult: ScanResult) {
-  const dishNames = scanResult.dishes
+  const menuText = scanResult.dishes
     .map((dish) => dish.dishName.trim())
     .filter(Boolean)
     .filter((name) => !/menu image unclear/i.test(name))
-    .slice(0, 3);
+    .join(" ")
+    .toLowerCase();
 
-  if (dishNames.length === 0) {
+  if (!menuText) {
     return "Menu scan";
   }
 
-  const title = dishNames.join(", ");
-  return title.length > MAX_SCAN_TITLE_LENGTH
-    ? `${title.slice(0, MAX_SCAN_TITLE_LENGTH - 1).trim()}...`
-    : title;
+  if (/\b(ramen|sushi|tonkotsu|karaage|tempura|mochi|sunomono)\b/.test(menuText)) {
+    return "Japanese menu";
+  }
+
+  if (/\b(taco|tacos|mole|queso|salsa|churro|churros|baja|corn|crema)\b/.test(menuText)) {
+    return "Mexican menu";
+  }
+
+  if (/\b(crab|shrimp|lobster|oyster|clam|scallop|salmon|tuna|fish)\b/.test(menuText)) {
+    if (/\b(steak|tenderloin|beef|sirloin|ribeye)\b/.test(menuText)) {
+      return "Steak and seafood";
+    }
+
+    return "Seafood menu";
+  }
+
+  if (/\b(pasta|linguini|linguine|spaghetti|ravioli|risotto)\b/.test(menuText)) {
+    return "Italian menu";
+  }
+
+  if (/\b(burger|sandwich|fries|wings|steak|tenderloin|beef)\b/.test(menuText)) {
+    return "American menu";
+  }
+
+  return "Menu scan";
 }
