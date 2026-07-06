@@ -3,7 +3,6 @@ import {
   Alert,
   Animated,
   Easing,
-  GestureResponderEvent,
   Modal,
   Pressable,
   ScrollView,
@@ -37,6 +36,8 @@ type ScanMenuState = {
   title: string;
   x: number;
   y: number;
+  height: number;
+  width: number;
 };
 
 export function HistoryScreen({
@@ -98,7 +99,7 @@ export function HistoryScreen({
                 onDelete={onDeleteScan}
                 onOpen={onOpenScan}
                 onRename={onRenameScan}
-                onOpenActions={(scan, title, x, y) => setScanMenu({ scan, title, x, y })}
+                onOpenActions={(scan, title, rect) => setScanMenu({ scan, title, ...rect })}
               />
             ))}
           </View>
@@ -137,7 +138,11 @@ type SwipeableScanCardProps = {
   onOpen: (scanId: string) => void;
   onDelete?: (scanId: string) => void;
   onRename?: (scanId: string, title: string) => void;
-  onOpenActions: (scan: ScanResult, title: string, x: number, y: number) => void;
+  onOpenActions: (
+    scan: ScanResult,
+    title: string,
+    rect: { height: number; width: number; x: number; y: number }
+  ) => void;
 };
 
 function SwipeableScanCard({
@@ -148,62 +153,67 @@ function SwipeableScanCard({
   onOpenActions
 }: SwipeableScanCardProps) {
   const { languageCode, t } = useI18n();
+  const cardRef = useRef<View>(null);
   const didLongPress = useRef(false);
   const meta = getRiskMeta(scan.scanSummary.overallRisk, t);
   const riskCount = Math.max(1, scan.dishes.filter((dish) => dish.riskLevel !== "low_risk").length);
   const scanTitle = scan.restaurantName ?? t("home.menuScan");
 
-  const openActions = (event: GestureResponderEvent) => {
+  const openActions = () => {
     didLongPress.current = true;
     if (onRename || onDelete) {
-      onOpenActions(scan, scanTitle, event.nativeEvent.pageX, event.nativeEvent.pageY);
+      cardRef.current?.measureInWindow((x, y, width, height) => {
+        onOpenActions(scan, scanTitle, { height, width, x, y });
+      });
     }
   };
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityHint="Long press for scan options"
-      onLongPress={openActions}
-      onPress={() => {
-        if (didLongPress.current) {
-          didLongPress.current = false;
-          return;
-        }
-        onOpen(scan.id);
-      }}
-      style={styles.item}
-    >
-      <View style={styles.itemHeader}>
-        <View style={styles.itemText}>
-          <Text style={styles.itemTitle}>{scanTitle}</Text>
-          <Text style={styles.itemDate}>{formatDateTime(scan.createdAt, languageCode)}</Text>
-        </View>
-        <View style={[styles.badge, { backgroundColor: meta.background }]}>
-          {scan.scanSummary.overallRisk === "low_risk" ? (
-            <CircleCheck color={meta.color} size={13} strokeWidth={2.4} />
-          ) : (
-            <AlertTriangle color={meta.color} size={13} strokeWidth={2.4} />
-          )}
-          <Text style={[styles.badgeText, { color: meta.color }]}>
-            {scan.scanSummary.overallRisk === "low_risk"
-              ? t("history.noObviousRisks")
-              : t("history.risksFound", { count: riskCount })}
-          </Text>
-        </View>
-      </View>
-      <View style={styles.chips}>
-        {scan.dishes
-          .flatMap((dish) => dish.possibleAllergens)
-          .filter((value, index, list) => list.indexOf(value) === index)
-          .slice(0, 3)
-          .map((allergen) => (
-            <View key={allergen} style={styles.chip}>
-              <Text style={styles.chipText}>{formatAllergenLabel(allergen, t)}</Text>
+    <View ref={cardRef} collapsable={false}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityHint="Long press for scan options"
+        onLongPress={openActions}
+        onPress={() => {
+          if (didLongPress.current) {
+            didLongPress.current = false;
+            return;
+          }
+          onOpen(scan.id);
+        }}
+        style={styles.item}
+      >
+        <View style={styles.itemHeader}>
+          <View style={styles.itemText}>
+            <Text style={styles.itemTitle}>{scanTitle}</Text>
+            <Text style={styles.itemDate}>{formatDateTime(scan.createdAt, languageCode)}</Text>
           </View>
-          ))}
-      </View>
-    </Pressable>
+          <View style={[styles.badge, { backgroundColor: meta.background }]}>
+            {scan.scanSummary.overallRisk === "low_risk" ? (
+              <CircleCheck color={meta.color} size={13} strokeWidth={2.4} />
+            ) : (
+              <AlertTriangle color={meta.color} size={13} strokeWidth={2.4} />
+            )}
+            <Text style={[styles.badgeText, { color: meta.color }]}>
+              {scan.scanSummary.overallRisk === "low_risk"
+                ? t("history.noObviousRisks")
+                : t("history.risksFound", { count: riskCount })}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.chips}>
+          {scan.dishes
+            .flatMap((dish) => dish.possibleAllergens)
+            .filter((value, index, list) => list.indexOf(value) === index)
+            .slice(0, 3)
+            .map((allergen) => (
+              <View key={allergen} style={styles.chip}>
+                <Text style={styles.chipText}>{formatAllergenLabel(allergen, t)}</Text>
+              </View>
+            ))}
+        </View>
+      </Pressable>
+    </View>
   );
 }
 
@@ -252,18 +262,16 @@ function HistoryContextMenu({ menu, onClose, onDelete, onRename }: HistoryContex
   }
 
   const menuHeight = CONTEXT_MENU_ROW_HEIGHT * 2 + StyleSheet.hairlineWidth;
-  const opensFromRight = menu.x > width / 2;
-  const rawLeft = opensFromRight ? menu.x - CONTEXT_MENU_WIDTH + 14 : menu.x - 14;
+  const rawLeft = menu.x + 16;
   const left = Math.min(
     Math.max(CONTEXT_MENU_MARGIN, rawLeft),
     width - CONTEXT_MENU_WIDTH - CONTEXT_MENU_MARGIN
   );
-  const rawTop = menu.y + 10;
-  const top =
-    rawTop + menuHeight + CONTEXT_MENU_MARGIN > height
-      ? Math.max(CONTEXT_MENU_MARGIN, menu.y - menuHeight - 10)
-      : rawTop;
-  const transformOriginX = opensFromRight ? CONTEXT_MENU_WIDTH - 18 : 18;
+  const rawTop = menu.y + menu.height + 10;
+  const opensAbove = rawTop + menuHeight + CONTEXT_MENU_MARGIN > height;
+  const top = opensAbove ? Math.max(CONTEXT_MENU_MARGIN, menu.y - menuHeight - 10) : rawTop;
+  const transformOriginX = 18;
+  const transformOriginY = opensAbove ? menuHeight - 8 : 8;
 
   return (
     <Modal animationType="none" transparent visible onRequestClose={onClose}>
@@ -283,8 +291,10 @@ function HistoryContextMenu({ menu, onClose, onDelete, onRename }: HistoryContex
               top,
               transform: [
                 { translateX: transformOriginX },
+                { translateY: transformOriginY },
                 { scale },
-                { translateX: -transformOriginX }
+                { translateX: -transformOriginX },
+                { translateY: -transformOriginY }
               ]
             }
           ]}
