@@ -334,6 +334,7 @@ const CONTEXT_MENU_MARGIN = 18;
 const CONTEXT_MENU_GAP = 10;
 const CONTEXT_MENU_MAX_WIDTH = 220;
 const CONTEXT_MENU_MIN_WIDTH = 168;
+const CONTEXT_MENU_WIDTH = CONTEXT_MENU_MAX_WIDTH;
 
 function HistoryContextMenu({ menu, onClose, onDelete, onRename }: HistoryContextMenuProps) {
   const { width, height } = useWindowDimensions();
