@@ -21,16 +21,17 @@ Use this as the working checklist for getting Sift from current MVP prototype to
 
 ## Phase 1: AI Pipeline
 
-- [ ] Choose initial dev AI provider.
-- [ ] Add Gemini provider support in Supabase Edge Function.
+- [x] Choose initial dev AI provider.
+- [x] Add Gemini provider support in Supabase Edge Function.
 - [ ] Keep NVIDIA provider as experimental fallback if useful.
 - [ ] Keep OpenAI provider as paid fallback/eval baseline.
-- [ ] Ensure app sends image, allergy profile, and restaurant language to Edge Function.
-- [ ] Ensure Edge Function calls provider server-side only.
-- [ ] Validate AI response against strict schema before returning to app.
-- [ ] Return calm `unclear` result for malformed responses.
-- [ ] Return calm `unclear` result for timeout/provider failure.
-- [ ] Confirm no AI API keys are stored in the client app.
+- [x] Ensure app sends image, allergy profile, and restaurant language to Edge Function.
+- [x] Ensure Edge Function calls provider server-side only.
+- [x] Validate AI response against strict schema before returning to app.
+- [x] Return calm `unclear` result for malformed responses.
+- [x] Return calm `unclear` result for timeout/provider failure.
+- [x] Confirm no AI API keys are stored in the client app.
+- [x] Deploy updated `analyze-menu` Edge Function to Supabase.
 
 ## Phase 2: Prompt And Schema Reliability
 
@@ -68,10 +69,10 @@ Use this as the working checklist for getting Sift from current MVP prototype to
 - [ ] Require Supabase auth or anonymous auth before public AI access.
 - [ ] Add per-user or per-device daily scan limit.
 - [ ] Add per-minute rate limit.
-- [ ] Add maximum image payload size.
-- [ ] Add request body validation before provider call.
-- [ ] Add provider timeout.
-- [ ] Add max output token limit.
+- [x] Add maximum image payload size.
+- [x] Add request body validation before provider call.
+- [x] Add provider timeout.
+- [x] Add max output token limit.
 - [ ] Add provider spend caps where supported.
 - [ ] Avoid logging full allergy profiles.
 - [ ] Avoid logging uploaded image data.
@@ -179,4 +180,3 @@ Use this as the working checklist for getting Sift from current MVP prototype to
 - [ ] Apple Watch companion.
 - [ ] Cuisine-specific allergen database.
 - [ ] Restaurant notes and favorites.
-

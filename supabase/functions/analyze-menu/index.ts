@@ -25,7 +25,7 @@ type AnalyzeMenuRequest = {
   restaurantLanguage?: string;
 };
 
-type AnalysisProvider = "openai" | "nvidia";
+type AnalysisProvider = "openai" | "nvidia" | "gemini";
 
 type AnalysisOutput = {
   model: string;
@@ -78,6 +78,8 @@ const riskLevels = new Set<RiskLevel>([
 ]);
 
 const readabilityValues = new Set<ImageReadability>(["clear", "partially_clear", "poor"]);
+const defaultMaxImageBase64Length = 7_000_000;
+const defaultProviderTimeoutMs = 40_000;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -191,26 +193,31 @@ Deno.serve(async (request) => {
       return jsonResponse({ error: "Invalid analysis request." }, 400);
     }
 
-    const analysis = await analyzeMenu(body);
-    const scanResult = normalizeScanResult(
-      JSON.parse(extractJsonText(analysis.text)) as Partial<ScanResult>,
-      body.profile.id
-    );
-    const validationError = validateScanResult(scanResult);
+    try {
+      const analysis = await analyzeMenu(body);
+      const scanResult = normalizeScanResult(
+        JSON.parse(extractJsonText(analysis.text)) as Partial<ScanResult>,
+        body.profile.id
+      );
+      const validationError = validateScanResult(scanResult);
 
-    if (validationError) {
-      console.error("Invalid model response", validationError, analysis.provider, analysis.model);
-      return jsonResponse({ error: "Menu analysis returned an invalid response." }, 502);
+      if (validationError) {
+        console.error("Invalid model response", validationError, analysis.provider, analysis.model);
+        return jsonResponse(createFallbackScanResult(body.profile.id, analysis.model));
+      }
+
+      return jsonResponse({
+        ...scanResult,
+        imageUri: null,
+        analysisSource: "ai",
+        analysisModel: analysis.model
+      });
+    } catch (error) {
+      console.error("Menu analysis provider failure", getSafeErrorMessage(error));
+      return jsonResponse(createFallbackScanResult(body.profile.id));
     }
-
-    return jsonResponse({
-      ...scanResult,
-      imageUri: null,
-      analysisSource: "ai",
-      analysisModel: analysis.model
-    });
   } catch (error) {
-    console.error(error);
+    console.error("Menu analysis request failure", getSafeErrorMessage(error));
     return jsonResponse({ error: "We could not analyze this menu clearly." }, 500);
   }
 });
@@ -222,11 +229,19 @@ async function analyzeMenu(request: AnalyzeMenuRequest): Promise<AnalysisOutput>
     return analyzeWithNvidia(request);
   }
 
+  if (provider === "gemini") {
+    return analyzeWithGemini(request);
+  }
+
   return analyzeWithOpenAi(request);
 }
 
 function getAnalysisProvider(): AnalysisProvider {
   const provider = Deno.env.get("AI_PROVIDER")?.trim().toLowerCase();
+  if (provider === "gemini") {
+    return "gemini";
+  }
+
   return provider === "nvidia" ? "nvidia" : "openai";
 }
 
@@ -237,7 +252,7 @@ async function analyzeWithOpenAi(request: AnalyzeMenuRequest): Promise<AnalysisO
   }
 
   const model = Deno.env.get("OPENAI_MODEL") ?? "gpt-5.4-mini";
-  const response = await fetch("https://api.openai.com/v1/responses", {
+  const response = await fetchWithTimeout("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${openAiKey}`,
@@ -304,7 +319,7 @@ async function analyzeWithNvidia(request: AnalyzeMenuRequest): Promise<AnalysisO
 
   const baseUrl = trimTrailingSlash(Deno.env.get("NVIDIA_BASE_URL") ?? "https://integrate.api.nvidia.com/v1");
   const model = Deno.env.get("NVIDIA_MODEL") ?? "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning";
-  const response = await fetch(`${baseUrl}/chat/completions`, {
+  const response = await fetchWithTimeout(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${nvidiaKey}`,
@@ -351,6 +366,66 @@ async function analyzeWithNvidia(request: AnalyzeMenuRequest): Promise<AnalysisO
   };
 }
 
+async function analyzeWithGemini(request: AnalyzeMenuRequest): Promise<AnalysisOutput> {
+  const geminiKey = Deno.env.get("GEMINI_API_KEY");
+  if (!geminiKey) {
+    throw new Error("Gemini analysis service is not configured.");
+  }
+
+  const model = Deno.env.get("GEMINI_MODEL") ?? "gemini-3.5-flash";
+  const response = await fetchWithTimeout(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey)}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [
+            {
+              text: buildSystemPrompt()
+            }
+          ]
+        },
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: buildUserPrompt(request)
+              },
+              {
+                inlineData: {
+                  mimeType: request.mimeType,
+                  data: request.imageBase64
+                }
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: Number(Deno.env.get("GEMINI_TEMPERATURE") ?? 0.1),
+          maxOutputTokens: Number(Deno.env.get("GEMINI_MAX_OUTPUT_TOKENS") ?? 3500),
+          responseMimeType: "application/json"
+        }
+      })
+    }
+  );
+
+  if (!response.ok) {
+    console.error("Gemini analysis failed", response.status, await response.text());
+    throw new Error("Gemini menu analysis failed.");
+  }
+
+  const data = await response.json();
+  return {
+    model,
+    provider: "gemini",
+    text: extractGeminiOutputText(data)
+  };
+}
+
 function buildSystemPrompt() {
   return [
     "You are Sift, an allergy-aware restaurant menu risk assistant.",
@@ -391,6 +466,8 @@ function buildUserPrompt(request: AnalyzeMenuRequest) {
 }
 
 function isValidRequest(value: Partial<AnalyzeMenuRequest>): value is AnalyzeMenuRequest {
+  const maxImageBase64Length = Number(Deno.env.get("MAX_IMAGE_BASE64_LENGTH") ?? defaultMaxImageBase64Length);
+
   return Boolean(
     value &&
       isRecord(value.profile) &&
@@ -399,6 +476,7 @@ function isValidRequest(value: Partial<AnalyzeMenuRequest>): value is AnalyzeMen
       value.profile.allergies.length > 0 &&
       typeof value.imageBase64 === "string" &&
       value.imageBase64.length > 100 &&
+      value.imageBase64.length <= maxImageBase64Length &&
       isAllowedMimeType(value.mimeType)
   );
 }
@@ -509,6 +587,25 @@ function extractChatCompletionText(data: any): string {
   throw new Error("No text output returned from chat completion.");
 }
 
+function extractGeminiOutputText(data: any): string {
+  const parts = data?.candidates?.[0]?.content?.parts;
+  if (!Array.isArray(parts)) {
+    throw new Error("No text output returned from Gemini.");
+  }
+
+  const text = parts
+    .map((part) => part?.text)
+    .filter((value): value is string => typeof value === "string")
+    .join("\n")
+    .trim();
+
+  if (!text) {
+    throw new Error("No text output returned from Gemini.");
+  }
+
+  return text;
+}
+
 function extractJsonText(value: string): string {
   const trimmed = value.trim();
   const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
@@ -612,6 +709,29 @@ function createUnclearDish(): ScanResult["dishes"][number] {
   };
 }
 
+function createFallbackScanResult(profileId: string, analysisModel: string | null = null): ScanResult {
+  return {
+    id: `scan-unclear-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    imageUri: null,
+    restaurantName: null,
+    profileId,
+    analysisSource: "ai",
+    analysisModel,
+    scanSummary: {
+      overallRisk: "unclear",
+      summary: "We could not analyze this menu clearly. Please retake the photo or ask staff directly.",
+      limitations: "Visible menu text and common ingredient patterns only."
+    },
+    dishes: [createUnclearDish()],
+    restaurantMessage: null,
+    imageQuality: {
+      readability: "poor",
+      issues: ["analysis_failed"]
+    }
+  };
+}
+
 function containsBannedSafetyLanguage(value: unknown): boolean {
   const bannedPatterns = [
     /safe to eat/i,
@@ -662,6 +782,27 @@ function readStringArray(value: unknown): string[] {
 
 function trimTrailingSlash(value: string) {
   return value.replace(/\/+$/, "");
+}
+
+function getSafeErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit) {
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    Number(Deno.env.get("AI_PROVIDER_TIMEOUT_MS") ?? defaultProviderTimeoutMs)
+  );
+
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function jsonResponse(body: unknown, status = 200) {
