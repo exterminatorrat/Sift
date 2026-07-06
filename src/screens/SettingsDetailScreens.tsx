@@ -17,6 +17,8 @@ import { UserProfile } from "../types/allergy";
 import { useI18n } from "../i18n/I18nProvider";
 import { waveOneAppLanguages } from "../i18n/translations";
 
+const UNKNOWN_RESTAURANT_LANGUAGE = "__unknown_restaurant_language__";
+
 type BasicSettingsScreenProps = {
   onBack: () => void;
 };
@@ -92,6 +94,7 @@ export function LanguageTranslationScreen({
 }: LanguageSettingsScreenProps) {
   const { t } = useI18n();
   const selectedAppLanguage = profile.preferredLanguage || "English";
+  const selectedRestaurantLanguage = profile.restaurantLanguage || UNKNOWN_RESTAURANT_LANGUAGE;
 
   const updateProfile = (patch: Partial<UserProfile>) => {
     void onChangeProfile({ ...profile, ...patch });
@@ -115,6 +118,30 @@ export function LanguageTranslationScreen({
         }))}
         selected={selectedAppLanguage}
         onSelect={(preferredLanguage) => updateProfile({ preferredLanguage })}
+      />
+
+      <OptionSection
+        label={t("language.restaurantLanguage")}
+        body={t("language.restaurantLanguageBody")}
+        options={[
+          {
+            label: t("language.notSure"),
+            value: UNKNOWN_RESTAURANT_LANGUAGE
+          },
+          ...waveOneAppLanguages.map((language) => ({
+            disabled: !language.enabled,
+            label: language.label,
+            meta: language.enabled ? undefined : t("language.comingSoon"),
+            value: language.value
+          }))
+        ]}
+        selected={selectedRestaurantLanguage}
+        onSelect={(restaurantLanguage) =>
+          updateProfile({
+            restaurantLanguage:
+              restaurantLanguage === UNKNOWN_RESTAURANT_LANGUAGE ? undefined : restaurantLanguage
+          })
+        }
       />
     </SettingsShell>
   );

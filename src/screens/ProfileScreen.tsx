@@ -298,33 +298,6 @@ export function ProfileScreen({
           />
         </View>
 
-        <View style={styles.languageRow}>
-          <View style={styles.languageField}>
-            <Text style={styles.label}>{t("profile.yourLanguage")}</Text>
-            <TextInput
-              value={draft.preferredLanguage}
-              onChangeText={(preferredLanguage) =>
-                setDraft((current) => ({ ...current, preferredLanguage }))
-              }
-              placeholder={t("profile.yourLanguagePlaceholder")}
-              placeholderTextColor={colors.inkSubtle}
-              style={styles.input}
-            />
-          </View>
-          <View style={styles.languageField}>
-            <Text style={styles.label}>{t("profile.restaurantLanguage")}</Text>
-            <TextInput
-              value={draft.restaurantLanguage ?? ""}
-              onChangeText={(restaurantLanguage) =>
-                setDraft((current) => ({ ...current, restaurantLanguage }))
-              }
-              placeholder={t("profile.restaurantLanguagePlaceholder")}
-              placeholderTextColor={colors.inkSubtle}
-              style={styles.input}
-            />
-          </View>
-        </View>
-
         <View style={styles.fieldGroup}>
           <View style={styles.sectionHeader}>
             <Text style={styles.label}>{t("profile.commonAllergens")}</Text>
@@ -596,14 +569,6 @@ const styles = StyleSheet.create({
   profilePillMeta: {
     color: colors.inkSubtle,
     ...typography.badge
-  },
-  languageRow: {
-    flexDirection: "row",
-    gap: 10
-  },
-  languageField: {
-    flex: 1,
-    gap: 10
   },
   label: {
     color: colors.inkSubtle,
