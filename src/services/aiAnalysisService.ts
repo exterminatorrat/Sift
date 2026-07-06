@@ -17,7 +17,12 @@ export type AnalyzeMenuRequest = {
 
 export async function analyzeMenuImage(request: AnalyzeMenuRequest): Promise<ScanResult> {
   if (ANALYSIS_MODE !== "supabase" || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    return withImageUri(getMockScanResult(request.profile), request.image.uri, "mock");
+    return withImageUri(
+      getMockScanResult(request.profile),
+      request.image.uri,
+      "mock",
+      request.profile.preferredLanguage
+    );
   }
 
   const controller = new AbortController();
@@ -49,7 +54,7 @@ export async function analyzeMenuImage(request: AnalyzeMenuRequest): Promise<Sca
       throw new Error(`Menu analysis returned an invalid response: ${validation.error}`);
     }
 
-    return withImageUri(validation.value, request.image.uri, "ai");
+    return withImageUri(validation.value, request.image.uri, "ai", request.profile.preferredLanguage);
   } finally {
     clearTimeout(timeout);
   }
@@ -61,6 +66,7 @@ export function createUnclearScanResult(profile: UserProfile, imageUri?: string)
     createdAt: new Date().toISOString(),
     imageUri,
     profileId: profile.id,
+    analysisLanguage: profile.preferredLanguage,
     analysisSource: "fallback",
     scanSummary: {
       overallRisk: "unclear",
@@ -94,13 +100,15 @@ export function createUnclearScanResult(profile: UserProfile, imageUri?: string)
 function withImageUri(
   scanResult: ScanResult,
   imageUri?: string,
-  analysisSource?: ScanResult["analysisSource"]
+  analysisSource?: ScanResult["analysisSource"],
+  analysisLanguage?: string | null
 ): ScanResult {
   return {
     ...scanResult,
     id: scanResult.id || `scan-${Date.now()}`,
     createdAt: scanResult.createdAt || new Date().toISOString(),
     imageUri,
+    analysisLanguage: analysisLanguage ?? scanResult.analysisLanguage ?? null,
     analysisSource: analysisSource ?? scanResult.analysisSource
   };
 }

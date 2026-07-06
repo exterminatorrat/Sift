@@ -16,9 +16,10 @@ import { typography } from "../constants/typography";
 import { EmptyState } from "../components/EmptyState";
 import { ScanResult } from "../types/scan";
 import { getRiskMeta } from "../utils/riskLabels";
-import { formatDateTime } from "../utils/formatters";
+import { formatAllergenLabel, formatDateTime } from "../utils/formatters";
 import { BottomNavBar } from "../components/BottomNavBar";
 import { useI18n } from "../i18n/I18nProvider";
+import { AppLanguageCode } from "../i18n/translations";
 
 type HistoryScreenProps = {
   scans: ScanResult[];
@@ -29,6 +30,20 @@ type HistoryScreenProps = {
   onOpenProfile?: () => void;
 };
 
+const historyLanguageNotes: Record<AppLanguageCode, string> = {
+  de: "Gespeicherte Scan-Details bleiben in der Sprache der Analyse. Allergen-Tags werden in deiner aktuellen App-Sprache angezeigt.",
+  en: "Saved scan details stay in the language used during analysis. Common allergen tags update with your current app language.",
+  es: "Los detalles guardados permanecen en el idioma usado durante el análisis. Las etiquetas comunes de alérgenos se muestran en el idioma actual de la app.",
+  fr: "Les détails enregistrés restent dans la langue utilisée lors de l'analyse. Les étiquettes d'allergènes courants suivent la langue actuelle de l'app.",
+  it: "I dettagli salvati restano nella lingua usata durante l'analisi. Le etichette comuni degli allergeni seguono la lingua attuale dell'app.",
+  ja: "保存済みの解析内容は、スキャン時の言語のまま残ります。一般的なアレルゲンタグは現在のアプリ言語で表示されます。",
+  ko: "저장된 스캔 내용은 분석 당시 언어로 유지됩니다. 일반 알레르겐 태그는 현재 앱 언어로 표시됩니다.",
+  pt: "Os detalhes salvos ficam no idioma usado na análise. Tags comuns de alérgenos aparecem no idioma atual do app.",
+  th: "รายละเอียดสแกนที่บันทึกไว้จะคงเป็นภาษาที่ใช้ตอนวิเคราะห์ แท็กสารก่อภูมิแพ้ทั่วไปจะแสดงตามภาษาแอปปัจจุบัน",
+  "zh-Hans": "已保存的扫描详情会保留分析时使用的语言。常见过敏原标签会按当前应用语言显示。",
+  "zh-Hant": "已儲存的掃描詳情會保留分析時使用的語言。常見過敏原標籤會依目前 App 語言顯示。"
+};
+
 export function HistoryScreen({
   scans,
   onBack,
@@ -37,7 +52,7 @@ export function HistoryScreen({
   onRenameScan,
   onOpenProfile
 }: HistoryScreenProps) {
-  const { t } = useI18n();
+  const { languageCode, t } = useI18n();
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -53,17 +68,22 @@ export function HistoryScreen({
             body={t("history.noScansBody")}
           />
         ) : (
-          <View style={styles.list}>
-            {scans.map((scan) => (
-              <SwipeableScanCard
-                key={scan.id}
-                scan={scan}
-                onDelete={onDeleteScan}
-                onOpen={onOpenScan}
-                onRename={onRenameScan}
-              />
-            ))}
-          </View>
+          <>
+            <View style={styles.languageNote}>
+              <Text style={styles.languageNoteText}>{historyLanguageNotes[languageCode]}</Text>
+            </View>
+            <View style={styles.list}>
+              {scans.map((scan) => (
+                <SwipeableScanCard
+                  key={scan.id}
+                  scan={scan}
+                  onDelete={onDeleteScan}
+                  onOpen={onOpenScan}
+                  onRename={onRenameScan}
+                />
+              ))}
+            </View>
+          </>
         )}
       </ScrollView>
       {onOpenProfile && (
@@ -206,7 +226,7 @@ function SwipeableScanCard({ scan, onOpen, onDelete, onRename }: SwipeableScanCa
               .slice(0, 3)
               .map((allergen) => (
                 <View key={allergen} style={styles.chip}>
-                  <Text style={styles.chipText}>{allergen}</Text>
+                  <Text style={styles.chipText}>{formatAllergenLabel(allergen, t)}</Text>
                 </View>
               ))}
           </View>
@@ -239,6 +259,17 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 24
+  },
+  languageNote: {
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 13
+  },
+  languageNoteText: {
+    color: colors.inkMuted,
+    ...typography.caption
   },
   swipeShell: {
     borderRadius: 12,

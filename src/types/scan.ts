@@ -36,6 +36,7 @@ export type ScanResult = {
   imageUri?: string | null;
   restaurantName?: string | null;
   profileId: string;
+  analysisLanguage?: string | null;
   analysisSource?: "mock" | "ai" | "fallback";
   analysisModel?: string | null;
   scanSummary: ScanSummary;

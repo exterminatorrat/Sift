@@ -86,6 +86,7 @@ export function validateScanResult(value: unknown): ScanResultValidation {
       imageUri: readOptionalString(value.imageUri),
       restaurantName: readOptionalString(value.restaurantName),
       profileId,
+      analysisLanguage: readOptionalString(value.analysisLanguage),
       analysisSource: normalizedSource,
       analysisModel: readOptionalString(value.analysisModel),
       scanSummary: scanSummary.value,
