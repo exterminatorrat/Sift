@@ -3,12 +3,15 @@ import {
   Alert,
   Animated,
   Easing,
+  LayoutAnimation,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Switch,
   Text,
   TextInput,
+  UIManager,
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -37,6 +40,27 @@ type ProfileScreenProps = {
 };
 
 const severities: AllergySeverity[] = ["mild", "moderate", "severe"];
+const cardLayoutAnimation = {
+  duration: 180,
+  create: {
+    duration: 180,
+    property: LayoutAnimation.Properties.opacity,
+    type: LayoutAnimation.Types.easeInEaseOut
+  },
+  delete: {
+    duration: 140,
+    property: LayoutAnimation.Properties.opacity,
+    type: LayoutAnimation.Types.easeInEaseOut
+  },
+  update: {
+    duration: 180,
+    type: LayoutAnimation.Types.easeInEaseOut
+  }
+};
+
+if (Platform.OS === "android") {
+  UIManager.setLayoutAnimationEnabledExperimental?.(true);
+}
 
 const severityLabelKeys: Record<AllergySeverity, TranslationKey> = {
   mild: "severity.mild",
@@ -205,6 +229,7 @@ export function ProfileScreen({
   };
 
   const removeAllergy = (id: string) => {
+    animateCardLayout();
     setDraft((current) => ({
       ...current,
       allergies: current.allergies.filter((allergy) => allergy.id !== id)
@@ -225,6 +250,15 @@ export function ProfileScreen({
   };
 
   const formatSeverity = (severity: AllergySeverity) => t(severityLabelKeys[severity]);
+
+  const animateCardLayout = () => {
+    LayoutAnimation.configureNext(cardLayoutAnimation);
+  };
+
+  const toggleExpandedAllergy = (allergyId: string, expanded: boolean) => {
+    animateCardLayout();
+    setExpandedAllergyId(expanded ? null : allergyId);
+  };
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -353,7 +387,7 @@ export function ProfileScreen({
                 <View key={allergy.id} style={[styles.allergyCard, expanded && styles.allergyCardExpanded]}>
                   <Pressable
                     accessibilityRole="button"
-                    onPress={() => setExpandedAllergyId(expanded ? null : allergy.id)}
+                    onPress={() => toggleExpandedAllergy(allergy.id, expanded)}
                     style={styles.allergyCardHeader}
                   >
                     <View style={styles.allergyHeaderText}>
@@ -582,8 +616,11 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     color: colors.ink,
     ...typography.bodyLarge,
+    includeFontPadding: false,
     minHeight: 48,
-    paddingHorizontal: 13
+    paddingHorizontal: 13,
+    paddingVertical: 0,
+    textAlignVertical: "center"
   },
   chipGrid: {
     flexDirection: "row",
@@ -727,7 +764,9 @@ const styles = StyleSheet.create({
     ...typography.caption
   },
   notesInput: {
+    includeFontPadding: true,
     minHeight: 70,
+    paddingBottom: 10,
     paddingTop: 12,
     textAlignVertical: "top"
   },
