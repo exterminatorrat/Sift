@@ -198,7 +198,7 @@ export default function App() {
                 <HistoryScreen
                   scans={scanHistory}
                   onBack={() => setMainTab("home")}
-                  onOpenScan={(scanId) => navigation.navigate("Results", { scanId })}
+                  onOpenScan={(scanId) => navigation.navigate("Results", { scanId, from: "history" })}
                   onDeleteScan={(scanId) => {
                     void deleteScan(scanId);
                   }}
@@ -328,6 +328,7 @@ export default function App() {
           <Stack.Screen name="Results" options={{ animation: "slide_from_right" }}>
             {({ navigation, route }) => {
               const scanResult = scanHistory.find((scan) => scan.id === route.params.scanId);
+              const returnToHistory = route.params.from === "history";
 
               if (!scanResult) {
                 return (
@@ -353,7 +354,7 @@ export default function App() {
                 <ResultsScreen
                   scanResult={scanResult}
                   onBack={() => {
-                    setMainTab("home");
+                    setMainTab(returnToHistory ? "history" : "home");
                     navigation.navigate("Home");
                   }}
                   onOpenHistory={() => {

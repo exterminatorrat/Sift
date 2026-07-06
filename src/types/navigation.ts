@@ -5,7 +5,7 @@ export type RootStackParamList = {
   ScanCapture: undefined;
   ImagePreview: undefined;
   AnalysisLoading: undefined;
-  Results: { scanId: string };
+  Results: { scanId: string; from?: "history" };
   DishDetail: { scanId: string; dishId: string };
   Settings: undefined;
   SettingsSubscription: undefined;
