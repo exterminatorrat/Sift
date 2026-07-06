@@ -11,18 +11,22 @@ import { useI18n } from "../i18n/I18nProvider";
 
 type ImagePreviewScreenProps = {
   image: PreparedMenuImage | null;
+  imageSource: "camera" | "library";
   onBack: () => void;
-  onRetake: () => void;
+  onChooseAgain: () => void;
   onUsePhoto: () => void;
 };
 
 export function ImagePreviewScreen({
   image,
+  imageSource,
   onBack,
-  onRetake,
+  onChooseAgain,
   onUsePhoto
 }: ImagePreviewScreenProps) {
   const { t } = useI18n();
+  const chooseAgainLabel =
+    imageSource === "library" ? t("imagePreview.rechoose") : t("imagePreview.retake");
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -44,10 +48,10 @@ export function ImagePreviewScreen({
         <View style={styles.actions}>
           <PrimaryButton label={t("imagePreview.usePhoto")} icon={ScanSearch} onPress={onUsePhoto} disabled={!image} />
           <PrimaryButton
-            label={t("imagePreview.retake")}
+            label={chooseAgainLabel}
             icon={RotateCcw}
             tone="secondary"
-            onPress={onRetake}
+            onPress={onChooseAgain}
           />
         </View>
       </ScrollView>

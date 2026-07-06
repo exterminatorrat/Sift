@@ -57,6 +57,7 @@ export type TranslationKey =
   | "imagePreview.noImage"
   | "imagePreview.usePhoto"
   | "imagePreview.retake"
+  | "imagePreview.rechoose"
   | "analysis.title"
   | "analysis.subtitle"
   | "results.title"
@@ -326,6 +327,7 @@ const en = {
   "imagePreview.noImage": "No image selected.",
   "imagePreview.usePhoto": "Use photo",
   "imagePreview.retake": "Retake",
+  "imagePreview.rechoose": "Rechoose",
   "analysis.title": "Reading menu\ningredients...",
   "analysis.subtitle": "Scanning for traces and hidden\naliases",
   "results.title": "Scan Results",

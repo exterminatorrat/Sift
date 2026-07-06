@@ -58,6 +58,7 @@ import { I18nProvider } from "./src/i18n/I18nProvider";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 type MainTab = "home" | "history" | "profile";
+type PendingImageSource = "camera" | "library";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -82,6 +83,7 @@ export default function App() {
   const [activeProfileId, setActiveProfileId] = useState(createDefaultProfile().id);
   const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
   const [pendingImage, setPendingImage] = useState<PreparedMenuImage | null>(null);
+  const [pendingImageSource, setPendingImageSource] = useState<PendingImageSource>("camera");
   const [scanError, setScanError] = useState<string | null>(null);
   const profile = profiles.find((item) => item.id === activeProfileId) ?? profiles[0] ?? createDefaultProfile();
 
@@ -318,11 +320,17 @@ export default function App() {
             {({ navigation }) => (
               <ImagePreviewScreen
                 image={pendingImage}
+                imageSource={pendingImageSource}
                 onBack={() => {
                   setMainTab("home");
                   navigation.navigate("Home");
                 }}
-                onRetake={async () => {
+                onChooseAgain={async () => {
+                  if (pendingImageSource === "library") {
+                    await selectImageFromLibrary(navigation.navigate);
+                    return;
+                  }
+
                   await selectImageFromCamera(navigation.navigate);
                 }}
                 onUsePhoto={() => navigation.replace("AnalysisLoading")}
@@ -504,6 +512,7 @@ export default function App() {
       const image = await captureMenuImage();
       if (image) {
         setPendingImage(image);
+        setPendingImageSource("camera");
         navigate("ImagePreview");
       }
     } catch (error) {
@@ -522,6 +531,7 @@ export default function App() {
       const image = await pickMenuImage();
       if (image) {
         setPendingImage(image);
+        setPendingImageSource("library");
         navigate("ImagePreview");
       }
     } catch (error) {
