@@ -47,6 +47,11 @@ type RenameDialogState = {
   title: string;
 };
 
+type DeleteDialogState = {
+  scan: ScanResult;
+  title: string;
+};
+
 export function HistoryScreen({
   scans,
   onBack,
@@ -58,6 +63,8 @@ export function HistoryScreen({
   const { t } = useI18n();
   const [scanMenu, setScanMenu] = useState<ScanMenuState | null>(null);
   const [renameDialog, setRenameDialog] = useState<RenameDialogState | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState | null>(null);
+  const [deletingScanId, setDeletingScanId] = useState<string | null>(null);
 
   const closeScanMenu = () => setScanMenu(null);
 
@@ -81,8 +88,13 @@ export function HistoryScreen({
                 key={scan.id}
                 scan={scan}
                 onDelete={onDeleteScan}
+                isDeleting={deletingScanId === scan.id}
                 onOpen={onOpenScan}
                 onRename={onRenameScan}
+                onDeleteAnimationEnd={() => {
+                  onDeleteScan?.(scan.id);
+                  setDeletingScanId(null);
+                }}
                 onOpenActions={(scan, title, rect) => setScanMenu({ scan, title, ...rect })}
               />
             ))}
@@ -101,8 +113,8 @@ export function HistoryScreen({
         menu={scanMenu}
         onClose={closeScanMenu}
         onDelete={() => {
-          if (scanMenu && onDeleteScan) {
-            onDeleteScan(scanMenu.scan.id);
+          if (scanMenu) {
+            setDeleteDialog({ scan: scanMenu.scan, title: scanMenu.title });
           }
           closeScanMenu();
         }}
@@ -123,13 +135,23 @@ export function HistoryScreen({
           setRenameDialog(null);
         }}
       />
+      <DeleteScanDialog
+        dialog={deleteDialog}
+        onCancel={() => setDeleteDialog(null)}
+        onConfirm={(scan) => {
+          setDeleteDialog(null);
+          setDeletingScanId(scan.id);
+        }}
+      />
     </SafeAreaView>
   );
 }
 
 type SwipeableScanCardProps = {
+  isDeleting?: boolean;
   scan: ScanResult;
   onOpen: (scanId: string) => void;
+  onDeleteAnimationEnd?: () => void;
   onDelete?: (scanId: string) => void;
   onRename?: (scanId: string, title: string) => void;
   onOpenActions: (
@@ -140,16 +162,71 @@ type SwipeableScanCardProps = {
 };
 
 function SwipeableScanCard({
+  isDeleting,
   scan,
   onOpen,
+  onDeleteAnimationEnd,
   onDelete,
   onRename,
   onOpenActions
 }: SwipeableScanCardProps) {
   const { t } = useI18n();
+  const { width } = useWindowDimensions();
   const cardRef = useRef<View>(null);
+  const deleteHeight = useRef(new Animated.Value(0)).current;
+  const deleteOpacity = useRef(new Animated.Value(1)).current;
+  const deleteTranslateX = useRef(new Animated.Value(0)).current;
+  const deleteStarted = useRef(false);
   const didLongPress = useRef(false);
+  const [measuredHeight, setMeasuredHeight] = useState(0);
   const scanTitle = scan.restaurantName ?? t("home.menuScan");
+
+  useEffect(() => {
+    if (!isDeleting) {
+      deleteStarted.current = false;
+      deleteHeight.setValue(measuredHeight);
+      deleteOpacity.setValue(1);
+      deleteTranslateX.setValue(0);
+      return;
+    }
+
+    if (deleteStarted.current) {
+      return;
+    }
+
+    deleteStarted.current = true;
+    deleteHeight.setValue(measuredHeight);
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(deleteTranslateX, {
+          duration: 230,
+          easing: Easing.out(Easing.cubic),
+          toValue: -(width + 80),
+          useNativeDriver: true
+        }),
+        Animated.timing(deleteOpacity, {
+          duration: 190,
+          easing: Easing.out(Easing.cubic),
+          toValue: 0,
+          useNativeDriver: true
+        })
+      ]),
+      Animated.timing(deleteHeight, {
+        duration: 150,
+        easing: Easing.out(Easing.cubic),
+        toValue: 0,
+        useNativeDriver: false
+      })
+    ]).start(onDeleteAnimationEnd);
+  }, [
+    deleteHeight,
+    deleteOpacity,
+    deleteTranslateX,
+    isDeleting,
+    measuredHeight,
+    onDeleteAnimationEnd,
+    width
+  ]);
 
   const openActions = () => {
     didLongPress.current = true;
@@ -161,10 +238,28 @@ function SwipeableScanCard({
   };
 
   return (
-    <View ref={cardRef} collapsable={false}>
+    <Animated.View
+      onLayout={(event) => {
+        if (!isDeleting) {
+          const nextHeight = event.nativeEvent.layout.height;
+          setMeasuredHeight(nextHeight);
+          deleteHeight.setValue(nextHeight);
+        }
+      }}
+      style={[
+        styles.deletingCardShell,
+        isDeleting && { height: deleteHeight },
+        {
+          opacity: deleteOpacity,
+          transform: [{ translateX: deleteTranslateX }]
+        }
+      ]}
+    >
+      <View ref={cardRef} collapsable={false}>
       <Pressable
         accessibilityRole="button"
         accessibilityHint="Long press for scan options"
+        disabled={isDeleting}
         onLongPress={openActions}
         onPress={() => {
           if (didLongPress.current) {
@@ -178,6 +273,7 @@ function SwipeableScanCard({
         <ScanCardContent scan={scan} scanTitle={scanTitle} />
       </Pressable>
     </View>
+    </Animated.View>
   );
 }
 
@@ -404,6 +500,98 @@ type RenameScanDialogProps = {
   onSave: (scan: ScanResult, title: string) => void;
 };
 
+type DeleteScanDialogProps = {
+  dialog: DeleteDialogState | null;
+  onCancel: () => void;
+  onConfirm: (scan: ScanResult) => void;
+};
+
+function DeleteScanDialog({ dialog, onCancel, onConfirm }: DeleteScanDialogProps) {
+  const scale = useRef(new Animated.Value(0.96)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!dialog) {
+      return;
+    }
+
+    scale.setValue(0.96);
+    opacity.setValue(0);
+    Animated.parallel([
+      Animated.timing(opacity, {
+        duration: 130,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true
+      }),
+      Animated.timing(scale, {
+        duration: 170,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true
+      })
+    ]).start();
+  }, [dialog, opacity, scale]);
+
+  if (!dialog) {
+    return null;
+  }
+
+  return (
+    <Modal animationType="none" transparent visible onRequestClose={onCancel}>
+      <View style={styles.confirmOverlay}>
+        <Pressable
+          accessibilityLabel="Close delete confirmation"
+          accessibilityRole="button"
+          onPress={onCancel}
+          style={styles.renameDismissLayer}
+        />
+        <Animated.View
+          style={[
+            styles.renameCard,
+            {
+              opacity,
+              transform: [{ scale }]
+            }
+          ]}
+        >
+          <View style={styles.confirmHeader}>
+            <View style={styles.confirmIconWrap}>
+              <Trash2 color={colors.avoid} size={19} strokeWidth={2.3} />
+            </View>
+            <View style={styles.renameHeader}>
+              <Text style={styles.renameTitle}>Delete scan?</Text>
+              <Text style={styles.renameBody}>
+                This removes "{dialog.title}" from your saved scan history on this device.
+              </Text>
+            </View>
+          </View>
+          <View style={styles.renameActions}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={onCancel}
+              style={({ pressed }) => [styles.renameButton, pressed && styles.renameButtonPressed]}
+            >
+              <Text style={styles.renameCancelText}>Cancel</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => onConfirm(dialog.scan)}
+              style={({ pressed }) => [
+                styles.renameButton,
+                styles.deleteConfirmButton,
+                pressed && styles.deleteConfirmButtonPressed
+              ]}
+            >
+              <Text style={styles.renameSaveText}>Delete</Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+}
+
 function RenameScanDialog({ dialog, onCancel, onSave }: RenameScanDialogProps) {
   const [draftTitle, setDraftTitle] = useState("");
   const scale = useRef(new Animated.Value(0.96)).current;
@@ -533,6 +721,9 @@ const styles = StyleSheet.create({
   list: {
     gap: 24
   },
+  deletingCardShell: {
+    overflow: "hidden"
+  },
   item: {
     backgroundColor: colors.surfaceWarm,
     borderColor: colors.borderSoft,
@@ -661,6 +852,13 @@ const styles = StyleSheet.create({
   renameDismissLayer: {
     ...StyleSheet.absoluteFillObject
   },
+  confirmOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    backgroundColor: "rgba(31, 47, 45, 0.16)",
+    justifyContent: "center",
+    padding: 24
+  },
   renameCard: {
     backgroundColor: colors.surface,
     borderColor: colors.borderSoft,
@@ -677,6 +875,18 @@ const styles = StyleSheet.create({
   },
   renameHeader: {
     gap: 6
+  },
+  confirmHeader: {
+    flexDirection: "row",
+    gap: 14
+  },
+  confirmIconWrap: {
+    alignItems: "center",
+    backgroundColor: colors.avoidSoft,
+    borderRadius: 999,
+    height: 38,
+    justifyContent: "center",
+    width: 38
   },
   renameTitle: {
     color: colors.primaryDark,
@@ -726,6 +936,12 @@ const styles = StyleSheet.create({
   },
   renameSaveButtonPressed: {
     backgroundColor: colors.primaryHover
+  },
+  deleteConfirmButton: {
+    backgroundColor: colors.avoid
+  },
+  deleteConfirmButtonPressed: {
+    backgroundColor: colors.danger
   },
   renameSaveText: {
     color: colors.textInverse,
