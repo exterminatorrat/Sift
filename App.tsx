@@ -356,7 +356,12 @@ export default function App() {
                 <ResultsScreen
                   scanResult={scanResult}
                   onBack={() => {
-                    setMainTab(returnToHistory ? "history" : "home");
+                    if (returnToHistory) {
+                      navigation.goBack();
+                      return;
+                    }
+
+                    setMainTab("home");
                     navigation.navigate("Home");
                   }}
                   onOpenHistory={() => {
