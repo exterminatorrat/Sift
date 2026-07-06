@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import {
+  Alert,
   Animated,
   PanResponder,
   Pressable,
@@ -9,7 +10,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AlertTriangle, CircleCheck, History } from "lucide-react-native";
+import { AlertTriangle, CircleCheck, History, Pencil } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
 import { EmptyState } from "../components/EmptyState";
@@ -24,6 +25,7 @@ type HistoryScreenProps = {
   onBack: () => void;
   onOpenScan: (scanId: string) => void;
   onDeleteScan?: (scanId: string) => void;
+  onRenameScan?: (scanId: string, title: string) => void;
   onOpenProfile?: () => void;
 };
 
@@ -32,6 +34,7 @@ export function HistoryScreen({
   onBack,
   onOpenScan,
   onDeleteScan,
+  onRenameScan,
   onOpenProfile
 }: HistoryScreenProps) {
   const { t } = useI18n();
@@ -57,6 +60,7 @@ export function HistoryScreen({
                 scan={scan}
                 onDelete={onDeleteScan}
                 onOpen={onOpenScan}
+                onRename={onRenameScan}
               />
             ))}
           </View>
@@ -78,9 +82,10 @@ type SwipeableScanCardProps = {
   scan: ScanResult;
   onOpen: (scanId: string) => void;
   onDelete?: (scanId: string) => void;
+  onRename?: (scanId: string, title: string) => void;
 };
 
-function SwipeableScanCard({ scan, onOpen, onDelete }: SwipeableScanCardProps) {
+function SwipeableScanCard({ scan, onOpen, onDelete, onRename }: SwipeableScanCardProps) {
   const { languageCode, t } = useI18n();
   const translateX = useRef(new Animated.Value(0)).current;
   const openOffset = -92;
@@ -115,6 +120,31 @@ function SwipeableScanCard({ scan, onOpen, onDelete }: SwipeableScanCardProps) {
 
   const meta = getRiskMeta(scan.scanSummary.overallRisk, t);
   const riskCount = Math.max(1, scan.dishes.filter((dish) => dish.riskLevel !== "low_risk").length);
+  const scanTitle = scan.restaurantName ?? t("home.menuScan");
+
+  const promptRename = () => {
+    if (!onRename) {
+      return;
+    }
+
+    Alert.prompt(
+      "Rename scan",
+      "Give this saved scan a short name.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Save",
+          onPress: (title?: string) => {
+            if (title?.trim()) {
+              onRename(scan.id, title);
+            }
+          }
+        }
+      ],
+      "plain-text",
+      scanTitle
+    );
+  };
 
   return (
     <View style={styles.swipeShell}>
@@ -141,20 +171,32 @@ function SwipeableScanCard({ scan, onOpen, onDelete }: SwipeableScanCardProps) {
         >
           <View style={styles.itemHeader}>
             <View style={styles.itemText}>
-              <Text style={styles.itemTitle}>{scan.restaurantName ?? t("home.menuScan")}</Text>
+              <Text style={styles.itemTitle}>{scanTitle}</Text>
               <Text style={styles.itemDate}>{formatDateTime(scan.createdAt, languageCode)}</Text>
             </View>
-            <View style={[styles.badge, { backgroundColor: meta.background }]}>
-              {scan.scanSummary.overallRisk === "low_risk" ? (
-                <CircleCheck color={meta.color} size={13} strokeWidth={2.4} />
-              ) : (
-                <AlertTriangle color={meta.color} size={13} strokeWidth={2.4} />
+            <View style={styles.itemActions}>
+              {onRename && (
+                <Pressable
+                  accessibilityLabel="Rename scan"
+                  accessibilityRole="button"
+                  onPress={promptRename}
+                  style={styles.renameButton}
+                >
+                  <Pencil color={colors.primaryDark} size={14} strokeWidth={2.2} />
+                </Pressable>
               )}
-              <Text style={[styles.badgeText, { color: meta.color }]}>
-                {scan.scanSummary.overallRisk === "low_risk"
-                  ? t("history.noObviousRisks")
-                  : t("history.risksFound", { count: riskCount })}
-              </Text>
+              <View style={[styles.badge, { backgroundColor: meta.background }]}>
+                {scan.scanSummary.overallRisk === "low_risk" ? (
+                  <CircleCheck color={meta.color} size={13} strokeWidth={2.4} />
+                ) : (
+                  <AlertTriangle color={meta.color} size={13} strokeWidth={2.4} />
+                )}
+                <Text style={[styles.badgeText, { color: meta.color }]}>
+                  {scan.scanSummary.overallRisk === "low_risk"
+                    ? t("history.noObviousRisks")
+                    : t("history.risksFound", { count: riskCount })}
+                </Text>
+              </View>
             </View>
           </View>
           <View style={styles.chips}>
@@ -236,7 +278,8 @@ const styles = StyleSheet.create({
   },
   itemText: {
     flex: 1,
-    gap: 0
+    gap: 0,
+    paddingRight: 12
   },
   itemTitle: {
     color: colors.ink,
@@ -256,6 +299,20 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     ...typography.label
+  },
+  itemActions: {
+    alignItems: "flex-end",
+    gap: 8
+  },
+  renameButton: {
+    alignItems: "center",
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primaryMuted,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    height: 30,
+    justifyContent: "center",
+    width: 30
   },
   chips: {
     flexDirection: "row",

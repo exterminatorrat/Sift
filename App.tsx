@@ -36,7 +36,7 @@ import {
   saveProfiles,
   saveScanHistory
 } from "./src/services/storageService";
-import { addScanToHistory } from "./src/utils/scanHistory";
+import { addScanToHistory, normalizeStoredScanHistory, renameScanInHistory } from "./src/utils/scanHistory";
 import { OnboardingScreen } from "./src/screens/OnboardingScreen";
 import { LoginScreen } from "./src/screens/LoginScreen";
 import { ProfileScreen } from "./src/screens/ProfileScreen";
@@ -99,7 +99,7 @@ export default function App() {
         const nextProfiles = stored.profiles.length > 0 ? stored.profiles : [stored.profile ?? createDefaultProfile()];
         setProfiles(nextProfiles);
         setActiveProfileId(stored.activeProfileId ?? nextProfiles[0].id);
-        setScanHistory(stored.scanHistory);
+        setScanHistory(normalizeStoredScanHistory(stored.scanHistory));
       })
       .catch(() => {
         if (mounted) {
@@ -127,6 +127,14 @@ export default function App() {
   const deleteScan = useCallback(
     async (scanId: string) => {
       const nextHistory = scanHistory.filter((scan) => scan.id !== scanId);
+      await persistScanHistory(nextHistory);
+    },
+    [persistScanHistory, scanHistory]
+  );
+
+  const renameScan = useCallback(
+    async (scanId: string, title: string) => {
+      const nextHistory = renameScanInHistory(scanHistory, scanId, title);
       await persistScanHistory(nextHistory);
     },
     [persistScanHistory, scanHistory]
@@ -202,6 +210,9 @@ export default function App() {
                     onOpenScan={(scanId) => navigation.navigate("Results", { scanId, from: "history" })}
                     onDeleteScan={(scanId) => {
                       void deleteScan(scanId);
+                    }}
+                    onRenameScan={(scanId, title) => {
+                      void renameScan(scanId, title);
                     }}
                     onOpenProfile={() => setMainTab("profile")}
                   />

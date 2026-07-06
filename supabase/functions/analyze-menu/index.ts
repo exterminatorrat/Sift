@@ -440,6 +440,8 @@ function buildSystemPrompt() {
     "For low_risk, still include confirmation language when allergies are severe.",
     "Questions must be specific, short, and usable with restaurant staff.",
     "If a target restaurant language is requested, provide a simple polite translated restaurant message. If uncertain, keep translated null.",
+    "Use restaurantName as a short saved-scan title, not necessarily a literal restaurant name. Prefer cuisine or menu theme when obvious, such as Japanese ramen menu, Mexican dishes, Seafood and steak menu, or Cafe breakfast menu.",
+    "If no useful menu theme is visible, set restaurantName to null.",
     "Return only JSON matching the provided schema.",
     "Use camelCase keys exactly as specified: scanSummary, overallRisk, dishName, riskLevel, possibleAllergens, hiddenRiskIngredients, crossContactConcerns, questionsToAsk, conservativeLanguage, restaurantMessage, imageQuality.",
     `Required JSON schema: ${JSON.stringify(scanResultSchema)}`
@@ -456,6 +458,7 @@ function buildUserPrompt(request: AnalyzeMenuRequest) {
       oneCardPerVisibleDishWhenPossible: true,
       keepSummariesShort: true,
       keepReasonsUnderTwoSentences: true,
+      createShortScanTitleInRestaurantName: true,
       includeCommonHiddenIngredientPatterns: true,
       includeCrossContactWhenRelevant: true,
       includeRestaurantFacingMessage: true,
