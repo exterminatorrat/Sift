@@ -325,7 +325,7 @@ export default function App() {
             )}
           </Stack.Screen>
 
-          <Stack.Screen name="Results">
+          <Stack.Screen name="Results" options={{ animation: "slide_from_right" }}>
             {({ navigation, route }) => {
               const scanResult = scanHistory.find((scan) => scan.id === route.params.scanId);
 
@@ -352,7 +352,6 @@ export default function App() {
               return (
                 <ResultsScreen
                   scanResult={scanResult}
-                  profile={profile}
                   onBack={() => {
                     setMainTab("home");
                     navigation.navigate("Home");
@@ -372,7 +371,7 @@ export default function App() {
             }}
           </Stack.Screen>
 
-          <Stack.Screen name="DishDetail">
+          <Stack.Screen name="DishDetail" options={{ animation: "slide_from_right" }}>
             {({ navigation, route }) => {
               const scanResult = scanHistory.find((scan) => scan.id === route.params.scanId);
               const dish = scanResult?.dishes.find((item) => item.id === route.params.dishId);

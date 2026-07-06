@@ -328,7 +328,7 @@ export function ProfileScreen({
             onChangeText={(name) => setDraft((current) => ({ ...current, name }))}
             placeholder={t("profile.profileNamePlaceholder")}
             placeholderTextColor={colors.inkSubtle}
-            style={styles.input}
+            style={[styles.input, styles.singleLineInput]}
           />
         </View>
 
@@ -364,7 +364,7 @@ export function ProfileScreen({
               onChangeText={setCustomAllergen}
               placeholder={t("profile.customAllergen")}
               placeholderTextColor={colors.inkSubtle}
-              style={[styles.input, styles.addInput]}
+              style={[styles.input, styles.singleLineInput, styles.addInput]}
             />
             <AnimatedPressable
               accessibilityLabel={t("profile.add")}
@@ -616,10 +616,14 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     color: colors.ink,
     ...typography.bodyLarge,
+    paddingHorizontal: 13
+  },
+  singleLineInput: {
+    height: 48,
     includeFontPadding: false,
-    minHeight: 48,
-    paddingHorizontal: 13,
-    paddingVertical: 0,
+    lineHeight: 22,
+    paddingBottom: 0,
+    paddingTop: 0,
     textAlignVertical: "center"
   },
   chipGrid: {

@@ -1,21 +1,19 @@
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Image as ImageIcon, Languages, ScanSearch } from "lucide-react-native";
-import { UserProfile } from "../types/allergy";
+import { ChevronLeft, Image as ImageIcon, Languages } from "lucide-react-native";
 import { DishRisk, ScanResult } from "../types/scan";
 import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
 import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { RiskCard } from "../components/RiskCard";
+import { AnimatedPressable } from "../components/AnimatedPressable";
 import { getRiskMeta } from "../utils/riskLabels";
 import { formatDateTime } from "../utils/formatters";
-import { AppTopBar } from "../components/AppTopBar";
 import { useI18n } from "../i18n/I18nProvider";
 
 type ResultsScreenProps = {
   scanResult: ScanResult;
-  profile: UserProfile;
   onBack: () => void;
   onOpenDish: (dish: DishRisk) => void;
   onOpenHistory?: () => void;
@@ -23,7 +21,6 @@ type ResultsScreenProps = {
 
 export function ResultsScreen({
   scanResult,
-  profile,
   onBack,
   onOpenDish,
   onOpenHistory
@@ -33,19 +30,19 @@ export function ResultsScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
-      <AppTopBar title={t("results.title")} showBack onBack={onBack} />
-
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.hero}>
-          <View style={styles.heroIcon}>
-            <ScanSearch color={colors.primary} size={30} strokeWidth={1.9} />
-          </View>
-          <Text style={styles.heroSubtitle}>
-            {t("results.heroSubtitle", {
-              profileName: profile.name,
-              restaurantName: scanResult.restaurantName ?? t("home.menuScan")
-            })}
-          </Text>
+        <View style={styles.pageHeader}>
+          <AnimatedPressable
+            accessibilityLabel={t("common.back")}
+            accessibilityRole="button"
+            onPress={onBack}
+            scaleTo={0.92}
+            style={styles.backButton}
+          >
+            <ChevronLeft color={colors.ink} size={22} strokeWidth={2.2} />
+          </AnimatedPressable>
+          <Text style={styles.pageTitle}>{t("results.title")}</Text>
+          <View style={styles.headerSpacer} />
         </View>
 
         <View style={styles.summary}>
@@ -121,40 +118,48 @@ const styles = StyleSheet.create({
     flex: 1
   },
   content: {
-    gap: 22,
+    gap: 16,
     padding: 24,
-    paddingTop: 32
+    paddingTop: 12
   },
-  hero: {
+  pageHeader: {
     alignItems: "center",
-    gap: 10
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 2
   },
-  heroIcon: {
+  backButton: {
     alignItems: "center",
     backgroundColor: colors.surfaceWarm,
+    borderColor: colors.border,
     borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
     elevation: 2,
-    height: 64,
+    height: 44,
     justifyContent: "center",
-    shadowColor: colors.ink,
-    shadowOffset: { width: 0, height: 10 },
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.06,
-    shadowRadius: 22,
-    width: 64
+    shadowRadius: 16,
+    width: 44
   },
-  heroSubtitle: {
-    color: colors.inkSubtle,
-    ...typography.bodyLarge,
-    maxWidth: 280,
+  pageTitle: {
+    color: colors.ink,
+    ...typography.pageTitle,
+    flex: 1,
     textAlign: "center"
+  },
+  headerSpacer: {
+    height: 44,
+    width: 44
   },
   summary: {
     backgroundColor: colors.surfaceWarm,
     borderColor: colors.borderSoft,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    gap: 12,
-    padding: 20
+    gap: 9,
+    padding: 16
   },
   summaryTop: {
     alignItems: "center",

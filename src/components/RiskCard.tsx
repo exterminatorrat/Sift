@@ -109,18 +109,18 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     elevation: 2,
     overflow: "hidden",
-    padding: 24,
+    padding: 18,
     shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.06,
     shadowRadius: 24
   },
   accent: {
-    bottom: 24,
+    bottom: 18,
     left: 0,
     opacity: 0.22,
     position: "absolute",
-    top: 24,
+    top: 18,
     width: 4
   },
   pressed: {
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     ...typography.sectionTitle,
     fontSize: 23,
     lineHeight: 31,
-    marginTop: 18
+    marginTop: 14
   },
   description: {
     color: colors.inkMuted,
@@ -157,13 +157,13 @@ const styles = StyleSheet.create({
   reason: {
     color: colors.inkMuted,
     ...typography.body,
-    marginTop: 16
+    marginTop: 12
   },
   chips: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    marginTop: 18
+    marginTop: 14
   },
   chip: {
     backgroundColor: colors.surfaceMuted,
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     fontSize: 11
   },
   action: {
-    marginTop: 16,
+    marginTop: 12,
     ...typography.label,
     fontFamily: typography.label.fontFamily,
     fontWeight: "600"
