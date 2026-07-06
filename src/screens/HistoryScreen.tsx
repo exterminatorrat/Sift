@@ -1,13 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Alert,
   Animated,
   Easing,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   useWindowDimensions,
   View
 } from "react-native";
@@ -40,6 +42,11 @@ type ScanMenuState = {
   width: number;
 };
 
+type RenameDialogState = {
+  scan: ScanResult;
+  title: string;
+};
+
 export function HistoryScreen({
   scans,
   onBack,
@@ -50,30 +57,7 @@ export function HistoryScreen({
 }: HistoryScreenProps) {
   const { t } = useI18n();
   const [scanMenu, setScanMenu] = useState<ScanMenuState | null>(null);
-
-  const promptRename = (scan: ScanResult, scanTitle: string) => {
-    if (!onRenameScan) {
-      return;
-    }
-
-    Alert.prompt(
-      "Rename scan",
-      "Give this saved scan a short name.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Save",
-          onPress: (title?: string) => {
-            if (title?.trim()) {
-              onRenameScan(scan.id, title);
-            }
-          }
-        }
-      ],
-      "plain-text",
-      scanTitle
-    );
-  };
+  const [renameDialog, setRenameDialog] = useState<RenameDialogState | null>(null);
 
   const closeScanMenu = () => setScanMenu(null);
 
@@ -124,9 +108,19 @@ export function HistoryScreen({
         }}
         onRename={() => {
           if (scanMenu) {
-            promptRename(scanMenu.scan, scanMenu.title);
+            setRenameDialog({ scan: scanMenu.scan, title: scanMenu.title });
           }
           closeScanMenu();
+        }}
+      />
+      <RenameScanDialog
+        dialog={renameDialog}
+        onCancel={() => setRenameDialog(null)}
+        onSave={(scan, title) => {
+          if (title.trim()) {
+            onRenameScan?.(scan.id, title);
+          }
+          setRenameDialog(null);
         }}
       />
     </SafeAreaView>
@@ -322,6 +316,117 @@ function HistoryContextMenu({ menu, onClose, onDelete, onRename }: HistoryContex
   );
 }
 
+type RenameScanDialogProps = {
+  dialog: RenameDialogState | null;
+  onCancel: () => void;
+  onSave: (scan: ScanResult, title: string) => void;
+};
+
+function RenameScanDialog({ dialog, onCancel, onSave }: RenameScanDialogProps) {
+  const [draftTitle, setDraftTitle] = useState("");
+  const scale = useRef(new Animated.Value(0.96)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!dialog) {
+      return;
+    }
+
+    setDraftTitle(dialog.title);
+    scale.setValue(0.96);
+    opacity.setValue(0);
+    Animated.parallel([
+      Animated.timing(opacity, {
+        duration: 130,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true
+      }),
+      Animated.timing(scale, {
+        duration: 170,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true
+      })
+    ]).start();
+  }, [dialog, opacity, scale]);
+
+  if (!dialog) {
+    return null;
+  }
+
+  const trimmedTitle = draftTitle.trim();
+
+  return (
+    <Modal animationType="none" transparent visible onRequestClose={onCancel}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.renameOverlay}
+      >
+        <Pressable
+          accessibilityLabel="Close rename scan"
+          accessibilityRole="button"
+          onPress={onCancel}
+          style={styles.renameDismissLayer}
+        />
+        <Animated.View
+          style={[
+            styles.renameCard,
+            {
+              opacity,
+              transform: [{ scale }]
+            }
+          ]}
+        >
+          <View style={styles.renameHeader}>
+            <Text style={styles.renameTitle}>Rename scan</Text>
+            <Text style={styles.renameBody}>Give this saved scan a short, recognizable name.</Text>
+          </View>
+          <TextInput
+            autoCapitalize="words"
+            autoCorrect={false}
+            autoFocus
+            onChangeText={setDraftTitle}
+            onSubmitEditing={() => {
+              if (trimmedTitle) {
+                onSave(dialog.scan, trimmedTitle);
+              }
+            }}
+            placeholder="Scan name"
+            placeholderTextColor={colors.inkSubtle}
+            returnKeyType="done"
+            selectTextOnFocus
+            style={styles.renameInput}
+            value={draftTitle}
+          />
+          <View style={styles.renameActions}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={onCancel}
+              style={({ pressed }) => [styles.renameButton, pressed && styles.renameButtonPressed]}
+            >
+              <Text style={styles.renameCancelText}>Cancel</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              disabled={!trimmedTitle}
+              onPress={() => onSave(dialog.scan, trimmedTitle)}
+              style={({ pressed }) => [
+                styles.renameButton,
+                styles.renameSaveButton,
+                !trimmedTitle && styles.renameSaveButtonDisabled,
+                pressed && trimmedTitle && styles.renameSaveButtonPressed
+              ]}
+            >
+              <Text style={styles.renameSaveText}>Save</Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
 const styles = StyleSheet.create({
   screen: {
     backgroundColor: colors.background,
@@ -447,5 +552,85 @@ const styles = StyleSheet.create({
   contextMenuDivider: {
     backgroundColor: colors.borderSoft,
     height: StyleSheet.hairlineWidth
+  },
+  renameOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    backgroundColor: "rgba(31, 47, 45, 0.14)",
+    justifyContent: "center",
+    padding: 24
+  },
+  renameDismissLayer: {
+    ...StyleSheet.absoluteFillObject
+  },
+  renameCard: {
+    backgroundColor: colors.surface,
+    borderColor: colors.borderSoft,
+    borderRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 18,
+    maxWidth: 360,
+    padding: 22,
+    shadowColor: colors.ink,
+    shadowOffset: { width: 0, height: 22 },
+    shadowOpacity: 0.14,
+    shadowRadius: 34,
+    width: "100%"
+  },
+  renameHeader: {
+    gap: 6
+  },
+  renameTitle: {
+    color: colors.primaryDark,
+    ...typography.sectionTitle
+  },
+  renameBody: {
+    color: colors.inkMuted,
+    ...typography.bodySmall
+  },
+  renameInput: {
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.border,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    color: colors.ink,
+    minHeight: 52,
+    paddingHorizontal: 16,
+    paddingVertical: 0,
+    textAlignVertical: "center",
+    ...typography.bodyLarge
+  },
+  renameActions: {
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "flex-end"
+  },
+  renameButton: {
+    alignItems: "center",
+    borderRadius: 999,
+    justifyContent: "center",
+    minHeight: 44,
+    minWidth: 92,
+    paddingHorizontal: 18
+  },
+  renameButtonPressed: {
+    backgroundColor: colors.surfaceWarm
+  },
+  renameCancelText: {
+    color: colors.inkMuted,
+    ...typography.label
+  },
+  renameSaveButton: {
+    backgroundColor: colors.primary
+  },
+  renameSaveButtonDisabled: {
+    backgroundColor: colors.disabled
+  },
+  renameSaveButtonPressed: {
+    backgroundColor: colors.primaryHover
+  },
+  renameSaveText: {
+    color: colors.textInverse,
+    ...typography.label
   }
 });
