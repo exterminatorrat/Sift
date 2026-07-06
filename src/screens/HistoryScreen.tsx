@@ -236,35 +236,78 @@ type HistoryContextMenuProps = {
 const CONTEXT_MENU_ROW_HEIGHT = 52;
 const CONTEXT_MENU_MARGIN = 18;
 const CONTEXT_MENU_GAP = 10;
+const CONTEXT_MENU_MAX_WIDTH = 220;
+const CONTEXT_MENU_MIN_WIDTH = 168;
 
 function HistoryContextMenu({ menu, onClose, onDelete, onRename }: HistoryContextMenuProps) {
   const { width, height } = useWindowDimensions();
   const { t } = useI18n();
-  const scale = useRef(new Animated.Value(0.94)).current;
+  const isClosing = useRef(false);
+  const scale = useRef(new Animated.Value(0.9)).current;
   const opacity = useRef(new Animated.Value(0)).current;
+  const menuTranslateY = useRef(new Animated.Value(-6)).current;
 
   useEffect(() => {
     if (!menu) {
       return;
     }
 
-    scale.setValue(0.94);
+    isClosing.current = false;
+    scale.setValue(0.9);
     opacity.setValue(0);
+    menuTranslateY.setValue(-6);
     Animated.parallel([
       Animated.timing(opacity, {
-        duration: 120,
+        duration: 170,
         easing: Easing.out(Easing.cubic),
         toValue: 1,
         useNativeDriver: true
       }),
       Animated.timing(scale, {
-        duration: 150,
+        duration: 230,
         easing: Easing.out(Easing.cubic),
         toValue: 1,
         useNativeDriver: true
+      }),
+      Animated.timing(menuTranslateY, {
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+        toValue: 0,
+        useNativeDriver: true
       })
     ]).start();
-  }, [menu, opacity, scale]);
+  }, [menu, menuTranslateY, opacity, scale]);
+
+  const closeWithAnimation = (afterClose?: () => void) => {
+    if (isClosing.current) {
+      return;
+    }
+
+    isClosing.current = true;
+    Animated.parallel([
+      Animated.timing(opacity, {
+        duration: 130,
+        easing: Easing.out(Easing.cubic),
+        toValue: 0,
+        useNativeDriver: true
+      }),
+      Animated.timing(scale, {
+        duration: 130,
+        easing: Easing.out(Easing.cubic),
+        toValue: 0.96,
+        useNativeDriver: true
+      }),
+      Animated.timing(menuTranslateY, {
+        duration: 130,
+        easing: Easing.out(Easing.cubic),
+        toValue: -4,
+        useNativeDriver: true
+      })
+    ]).start(() => {
+      afterClose?.();
+      onClose();
+    });
+  };
 
   if (!menu) {
     return null;
@@ -290,14 +333,20 @@ function HistoryContextMenu({ menu, onClose, onDelete, onRename }: HistoryContex
   const actionTop = opensAbove
     ? focusedTop - menuHeight - CONTEXT_MENU_GAP
     : focusedTop + menu.height + CONTEXT_MENU_GAP;
+  const actionWidth = Math.min(
+    CONTEXT_MENU_MAX_WIDTH,
+    Math.max(CONTEXT_MENU_MIN_WIDTH, focusedWidth * 0.68)
+  );
+  const actionLeft = Math.min(focusedLeft + 16, focusedLeft + focusedWidth - actionWidth);
 
   return (
-    <Modal animationType="none" transparent visible onRequestClose={onClose}>
+    <Modal animationType="none" transparent visible onRequestClose={() => closeWithAnimation()}>
       <View style={styles.menuOverlay}>
+        <Animated.View style={[styles.menuDimLayer, { opacity }]} />
         <Pressable
           accessibilityLabel="Close scan options"
           accessibilityRole="button"
-          onPress={onClose}
+          onPress={() => closeWithAnimation()}
           style={styles.menuDismissLayer}
         />
         <Animated.View
@@ -318,17 +367,17 @@ function HistoryContextMenu({ menu, onClose, onDelete, onRename }: HistoryContex
           style={[
             styles.contextMenu,
             {
-              left: focusedLeft,
+              left: actionLeft,
               opacity,
               top: actionTop,
-              transform: [{ scale }],
-              width: focusedWidth
+              transform: [{ translateY: menuTranslateY }, { scale }],
+              width: actionWidth
             }
           ]}
         >
           <Pressable
             accessibilityRole="button"
-            onPress={onRename}
+            onPress={() => closeWithAnimation(onRename)}
             style={({ pressed }) => [styles.contextMenuRow, pressed && styles.contextMenuRowPressed]}
           >
             <Pencil color={colors.primaryDark} size={17} strokeWidth={2.2} />
@@ -337,7 +386,7 @@ function HistoryContextMenu({ menu, onClose, onDelete, onRename }: HistoryContex
           <View style={styles.contextMenuDivider} />
           <Pressable
             accessibilityRole="button"
-            onPress={onDelete}
+            onPress={() => closeWithAnimation(onDelete)}
             style={({ pressed }) => [styles.contextMenuRow, pressed && styles.contextMenuRowPressed]}
           >
             <Trash2 color={colors.avoid} size={17} strokeWidth={2.2} />
@@ -545,6 +594,9 @@ const styles = StyleSheet.create({
     textTransform: "capitalize"
   },
   menuOverlay: {
+    ...StyleSheet.absoluteFillObject
+  },
+  menuDimLayer: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(31, 47, 45, 0.20)"
   },
