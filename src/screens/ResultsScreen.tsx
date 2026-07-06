@@ -88,7 +88,9 @@ export function ResultsScreen({
               <Languages color={colors.primary} size={18} strokeWidth={2.1} />
               <Text style={styles.translationTitle}>{t("results.restaurantMessage")}</Text>
             </View>
-            <Text style={styles.translationBody}>{scanResult.restaurantMessage.english}</Text>
+            <Text style={styles.translationBody}>
+              {scanResult.restaurantMessage.translated ?? scanResult.restaurantMessage.english}
+            </Text>
           </View>
         )}
 

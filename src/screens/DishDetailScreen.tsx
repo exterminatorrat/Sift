@@ -1,10 +1,8 @@
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ChevronLeft,
-  ClipboardList,
-  Languages,
   LucideIcon,
   MessageSquareText,
   TriangleAlert
@@ -16,7 +14,7 @@ import { typography } from "../constants/typography";
 import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { getRiskMeta } from "../utils/riskLabels";
-import { AppTopBar } from "../components/AppTopBar";
+import { AnimatedPressable } from "../components/AnimatedPressable";
 import { useI18n } from "../i18n/I18nProvider";
 
 type DishDetailScreenProps = {
@@ -34,13 +32,23 @@ export function DishDetailScreen({
 }: DishDetailScreenProps) {
   const { t } = useI18n();
   const meta = getRiskMeta(dish.riskLevel, t);
-  const allergyNames = profile.allergies.map((allergy) => allergy.name).join(", ");
 
   return (
     <SafeAreaView style={styles.screen}>
-      <AppTopBar showBack onBack={onBack} />
-
       <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.pageHeader}>
+          <AnimatedPressable
+            accessibilityLabel={t("common.back")}
+            accessibilityRole="button"
+            onPress={onBack}
+            scaleTo={0.92}
+            style={styles.backButton}
+          >
+            <ChevronLeft color={colors.ink} size={22} strokeWidth={2.2} />
+          </AnimatedPressable>
+          <View style={styles.headerSpacer} />
+        </View>
+
         <View style={styles.hero}>
           <View style={[styles.badge, { backgroundColor: meta.background }]}>
             <Text style={[styles.badgeText, { color: meta.color }]}>{meta.label}</Text>
@@ -104,13 +112,6 @@ export function DishDetailScreen({
           </View>
         </DetailSection>
 
-        <View style={styles.profileNote}>
-          <ClipboardList color={colors.primary} size={18} strokeWidth={2.1} />
-          <Text style={styles.profileNoteText}>
-            {t("dish.profileNote", { allergies: allergyNames, name: profile.name })}
-          </Text>
-        </View>
-
         <PrimaryButton label={t("dish.backToResults")} onPress={onBack} tone="secondary" />
       </ScrollView>
     </SafeAreaView>
@@ -166,7 +167,31 @@ const styles = StyleSheet.create({
     gap: 16,
     padding: 24,
     paddingBottom: 64,
-    paddingTop: 64
+    paddingTop: 12
+  },
+  pageHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between"
+  },
+  backButton: {
+    alignItems: "center",
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    elevation: 2,
+    height: 44,
+    justifyContent: "center",
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    width: 44
+  },
+  headerSpacer: {
+    height: 44,
+    width: 44
   },
   hero: {
     gap: 11,
@@ -272,22 +297,6 @@ const styles = StyleSheet.create({
     color: colors.ink,
     ...typography.bodySmall,
     lineHeight: 22
-  },
-  profileNote: {
-    alignItems: "center",
-    backgroundColor: colors.primarySoft,
-    borderColor: colors.primaryMuted,
-    borderRadius: 16,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 9,
-    padding: 13
-  },
-  profileNoteText: {
-    color: colors.primary,
-    flex: 1,
-    ...typography.label,
-    lineHeight: 19
   },
   translationCard: {
     backgroundColor: colors.surfaceWarm,
