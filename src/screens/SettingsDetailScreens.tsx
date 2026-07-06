@@ -15,9 +15,22 @@ import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
 import { UserProfile } from "../types/allergy";
 import { useI18n } from "../i18n/I18nProvider";
-import { waveOneAppLanguages } from "../i18n/translations";
+import { TranslationKey, waveOneAppLanguages } from "../i18n/translations";
 
 const UNKNOWN_RESTAURANT_LANGUAGE = "__unknown_restaurant_language__";
+const restaurantLanguageOptions: Array<{ key: TranslationKey; value: string }> = [
+  { key: "language.english", value: "English" },
+  { key: "language.spanish", value: "Spanish" },
+  { key: "language.french", value: "French" },
+  { key: "language.italian", value: "Italian" },
+  { key: "language.japanese", value: "Japanese" },
+  { key: "language.german", value: "German" },
+  { key: "language.korean", value: "Korean" },
+  { key: "language.chineseSimplified", value: "Chinese Simplified" },
+  { key: "language.chineseTraditional", value: "Chinese Traditional" },
+  { key: "language.portuguese", value: "Portuguese" },
+  { key: "language.thai", value: "Thai" }
+];
 
 type BasicSettingsScreenProps = {
   onBack: () => void;
@@ -128,10 +141,8 @@ export function LanguageTranslationScreen({
             label: t("language.notSure"),
             value: UNKNOWN_RESTAURANT_LANGUAGE
           },
-          ...waveOneAppLanguages.map((language) => ({
-            disabled: !language.enabled,
-            label: language.label,
-            meta: language.enabled ? undefined : t("language.comingSoon"),
+          ...restaurantLanguageOptions.map((language) => ({
+            label: t(language.key),
             value: language.value
           }))
         ]}
