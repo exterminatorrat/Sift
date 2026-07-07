@@ -184,7 +184,7 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
 
   const scanTranslateY = scanProgress.interpolate({
     inputRange: [0, 1],
-    outputRange: [-84, 84]
+    outputRange: [-140, 34]
   });
   const markerScale = pulse.interpolate({
     inputRange: [0, 1],
