@@ -252,17 +252,6 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
                 <View style={[styles.menuLineSmall, styles.menuLineTiny]} />
               </View>
             </View>
-            <View style={styles.prepRail}>
-              {loadingIcons.slice(0, 4).map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.prepDot,
-                    index === phraseIndex % 4 && styles.prepDotActive
-                  ]}
-                />
-              ))}
-            </View>
           </View>
         </View>
 
@@ -345,32 +334,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingHorizontal: 18,
     width: 96
-  },
-  prepRail: {
-    alignItems: "center",
-    backgroundColor: colors.background,
-    borderColor: colors.borderSoft,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    bottom: 14,
-    flexDirection: "row",
-    gap: 6,
-    justifyContent: "center",
-    minHeight: 24,
-    paddingHorizontal: 10,
-    position: "absolute"
-  },
-  prepDot: {
-    backgroundColor: colors.borderStrong,
-    borderRadius: 999,
-    height: 5,
-    opacity: 0.55,
-    width: 5
-  },
-  prepDotActive: {
-    backgroundColor: colors.primary,
-    opacity: 1,
-    width: 16
   },
   scanBand: {
     backgroundColor: colors.primarySoft,
