@@ -9,6 +9,7 @@ import { AnimatedPressable } from "./AnimatedPressable";
 
 type VoiceButtonProps = {
   fallbackLanguageCode?: AppLanguageCode;
+  iconOnly?: boolean;
   label: string;
   languageHint?: string | null;
   stopLabel: string;
@@ -19,6 +20,7 @@ type VoiceButtonProps = {
 
 export function VoiceButton({
   fallbackLanguageCode = "en",
+  iconOnly = false,
   label,
   languageHint,
   stopLabel,
@@ -82,12 +84,19 @@ export function VoiceButton({
           void handlePress();
         }}
         scaleTo={0.94}
-        style={[styles.button, playing && styles.buttonActive, !text.trim() && styles.buttonDisabled]}
+        style={[
+          styles.button,
+          iconOnly && styles.iconButton,
+          playing && styles.buttonActive,
+          !text.trim() && styles.buttonDisabled
+        ]}
       >
         <Icon color={playing ? colors.textInverse : colors.primaryDark} size={16} strokeWidth={2.2} />
-        <Text style={[styles.buttonText, playing && styles.buttonTextActive]}>
-          {playing ? stopLabel : label}
-        </Text>
+        {!iconOnly && (
+          <Text style={[styles.buttonText, playing && styles.buttonTextActive]}>
+            {playing ? stopLabel : label}
+          </Text>
+        )}
       </AnimatedPressable>
       {errorVisible && <Text style={styles.errorText}>{unavailableLabel}</Text>}
     </View>
@@ -111,6 +120,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 38,
     paddingHorizontal: 13
+  },
+  iconButton: {
+    height: 38,
+    paddingHorizontal: 0,
+    width: 38
   },
   buttonActive: {
     backgroundColor: colors.primary,

@@ -12,7 +12,6 @@ import { VoiceButton } from "../components/VoiceButton";
 import { getRiskMeta } from "../utils/riskLabels";
 import { formatDateTime } from "../utils/formatters";
 import { useI18n } from "../i18n/I18nProvider";
-import { AppLanguageCode, getLanguageCode } from "../i18n/translations";
 import { stopSpeech } from "../services/speechService";
 
 type ResultsScreenProps = {
@@ -45,7 +44,6 @@ export function ResultsScreen({
   const showUserLanguageMessage =
     Boolean(userLanguageMessageText) &&
     userLanguageMessageText.toLowerCase() !== restaurantMessageText.toLowerCase();
-  const restaurantMessageHeader = getStaffMessageHeader(scanResult.restaurantMessage?.language);
 
   useEffect(() => () => {
     void stopSpeech();
@@ -180,10 +178,11 @@ export function ResultsScreen({
             <View style={styles.staffMessageHeader}>
               <View style={styles.translationHeaderText}>
                 <Languages color={colors.primary} size={18} strokeWidth={2.1} />
-                <Text style={styles.translationTitle}>{restaurantMessageHeader}</Text>
+                <Text style={styles.translationTitle}>{t("results.restaurantMessage")}</Text>
               </View>
               <VoiceButton
                 fallbackLanguageCode={languageCode}
+                iconOnly
                 label={t("voice.playMessage")}
                 languageHint={scanResult.restaurantMessage.language}
                 stopLabel={t("voice.stop")}
@@ -253,24 +252,6 @@ function readabilityLabelKey(readability: ScanResult["imageQuality"]["readabilit
     return "results.readability.partiallyClear" as const;
   }
   return "results.readability.poor" as const;
-}
-
-const staffMessageHeaderByLanguage: Record<AppLanguageCode, string> = {
-  de: "Diese Allergie-Nachricht dem Personal zeigen",
-  en: "Show this allergy message to staff",
-  es: "Muestra este mensaje de alergia al personal",
-  fr: "Montrez ce message d'allergie au personnel",
-  it: "Mostra questo messaggio sulle allergie al personale",
-  ja: "このアレルギーのメッセージを店員に見せてください",
-  ko: "이 알레르기 메시지를 직원에게 보여 주세요",
-  pt: "Mostre esta mensagem de alergia à equipe",
-  th: "แสดงข้อความแพ้อาหารนี้ให้พนักงานดู",
-  "zh-Hans": "请向工作人员出示这条过敏信息",
-  "zh-Hant": "請向工作人員出示這條過敏資訊"
-};
-
-function getStaffMessageHeader(language?: string | null) {
-  return staffMessageHeaderByLanguage[language ? getLanguageCode(language) : "en"];
 }
 
 const styles = StyleSheet.create({
