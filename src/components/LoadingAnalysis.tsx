@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { ChefHat, CookingPot, Salad, Soup, UtensilsCrossed } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
 import { AppTopBar } from "./AppTopBar";
@@ -93,6 +94,8 @@ const loadingPhrases: Partial<Record<AppLanguageCode, LoadingPhrase[]>> = {
   ]
 };
 
+const loadingIcons = [ChefHat, CookingPot, Soup, Salad, UtensilsCrossed];
+
 export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }: LoadingAnalysisProps) {
   const { languageCode, t } = useI18n();
   const phrases = loadingPhrases[languageCode] ?? loadingPhrases.en!;
@@ -102,6 +105,7 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
   const scanProgress = useRef(new Animated.Value(0)).current;
 
   const phrase = phrases[phraseIndex % phrases.length];
+  const ActiveLoadingIcon = loadingIcons[phraseIndex % loadingIcons.length];
 
   useEffect(() => {
     Animated.timing(copyIn, {
@@ -186,6 +190,18 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
     inputRange: [0, 1],
     outputRange: [0.86, 1.12]
   });
+  const iconTranslateY = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-4, 4]
+  });
+  const iconRotate = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["-3deg", "3deg"]
+  });
+  const iconScale = copyIn.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.86, 1]
+  });
   const copyTranslateY = copyIn.interpolate({
     inputRange: [0, 1],
     outputRange: [12, 0]
@@ -197,6 +213,17 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
       <View style={styles.content}>
         <View style={styles.pulseWrap}>
           <View style={styles.scanStage}>
+            <Animated.View
+              style={[
+                styles.iconBadge,
+                {
+                  opacity: copyIn,
+                  transform: [{ translateY: iconTranslateY }, { rotate: iconRotate }, { scale: iconScale }]
+                }
+              ]}
+            >
+              <ActiveLoadingIcon color={colors.primaryDark} size={30} strokeWidth={1.9} />
+            </Animated.View>
             <View style={styles.menuSheet}>
               <Animated.View
                 style={[
@@ -224,6 +251,17 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
                 <View style={styles.menuDotMuted} />
                 <View style={[styles.menuLineSmall, styles.menuLineTiny]} />
               </View>
+            </View>
+            <View style={styles.prepRail}>
+              {loadingIcons.slice(0, 4).map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.prepDot,
+                    index === phraseIndex % 4 && styles.prepDotActive
+                  ]}
+                />
+              ))}
             </View>
           </View>
         </View>
@@ -270,13 +308,32 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: StyleSheet.hairlineWidth,
     elevation: 2,
-    height: 170,
+    height: 188,
     justifyContent: "center",
+    paddingTop: 26,
+    position: "relative",
     shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 18 },
     shadowOpacity: 0.07,
     shadowRadius: 28,
-    width: 132
+    width: 150
+  },
+  iconBadge: {
+    alignItems: "center",
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primaryMuted,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    height: 58,
+    justifyContent: "center",
+    position: "absolute",
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    top: -18,
+    width: 58,
+    zIndex: 2
   },
   menuSheet: {
     backgroundColor: colors.surface,
@@ -288,6 +345,32 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingHorizontal: 18,
     width: 96
+  },
+  prepRail: {
+    alignItems: "center",
+    backgroundColor: colors.background,
+    borderColor: colors.borderSoft,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    bottom: 14,
+    flexDirection: "row",
+    gap: 6,
+    justifyContent: "center",
+    minHeight: 24,
+    paddingHorizontal: 10,
+    position: "absolute"
+  },
+  prepDot: {
+    backgroundColor: colors.borderStrong,
+    borderRadius: 999,
+    height: 5,
+    opacity: 0.55,
+    width: 5
+  },
+  prepDotActive: {
+    backgroundColor: colors.primary,
+    opacity: 1,
+    width: 16
   },
   scanBand: {
     backgroundColor: colors.primarySoft,
@@ -363,7 +446,7 @@ const styles = StyleSheet.create({
   copy: {
     alignItems: "center",
     gap: 12,
-    marginTop: 64,
+    marginTop: 56,
     width: "100%"
   },
   title: {

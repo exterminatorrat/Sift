@@ -31,6 +31,8 @@ type OnboardingScreenProps = {
 const steps: OnboardingStep[] = ["welcome", "safety", "profile", "scanTips", "plus"];
 const onboardingAllergens = commonAllergens.slice(0, 10);
 const severities: AllergySeverity[] = ["mild", "moderate", "severe"];
+const DOT_PITCH = 15;
+const DOT_TRACK_WIDTH = 24 + (steps.length - 1) * DOT_PITCH;
 
 function formatSeverity(severity: AllergySeverity, t: ReturnType<typeof useI18n>["t"]) {
   if (severity === "mild") {
@@ -51,6 +53,7 @@ export function OnboardingScreen({
   const [transitionDirection, setTransitionDirection] = useState(1);
   const [transitioning, setTransitioning] = useState(false);
   const transition = useRef(new Animated.Value(1)).current;
+  const dotProgress = useRef(new Animated.Value(0)).current;
   const [profileName, setProfileName] = useState(profile.name || t("onboarding.profileNameDefault"));
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>(
     profile.allergies.map((allergy) => allergy.name)
@@ -135,6 +138,13 @@ export function OnboardingScreen({
     const direction = nextIndex > stepIndex ? 1 : -1;
     setTransitionDirection(direction);
     setTransitioning(true);
+    Animated.spring(dotProgress, {
+      damping: 18,
+      mass: 0.7,
+      stiffness: 180,
+      toValue: nextIndex,
+      useNativeDriver: true
+    }).start();
     Animated.timing(transition, {
       duration: 115,
       easing: Easing.in(Easing.cubic),
@@ -183,6 +193,11 @@ export function OnboardingScreen({
       severity: defaultSeverity
     })),
     name: profileName.trim() || t("onboarding.profileNameDefault")
+  });
+
+  const activeDotTranslateX = dotProgress.interpolate({
+    inputRange: steps.map((_, index) => index),
+    outputRange: steps.map((_, index) => index * DOT_PITCH)
   });
 
   return (
@@ -338,10 +353,18 @@ export function OnboardingScreen({
       </ScrollView>
 
       <View style={styles.footer}>
-        <View style={styles.dots}>
+        <View style={styles.dotsTrack}>
           {steps.map((step, index) => (
-            <View key={step} style={[styles.dot, index === stepIndex && styles.activeDot]} />
+            <View key={step} style={[styles.dot, { left: index * DOT_PITCH + 8.5 }]} />
           ))}
+          <Animated.View
+            style={[
+              styles.activeDot,
+              {
+                transform: [{ translateX: activeDotTranslateX }]
+              }
+            ]}
+          />
         </View>
 
         <AnimatedPressable
@@ -517,22 +540,29 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0
   },
-  dots: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 8,
-    justifyContent: "center"
+  dotsTrack: {
+    alignSelf: "center",
+    height: 24,
+    position: "relative",
+    width: DOT_TRACK_WIDTH
   },
   dot: {
     backgroundColor: colors.borderStrong,
     borderRadius: 999,
     height: 7,
     opacity: 0.5,
+    position: "absolute",
+    top: 8.5,
     width: 7
   },
   activeDot: {
     backgroundColor: colors.primary,
+    borderRadius: 999,
+    height: 8,
+    left: 0,
     opacity: 1,
+    position: "absolute",
+    top: 8,
     width: 24
   },
   button: {
