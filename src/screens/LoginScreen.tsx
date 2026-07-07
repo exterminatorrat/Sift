@@ -78,6 +78,7 @@ export function LoginScreen({
 
           {loading && <ActivityIndicator color={colors.primary} />}
           {error && <Text style={styles.error}>{error}</Text>}
+          <Text style={styles.termsText}>{t("login.terms")}</Text>
         </View>
       </View>
     </SafeAreaView>
@@ -175,6 +176,12 @@ const styles = StyleSheet.create({
   error: {
     color: colors.high,
     ...typography.bodySmall,
+    textAlign: "center"
+  },
+  termsText: {
+    color: colors.inkSubtle,
+    ...typography.caption,
+    maxWidth: 304,
     textAlign: "center"
   }
 });

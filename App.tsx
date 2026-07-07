@@ -163,7 +163,7 @@ export default function App() {
       <I18nProvider language={profile.preferredLanguage}>
         <NavigationContainer>
           <Stack.Navigator
-            initialRouteName={!onboardingComplete ? "Onboarding" : !authSession ? "Login" : "Home"}
+            initialRouteName={!onboardingComplete ? "Onboarding" : "Home"}
             screenOptions={{ animation: "none", headerShown: false }}
           >
           <Stack.Screen name="Login">
@@ -194,25 +194,7 @@ export default function App() {
           <Stack.Screen name="Onboarding">
             {({ navigation }) => (
               <OnboardingScreen
-                authError={authError}
-                authLoading={authLoading}
-                authSession={authSession}
                 profile={profile}
-                onSignInWithApple={async () => {
-                  setAuthLoading(true);
-                  setAuthError(null);
-                  try {
-                    const nextAuthSession = await signInWithApple();
-                    setAuthSession(nextAuthSession);
-                    return true;
-                  } catch (error) {
-                    const message = error instanceof Error ? error.message : "Could not sign in with Apple.";
-                    setAuthError(message);
-                    return false;
-                  } finally {
-                    setAuthLoading(false);
-                  }
-                }}
                 onComplete={async (nextProfile) => {
                   const nextProfiles = profiles.some((item) => item.id === nextProfile.id)
                     ? profiles.map((item) => (item.id === nextProfile.id ? nextProfile : item))

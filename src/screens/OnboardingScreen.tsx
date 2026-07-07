@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
+  Animated,
+  Easing,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,32 +10,25 @@ import {
   TextInput,
   View
 } from "react-native";
-import * as AppleAuthentication from "expo-apple-authentication";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowRight, Plus } from "lucide-react-native";
 import { Allergy, AllergySeverity, UserProfile } from "../types/allergy";
-import { AuthSession } from "../types/auth";
 import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
 import { commonAllergens } from "../constants/commonAllergens";
 import { AllergyChip } from "../components/AllergyChip";
 import { AnimatedPressable } from "../components/AnimatedPressable";
-import { isAppleSignInAvailable } from "../services/authService";
 import { useI18n } from "../i18n/I18nProvider";
 
-type OnboardingStep = "welcome" | "safety" | "account" | "profile" | "scanTips" | "plus";
+type OnboardingStep = "welcome" | "safety" | "profile" | "scanTips" | "plus";
 type OnboardingGraphicVariant = OnboardingStep;
 
 type OnboardingScreenProps = {
-  authError?: string | null;
-  authLoading?: boolean;
-  authSession: AuthSession | null;
   profile: UserProfile;
   onComplete: (profile: UserProfile) => void | Promise<void>;
-  onSignInWithApple: () => Promise<boolean>;
 };
 
-const steps: OnboardingStep[] = ["welcome", "safety", "account", "profile", "scanTips", "plus"];
+const steps: OnboardingStep[] = ["welcome", "safety", "profile", "scanTips", "plus"];
 const onboardingAllergens = commonAllergens.slice(0, 10);
 const severities: AllergySeverity[] = ["mild", "moderate", "severe"];
 
@@ -49,16 +43,14 @@ function formatSeverity(severity: AllergySeverity, t: ReturnType<typeof useI18n>
 }
 
 export function OnboardingScreen({
-  authError,
-  authLoading = false,
-  authSession,
   profile,
-  onComplete,
-  onSignInWithApple
+  onComplete
 }: OnboardingScreenProps) {
   const { t } = useI18n();
   const [stepIndex, setStepIndex] = useState(0);
-  const [appleAvailable, setAppleAvailable] = useState(false);
+  const [transitionDirection, setTransitionDirection] = useState(1);
+  const [transitioning, setTransitioning] = useState(false);
+  const transition = useRef(new Animated.Value(1)).current;
   const [profileName, setProfileName] = useState(profile.name || t("onboarding.profileNameDefault"));
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>(
     profile.allergies.map((allergy) => allergy.name)
@@ -71,29 +63,9 @@ export function OnboardingScreen({
     profile.allergies.length === 0 ? true : profile.allergies.some((allergy) => allergy.avoidCrossContact)
   );
 
-  useEffect(() => {
-    let mounted = true;
-    isAppleSignInAvailable()
-      .then((available) => {
-        if (mounted) {
-          setAppleAvailable(available);
-        }
-      })
-      .catch(() => {
-        if (mounted) {
-          setAppleAvailable(false);
-        }
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
   const activeStep = steps[stepIndex];
   const profileReady = selectedAllergens.length > 0;
-  const canUsePrimaryAction =
-    activeStep !== "account" && (activeStep !== "profile" || profileReady);
+  const canUsePrimaryAction = !transitioning && (activeStep !== "profile" || profileReady);
   const progressLabel = t("onboarding.stepProgress", {
     current: stepIndex + 1,
     total: steps.length
@@ -110,11 +82,6 @@ export function OnboardingScreen({
         return {
           body: t("onboarding.safetyBoundaryBody"),
           title: t("onboarding.safetyBoundaryTitle")
-        };
-      case "account":
-        return {
-          body: t("onboarding.accountBody"),
-          title: t("onboarding.accountTitle")
         };
       case "profile":
         return {
@@ -148,7 +115,7 @@ export function OnboardingScreen({
   }, [activeStep, t]);
 
   const moveNext = async () => {
-    if (activeStep === "profile" && !profileReady) {
+    if (transitioning || (activeStep === "profile" && !profileReady)) {
       return;
     }
 
@@ -157,18 +124,37 @@ export function OnboardingScreen({
       return;
     }
 
-    setStepIndex((currentIndex) => Math.min(currentIndex + 1, steps.length - 1));
+    goToStep(Math.min(stepIndex + 1, steps.length - 1));
   };
 
-  const handleAppleSignIn = async () => {
-    if (authLoading) {
+  const goToStep = (nextIndex: number) => {
+    if (nextIndex === stepIndex || transitioning) {
       return;
     }
 
-    const signedIn = await onSignInWithApple();
-    if (signedIn) {
-      setStepIndex((currentIndex) => Math.min(currentIndex + 1, steps.length - 1));
-    }
+    const direction = nextIndex > stepIndex ? 1 : -1;
+    setTransitionDirection(direction);
+    setTransitioning(true);
+    Animated.timing(transition, {
+      duration: 115,
+      easing: Easing.in(Easing.cubic),
+      toValue: 0,
+      useNativeDriver: true
+    }).start(({ finished }) => {
+      if (!finished) {
+        setTransitioning(false);
+        return;
+      }
+
+      setStepIndex(nextIndex);
+      transition.setValue(0);
+      Animated.timing(transition, {
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true
+      }).start(() => setTransitioning(false));
+    });
   };
 
   const toggleAllergen = (name: string) => {
@@ -207,28 +193,42 @@ export function OnboardingScreen({
           <Text style={styles.progressLabel}>{progressLabel}</Text>
         </View>
 
-        <View style={styles.hero}>
-          <OnboardingGraphic variant={activeStep} />
-        </View>
+        <Animated.View
+          style={[
+            styles.stepPane,
+            {
+              opacity: transition.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.42, 1]
+              }),
+              transform: [
+                {
+                  translateX: transition.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [transitionDirection * 30, 0]
+                  })
+                },
+                {
+                  scale: transition.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.985, 1]
+                  })
+                }
+              ]
+            }
+          ]}
+        >
+          <View style={styles.hero}>
+            <OnboardingGraphic variant={activeStep} />
+          </View>
 
-        <View style={styles.copy}>
-          <Text style={styles.title}>{copy.title}</Text>
-          <Text style={styles.body}>{copy.body}</Text>
-        </View>
+          <View style={styles.copy}>
+            <Text style={styles.title}>{copy.title}</Text>
+            <Text style={styles.body}>{copy.body}</Text>
+          </View>
 
-        {activeStep === "account" && (
-          <AccountStep
-            appleAvailable={appleAvailable}
-            authError={authError}
-            authLoading={authLoading}
-            authSession={authSession}
-            onContinue={() => setStepIndex((currentIndex) => Math.min(currentIndex + 1, steps.length - 1))}
-            onSignIn={handleAppleSignIn}
-          />
-        )}
-
-        {activeStep === "profile" && (
-          <View style={styles.profileSetup}>
+          {activeStep === "profile" && (
+            <View style={styles.profileSetup}>
             <View style={styles.fieldGroup}>
               <Text style={styles.label}>{t("onboarding.profileNameLabel")}</Text>
               <TextInput
@@ -316,24 +316,25 @@ export function OnboardingScreen({
                 thumbColor={avoidCrossContact ? colors.primary : colors.inkSubtle}
               />
             </View>
-          </View>
-        )}
+            </View>
+          )}
 
-        {activeStep === "scanTips" && (
-          <View style={styles.tipStack}>
-            <TipPill label={t("onboarding.tipReadable")} />
-            <TipPill label={t("onboarding.tipDescriptions")} />
-            <TipPill label={t("onboarding.tipNoGlare")} />
-          </View>
-        )}
+          {activeStep === "scanTips" && (
+            <View style={styles.tipStack}>
+              <TipPill label={t("onboarding.tipReadable")} />
+              <TipPill label={t("onboarding.tipDescriptions")} />
+              <TipPill label={t("onboarding.tipNoGlare")} />
+            </View>
+          )}
 
-        {activeStep === "plus" && (
-          <View style={styles.plusStack}>
-            <PlusFeature label={t("onboarding.plusFeatureScans")} />
-            <PlusFeature label={t("onboarding.plusFeatureTranslations")} />
-            <PlusFeature label={t("onboarding.plusFeatureFamily")} />
-          </View>
-        )}
+          {activeStep === "plus" && (
+            <View style={styles.plusStack}>
+              <PlusFeature label={t("onboarding.plusFeatureScans")} />
+              <PlusFeature label={t("onboarding.plusFeatureTranslations")} />
+              <PlusFeature label={t("onboarding.plusFeatureFamily")} />
+            </View>
+          )}
+        </Animated.View>
       </ScrollView>
 
       <View style={styles.footer}>
@@ -343,163 +344,97 @@ export function OnboardingScreen({
           ))}
         </View>
 
-        {activeStep !== "account" && (
-          <AnimatedPressable
-            accessibilityRole="button"
-            disabled={!canUsePrimaryAction}
-            onPress={() => {
-              void moveNext();
-            }}
-            scaleTo={0.97}
-            style={[styles.button, !canUsePrimaryAction && styles.buttonDisabled]}
-          >
-            <Text style={styles.buttonText}>{primaryLabel}</Text>
-            <ArrowRight color={colors.textInverse} size={16} strokeWidth={2.1} />
-          </AnimatedPressable>
-        )}
+        <AnimatedPressable
+          accessibilityRole="button"
+          disabled={!canUsePrimaryAction}
+          onPress={() => {
+            void moveNext();
+          }}
+          scaleTo={0.97}
+          style={[styles.button, !canUsePrimaryAction && styles.buttonDisabled]}
+        >
+          <Text style={styles.buttonText}>{primaryLabel}</Text>
+          <ArrowRight color={colors.textInverse} size={16} strokeWidth={2.1} />
+        </AnimatedPressable>
       </View>
     </SafeAreaView>
   );
 }
 
-function AccountStep({
-  appleAvailable,
-  authError,
-  authLoading,
-  authSession,
-  onContinue,
-  onSignIn
-}: {
-  appleAvailable: boolean;
-  authError?: string | null;
-  authLoading: boolean;
-  authSession: AuthSession | null;
-  onContinue: () => void;
-  onSignIn: () => void;
-}) {
-  const { t } = useI18n();
-
-  if (authSession) {
-    return (
-      <AnimatedPressable accessibilityRole="button" onPress={onContinue} style={styles.button}>
-        <Text style={styles.buttonText}>{t("onboarding.continue")}</Text>
-        <ArrowRight color={colors.textInverse} size={16} strokeWidth={2.1} />
-      </AnimatedPressable>
-    );
-  }
-
-  return (
-    <View style={styles.accountActions}>
-      {appleAvailable ? (
-        <AppleAuthentication.AppleAuthenticationButton
-          buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-          buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-          cornerRadius={999}
-          onPress={onSignIn}
-          style={styles.appleButton}
-        />
-      ) : (
-        <View style={styles.unavailable}>
-          <Text style={styles.unavailableTitle}>{t("login.appleUnavailableTitle")}</Text>
-          <Text style={styles.unavailableText}>{t("login.appleUnavailableBody")}</Text>
-        </View>
-      )}
-      {authLoading && <ActivityIndicator color={colors.primary} />}
-      {authError && <Text style={styles.error}>{authError}</Text>}
-    </View>
-  );
-}
-
 function OnboardingGraphic({ variant }: { variant: OnboardingGraphicVariant }) {
-  if (variant === "welcome") {
-    return (
-      <View style={styles.graphicStage}>
-        <View style={styles.menuSheet}>
-          <View style={styles.menuLineWide} />
-          <View style={styles.menuLine} />
-          <View style={styles.scanLine} />
-          <View style={styles.riskPreview}>
-            <View style={styles.riskPillTeal} />
-            <View style={styles.riskPillAmber} />
+  return (
+    <View style={styles.graphicStage}>
+      <View style={styles.artHalo} />
+      {variant === "welcome" && (
+        <View style={styles.artCluster}>
+          <View style={[styles.menuSheet, styles.menuSheetBack]} />
+          <View style={styles.menuSheet}>
+            <View style={styles.foldedCorner} />
+            <View style={styles.menuLineWide} />
+            <View style={styles.menuLine} />
+            <View style={styles.scanBeam} />
+            <View style={styles.floatingRiskCard}>
+              <View style={styles.riskDotTeal} />
+              <View style={styles.riskCardLines}>
+                <View style={styles.riskLineWide} />
+                <View style={styles.riskLineShort} />
+              </View>
+            </View>
           </View>
         </View>
-      </View>
-    );
-  }
+      )}
 
-  if (variant === "safety") {
-    return (
-      <View style={styles.graphicStage}>
+      {variant === "safety" && (
         <View style={styles.limitationCard}>
           <View style={styles.knownPanel}>
             <View style={styles.menuLineWide} />
             <View style={styles.menuLine} />
+            <View style={styles.safeBoundaryLine} />
             <Text style={styles.graphicCaption}>Visible menu</Text>
           </View>
           <View style={styles.unknownPanel}>
             <View style={styles.fadedBlock} />
+            <View style={styles.fadedSmallBlock} />
             <Text style={styles.graphicCaptionMuted}>Kitchen details</Text>
           </View>
         </View>
-      </View>
-    );
-  }
+      )}
 
-  if (variant === "account") {
-    return (
-      <View style={styles.graphicStage}>
-        <View style={styles.accountCard}>
-          <View style={styles.avatarDot} />
-          <View style={styles.accountLines}>
-            <View style={styles.menuLineWide} />
-            <View style={styles.menuLine} />
-          </View>
-        </View>
-        <View style={styles.connectorLine} />
-        <View style={styles.scanCardMini}>
-          <View style={styles.scanLineMini} />
-          <View style={styles.riskPillTeal} />
-        </View>
-      </View>
-    );
-  }
-
-  if (variant === "profile") {
-    return (
-      <View style={styles.graphicStage}>
+      {variant === "profile" && (
         <View style={styles.profileCardGraphic}>
-          <Text style={styles.profileGraphicName}>Me</Text>
+          <View style={styles.profileTopRow}>
+            <View style={styles.avatarDot} />
+            <Text style={styles.profileGraphicName}>Me</Text>
+          </View>
           <View style={styles.graphicChipRow}>
             <View style={styles.graphicChip} />
             <View style={styles.graphicChipShort} />
           </View>
-          <View style={styles.graphicSeverity} />
+          <View style={styles.graphicSeverity}>
+            <View style={styles.graphicSeverityFill} />
+          </View>
         </View>
-      </View>
-    );
-  }
+      )}
 
-  if (variant === "scanTips") {
-    return (
-      <View style={styles.graphicStage}>
+      {variant === "scanTips" && (
         <View style={styles.phoneFrame}>
           <View style={styles.cameraMenu}>
+            <View style={styles.cameraScanFrame} />
             <View style={styles.menuLineWide} />
             <View style={styles.menuLine} />
             <View style={styles.menuLineShort} />
           </View>
         </View>
-      </View>
-    );
-  }
+      )}
 
-  return (
-    <View style={styles.graphicStage}>
-      <View style={styles.plusCardGraphic}>
-        <View style={styles.plusRowGraphic} />
-        <View style={styles.plusRowGraphic} />
-        <View style={styles.plusRowGraphicShort} />
-      </View>
+      {variant === "plus" && (
+        <View style={styles.plusCardGraphic}>
+          <View style={styles.plusHeaderMark} />
+          <View style={styles.plusRowGraphic} />
+          <View style={styles.plusRowGraphic} />
+          <View style={styles.plusRowGraphicShort} />
+        </View>
+      )}
     </View>
   );
 }
@@ -569,6 +504,9 @@ const styles = StyleSheet.create({
     maxWidth: 342,
     textAlign: "center"
   },
+  stepPane: {
+    gap: 24
+  },
   footer: {
     backgroundColor: colors.background,
     bottom: 0,
@@ -614,38 +552,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: colors.textInverse,
     ...typography.button
-  },
-  accountActions: {
-    alignItems: "center",
-    gap: 14
-  },
-  appleButton: {
-    height: 52,
-    width: "100%"
-  },
-  unavailable: {
-    backgroundColor: colors.surfaceWarm,
-    borderColor: colors.border,
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: 8,
-    padding: 16,
-    width: "100%"
-  },
-  unavailableTitle: {
-    color: colors.ink,
-    ...typography.label,
-    textAlign: "center"
-  },
-  unavailableText: {
-    color: colors.inkMuted,
-    ...typography.bodySmall,
-    textAlign: "center"
-  },
-  error: {
-    color: colors.high,
-    ...typography.bodySmall,
-    textAlign: "center"
   },
   profileSetup: {
     gap: 18
@@ -804,7 +710,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     minHeight: 180,
+    position: "relative",
     width: "100%"
+  },
+  artHalo: {
+    backgroundColor: colors.primarySoft,
+    borderRadius: 999,
+    height: 178,
+    opacity: 0.52,
+    position: "absolute",
+    width: 178
+  },
+  artCluster: {
+    alignItems: "center",
+    justifyContent: "center"
   },
   menuSheet: {
     backgroundColor: colors.surfaceWarm,
@@ -820,6 +739,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 20,
     width: 230
+  },
+  menuSheetBack: {
+    height: 138,
+    opacity: 0.58,
+    position: "absolute",
+    transform: [{ rotate: "-5deg" }, { translateY: 6 }],
+    width: 210
+  },
+  foldedCorner: {
+    backgroundColor: colors.accentSoft,
+    borderBottomLeftRadius: 12,
+    height: 34,
+    position: "absolute",
+    right: 0,
+    top: 0,
+    width: 34
   },
   menuLineWide: {
     backgroundColor: colors.borderStrong,
@@ -840,28 +775,47 @@ const styles = StyleSheet.create({
     height: 8,
     width: "38%"
   },
-  scanLine: {
+  scanBeam: {
     backgroundColor: colors.primary,
     borderRadius: 999,
     height: 4,
     marginVertical: 8,
     width: "100%"
   },
-  riskPreview: {
+  floatingRiskCard: {
+    alignItems: "center",
+    alignSelf: "flex-end",
+    backgroundColor: colors.surfaceRaised,
+    borderColor: colors.borderSoft,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
-    gap: 8
+    gap: 9,
+    marginTop: 2,
+    padding: 10,
+    width: 138
   },
-  riskPillTeal: {
-    backgroundColor: colors.primarySoft,
+  riskDotTeal: {
+    backgroundColor: colors.primary,
     borderRadius: 999,
-    height: 20,
-    width: 72
+    height: 10,
+    width: 10
   },
-  riskPillAmber: {
+  riskCardLines: {
+    flex: 1,
+    gap: 6
+  },
+  riskLineWide: {
     backgroundColor: colors.warningSoft,
     borderRadius: 999,
-    height: 20,
-    width: 58
+    height: 7,
+    width: "100%"
+  },
+  riskLineShort: {
+    backgroundColor: colors.primarySoft,
+    borderRadius: 999,
+    height: 7,
+    width: "70%"
   },
   limitationCard: {
     backgroundColor: colors.surfaceWarm,
@@ -895,6 +849,19 @@ const styles = StyleSheet.create({
     opacity: 0.35,
     width: 66
   },
+  fadedSmallBlock: {
+    backgroundColor: colors.borderStrong,
+    borderRadius: 999,
+    height: 9,
+    opacity: 0.3,
+    width: 74
+  },
+  safeBoundaryLine: {
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    height: 3,
+    width: "82%"
+  },
   graphicCaption: {
     color: colors.primaryDark,
     ...typography.badge
@@ -904,17 +871,6 @@ const styles = StyleSheet.create({
     ...typography.badge,
     textAlign: "center"
   },
-  accountCard: {
-    alignItems: "center",
-    backgroundColor: colors.surfaceWarm,
-    borderColor: colors.borderSoft,
-    borderRadius: 22,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: "row",
-    gap: 14,
-    padding: 18,
-    width: 210
-  },
   avatarDot: {
     backgroundColor: colors.primarySoft,
     borderColor: colors.primaryMuted,
@@ -922,31 +878,6 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     height: 48,
     width: 48
-  },
-  accountLines: {
-    flex: 1,
-    gap: 9
-  },
-  connectorLine: {
-    backgroundColor: colors.primaryMuted,
-    height: 22,
-    width: 3
-  },
-  scanCardMini: {
-    alignItems: "center",
-    backgroundColor: colors.surfaceWarm,
-    borderColor: colors.borderSoft,
-    borderRadius: 18,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: 10,
-    padding: 14,
-    width: 150
-  },
-  scanLineMini: {
-    backgroundColor: colors.primary,
-    borderRadius: 999,
-    height: 4,
-    width: "86%"
   },
   profileCardGraphic: {
     backgroundColor: colors.surfaceWarm,
@@ -956,6 +887,11 @@ const styles = StyleSheet.create({
     gap: 16,
     padding: 22,
     width: 230
+  },
+  profileTopRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 12
   },
   profileGraphicName: {
     color: colors.ink,
@@ -978,10 +914,16 @@ const styles = StyleSheet.create({
     width: 68
   },
   graphicSeverity: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primarySoft,
     borderRadius: 999,
     height: 10,
     width: "100%"
+  },
+  graphicSeverityFill: {
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    height: "100%",
+    width: "78%"
   },
   phoneFrame: {
     backgroundColor: colors.ink,
@@ -994,7 +936,19 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     gap: 12,
     minHeight: 152,
+    overflow: "hidden",
     padding: 18
+  },
+  cameraScanFrame: {
+    borderColor: colors.primaryMuted,
+    borderRadius: 14,
+    borderWidth: 2,
+    bottom: 18,
+    left: 16,
+    opacity: 0.72,
+    position: "absolute",
+    right: 16,
+    top: 18
   },
   plusCardGraphic: {
     backgroundColor: colors.surfaceWarm,
@@ -1004,6 +958,14 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 20,
     width: 230
+  },
+  plusHeaderMark: {
+    alignSelf: "center",
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    height: 34,
+    marginBottom: 4,
+    width: 34
   },
   plusRowGraphic: {
     backgroundColor: colors.primarySoft,

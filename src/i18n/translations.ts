@@ -46,8 +46,6 @@ export type TranslationKey =
   | "onboarding.welcomeBody"
   | "onboarding.safetyBoundaryTitle"
   | "onboarding.safetyBoundaryBody"
-  | "onboarding.accountTitle"
-  | "onboarding.accountBody"
   | "onboarding.profileSetupTitle"
   | "onboarding.profileSetupBody"
   | "onboarding.scanTipsTitle"
@@ -78,6 +76,7 @@ export type TranslationKey =
   | "login.trustBody"
   | "login.appleUnavailableTitle"
   | "login.appleUnavailableBody"
+  | "login.terms"
   | "nav.home"
   | "nav.history"
   | "nav.profile"
@@ -369,9 +368,6 @@ const en = {
   "onboarding.safetyBoundaryTitle": "Sift does not guarantee food safety.",
   "onboarding.safetyBoundaryBody":
     "Sift analyzes visible menu text and common ingredient patterns. Always confirm ingredients and preparation with restaurant staff.",
-  "onboarding.accountTitle": "Save your allergy profile.",
-  "onboarding.accountBody":
-    "Use Sign in with Apple so your allergy profile, scan history, and future subscription stay connected to your account.",
   "onboarding.profileSetupTitle": "Create your allergy profile.",
   "onboarding.profileSetupBody":
     "Choose the allergies Sift should check for first. You can edit details later in your profile.",
@@ -408,6 +404,8 @@ const en = {
   "login.appleUnavailableTitle": "Apple sign-in is unavailable here",
   "login.appleUnavailableBody":
     "Sign in with Apple is available on supported iPhone devices. Test this flow on an iPhone build or Expo Go where Apple authentication is supported.",
+  "login.terms":
+    "By signing up, you agree to Sift's Terms of Service and Privacy Policy.",
   "nav.home": "Home",
   "nav.history": "History",
   "nav.profile": "Profile",
