@@ -168,8 +168,8 @@ function TokenList({ items, emptyLabel, tone = "default" }: TokenListProps) {
 
   return (
     <View style={styles.tokenList}>
-      {items.map((item) => (
-        <View key={item} style={[styles.token, tone === "alert" && styles.alertToken]}>
+      {items.map((item, index) => (
+        <View key={`${item}-${index}`} style={[styles.token, tone === "alert" && styles.alertToken]}>
           <Text style={[styles.tokenText, tone === "alert" && styles.alertTokenText]}>{item}</Text>
         </View>
       ))}
@@ -186,8 +186,8 @@ function EvidenceGroup({ title, items }: { title: string; items: string[] }) {
     <View style={styles.evidenceGroup}>
       <Text style={styles.evidenceTitle}>{title}</Text>
       <View style={styles.evidenceList}>
-        {items.map((item) => (
-          <Text key={item} style={styles.evidenceItem}>- {item}</Text>
+        {items.map((item, index) => (
+          <Text key={`${item}-${index}`} style={styles.evidenceItem}>- {item}</Text>
         ))}
       </View>
     </View>

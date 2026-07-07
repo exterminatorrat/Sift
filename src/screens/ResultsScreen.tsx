@@ -125,13 +125,13 @@ export function ResultsScreen({
             <Text style={styles.translationTitle}>{t("results.whatSiftChecked")}</Text>
           </View>
           <View style={styles.transparencyList}>
-            {scanTransparency.checked.map((item) => (
-              <Text key={item} style={styles.transparencyItem}>- {item}</Text>
+            {scanTransparency.checked.map((item, index) => (
+              <Text key={`${item}-${index}`} style={styles.transparencyItem}>- {item}</Text>
             ))}
           </View>
           <View style={styles.userLanguageReference}>
-            {scanTransparency.limitations.map((item) => (
-              <Text key={item} style={styles.userLanguageBody}>- {item}</Text>
+            {scanTransparency.limitations.map((item, index) => (
+              <Text key={`${item}-${index}`} style={styles.userLanguageBody}>- {item}</Text>
             ))}
           </View>
           <View style={styles.userLanguageReference}>
@@ -158,8 +158,8 @@ export function ResultsScreen({
             <View style={styles.queryList}>
               <Text style={styles.userLanguageLabel}>{t("results.searchQueries")}</Text>
               <View style={styles.queryPills}>
-                {scanTransparency.webSearchQueries.map((query) => (
-                  <View key={query} style={styles.queryPill}>
+                {scanTransparency.webSearchQueries.map((query, index) => (
+                  <View key={`${query}-${index}`} style={styles.queryPill}>
                     <Text style={styles.queryPillText}>{query}</Text>
                   </View>
                 ))}

@@ -89,8 +89,8 @@ export function RiskCard({ dish, onPress }: RiskCardProps) {
           {(dish.possibleAllergens.length > 0
             ? dish.possibleAllergens.slice(0, 4)
             : [t("common.noObviousListedAllergen")]
-          ).map((allergen) => (
-            <View key={allergen} style={styles.chip}>
+          ).map((allergen, index) => (
+            <View key={`${allergen}-${index}`} style={styles.chip}>
               <Text style={styles.chipText}>{allergen}</Text>
             </View>
           ))}

@@ -331,8 +331,8 @@ function ScanCardContent({ scan, scanTitle }: ScanCardContentProps) {
           .flatMap((dish) => dish.possibleAllergens)
           .filter((value, index, list) => list.indexOf(value) === index)
           .slice(0, 3)
-          .map((allergen) => (
-            <View key={allergen} style={styles.chip}>
+          .map((allergen, index) => (
+            <View key={`${allergen}-${index}`} style={styles.chip}>
               <Text style={styles.chipText}>{formatAllergenLabel(allergen, t)}</Text>
             </View>
           ))}
