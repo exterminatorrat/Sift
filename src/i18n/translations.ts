@@ -394,18 +394,18 @@ const en = {
   "onboarding.plusFeatureTranslations": "Travel translation cards",
   "onboarding.plusFeatureFamily": "Family profiles",
   "onboarding.getStarted": "Get Started",
-  "login.eyebrow": "Account",
+  "login.eyebrow": "Private account",
   "login.title": "Sign in to Sift",
   "login.body":
-    "Use your Apple account so Sift can keep your allergy profiles and scan flow connected to you.",
-  "login.trustTitle": "Your scans stay practical.",
+    "Keep your allergy profile, scan history, and restaurant notes available when you need them.",
+  "login.trustTitle": "A practical allergy copilot, not a safety guarantee.",
   "login.trustBody":
-    "Sift stores your profile and scan history for the app experience. It does not guarantee food safety or replace staff confirmation.",
+    "Sift helps identify possible risks from visible menu text. Always confirm ingredients and preparation with restaurant staff.",
   "login.appleUnavailableTitle": "Apple sign-in is unavailable here",
   "login.appleUnavailableBody":
     "Sign in with Apple is available on supported iPhone devices. Test this flow on an iPhone build or Expo Go where Apple authentication is supported.",
   "login.terms":
-    "By signing up, you agree to Sift's Terms of Service and Privacy Policy.",
+    "By continuing, you agree to Sift's Terms of Service and Privacy Policy.",
   "nav.home": "Home",
   "nav.history": "History",
   "nav.profile": "Profile",
