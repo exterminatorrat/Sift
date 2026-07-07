@@ -174,6 +174,7 @@ function SwipeableScanCard({
   const { width } = useWindowDimensions();
   const cardRef = useRef<View>(null);
   const deleteHeight = useRef(new Animated.Value(0)).current;
+  const deleteMarginBottom = useRef(new Animated.Value(24)).current;
   const deleteOpacity = useRef(new Animated.Value(1)).current;
   const deleteTranslateX = useRef(new Animated.Value(0)).current;
   const deleteStarted = useRef(false);
@@ -185,6 +186,7 @@ function SwipeableScanCard({
     if (!isDeleting) {
       deleteStarted.current = false;
       deleteHeight.setValue(measuredHeight);
+      deleteMarginBottom.setValue(24);
       deleteOpacity.setValue(1);
       deleteTranslateX.setValue(0);
       return;
@@ -196,6 +198,7 @@ function SwipeableScanCard({
 
     deleteStarted.current = true;
     deleteHeight.setValue(measuredHeight);
+    deleteMarginBottom.setValue(24);
     Animated.sequence([
       Animated.parallel([
         Animated.timing(deleteTranslateX, {
@@ -211,15 +214,24 @@ function SwipeableScanCard({
           useNativeDriver: true
         })
       ]),
-      Animated.timing(deleteHeight, {
-        duration: 150,
-        easing: Easing.out(Easing.cubic),
-        toValue: 0,
-        useNativeDriver: false
-      })
+      Animated.parallel([
+        Animated.timing(deleteHeight, {
+          duration: 190,
+          easing: Easing.out(Easing.cubic),
+          toValue: 0,
+          useNativeDriver: false
+        }),
+        Animated.timing(deleteMarginBottom, {
+          duration: 190,
+          easing: Easing.out(Easing.cubic),
+          toValue: 0,
+          useNativeDriver: false
+        })
+      ])
     ]).start(onDeleteAnimationEnd);
   }, [
     deleteHeight,
+    deleteMarginBottom,
     deleteOpacity,
     deleteTranslateX,
     isDeleting,
@@ -244,10 +256,14 @@ function SwipeableScanCard({
           const nextHeight = event.nativeEvent.layout.height;
           setMeasuredHeight(nextHeight);
           deleteHeight.setValue(nextHeight);
+          deleteMarginBottom.setValue(24);
         }
       }}
       style={[
         styles.deletingCardShell,
+        {
+          marginBottom: isDeleting ? deleteMarginBottom : 24
+        },
         isDeleting && { height: deleteHeight }
       ]}
     >
@@ -750,7 +766,7 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   list: {
-    gap: 24
+    marginBottom: -24
   },
   deletingCardShell: {
     overflow: "hidden"
