@@ -27,7 +27,9 @@ import { TranslationKey } from "../i18n/translations";
 import { AnimatedPressable } from "../components/AnimatedPressable";
 
 type ProfileScreenProps = {
+  canCreateProfile?: boolean;
   profile: UserProfile;
+  profileLimit?: number;
   profiles: UserProfile[];
   activeProfileId: string;
   onChangeProfile: (profile: UserProfile) => void | Promise<void>;
@@ -37,6 +39,7 @@ type ProfileScreenProps = {
   onDone: () => void;
   onHome?: () => void;
   onOpenHistory?: () => void;
+  onOpenSubscription?: () => void;
 };
 
 const severities: AllergySeverity[] = ["mild", "moderate", "severe"];
@@ -84,7 +87,9 @@ const allergenLabelKeys: Record<string, TranslationKey> = {
 };
 
 export function ProfileScreen({
+  canCreateProfile = true,
   profile,
+  profileLimit,
   profiles,
   activeProfileId,
   onChangeProfile,
@@ -93,7 +98,8 @@ export function ProfileScreen({
   onDeleteProfile,
   onDone,
   onHome,
-  onOpenHistory
+  onOpenHistory,
+  onOpenSubscription
 }: ProfileScreenProps) {
   const { t } = useI18n();
   const [draft, setDraft] = useState<UserProfile>(profile);
@@ -273,13 +279,31 @@ export function ProfileScreen({
             <Text style={styles.label}>{t("profile.savedProfiles")}</Text>
             <AnimatedPressable
               accessibilityRole="button"
-              style={styles.newProfileButton}
-              onPress={() => onCreateProfile(draft)}
+              style={[styles.newProfileButton, !canCreateProfile && styles.newProfileButtonDisabled]}
+              onPress={() => {
+                if (!canCreateProfile) {
+                  onOpenSubscription?.();
+                  return;
+                }
+
+                onCreateProfile(draft);
+              }}
             >
-              <Plus color={colors.primary} size={16} strokeWidth={2.4} />
-              <Text style={styles.newProfileText}>{t("profile.new")}</Text>
+              <Plus
+                color={canCreateProfile ? colors.primary : colors.inkSubtle}
+                size={16}
+                strokeWidth={2.4}
+              />
+              <Text style={[styles.newProfileText, !canCreateProfile && styles.newProfileTextDisabled]}>
+                {t("profile.new")}
+              </Text>
             </AnimatedPressable>
           </View>
+          {!canCreateProfile && profileLimit && (
+            <Text style={styles.profileLimitNote}>
+              {t("subscription.profileLimitReached", { limit: profileLimit })}
+            </Text>
+          )}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -563,9 +587,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 6
   },
+  newProfileButtonDisabled: {
+    backgroundColor: colors.backgroundAlt
+  },
   newProfileText: {
     color: colors.primary,
     ...typography.badge
+  },
+  newProfileTextDisabled: {
+    color: colors.inkSubtle
+  },
+  profileLimitNote: {
+    color: colors.inkMuted,
+    ...typography.caption,
+    lineHeight: 18
   },
   profileSwitcher: {
     gap: 8,

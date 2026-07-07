@@ -12,8 +12,10 @@ import {
 } from "lucide-react-native";
 import { AppTopBar } from "../components/AppTopBar";
 import { colors } from "../constants/colors";
+import { subscriptionPlans, SubscriptionPlan } from "../constants/subscriptionPlans";
 import { typography } from "../constants/typography";
 import { UserProfile } from "../types/allergy";
+import { SubscriptionPlanId } from "../types/subscription";
 import { useI18n } from "../i18n/I18nProvider";
 import { AppLanguageCode, TranslationKey, waveOneAppLanguages } from "../i18n/translations";
 
@@ -51,7 +53,10 @@ type BasicSettingsScreenProps = {
 };
 
 type SubscriptionScreenProps = BasicSettingsScreenProps & {
+  currentPlanId: SubscriptionPlanId;
+  monthlyScanCount: number;
   onOpenSupport: () => void;
+  onSelectPlan: (planId: SubscriptionPlanId) => void | Promise<void>;
 };
 
 type LanguageSettingsScreenProps = BasicSettingsScreenProps & {
@@ -59,47 +64,33 @@ type LanguageSettingsScreenProps = BasicSettingsScreenProps & {
   onChangeProfile: (profile: UserProfile) => void | Promise<void>;
 };
 
-export function SubscriptionScreen({ onBack, onOpenSupport }: SubscriptionScreenProps) {
+export function SubscriptionScreen({
+  currentPlanId,
+  monthlyScanCount,
+  onBack,
+  onOpenSupport,
+  onSelectPlan
+}: SubscriptionScreenProps) {
   const { t } = useI18n();
-  const plans = [
-    {
-      body: t("subscription.freeBody"),
-      current: true,
-      name: t("subscription.free"),
-      price: t("subscription.freePrice")
-    },
-    {
-      body: t("subscription.plusBody"),
-      name: t("subscription.plus"),
-      price: t("subscription.plusPrice")
-    },
-    {
-      body: t("subscription.premiumBody"),
-      name: t("subscription.premium"),
-      price: t("subscription.premiumPrice")
-    },
-    {
-      body: t("subscription.familyBody"),
-      name: t("subscription.family"),
-      price: t("subscription.familyPrice")
-    }
-  ];
 
   return (
     <SettingsShell onBack={onBack}>
       <Header title={t("subscription.title")} body={t("subscription.body")} />
+      <View style={styles.testModeCard}>
+        <Text style={styles.testModeText}>{t("subscription.testMode")}</Text>
+      </View>
 
       <View style={styles.planList}>
         <Text style={styles.sectionTitle}>{t("subscription.plans")}</Text>
-        {plans.map((plan) => (
+        {subscriptionPlans.map((plan) => (
           <PlanCard
-            body={plan.body}
-            current={plan.current}
+            current={plan.id === currentPlanId}
             currentLabel={t("subscription.current")}
-            key={plan.name}
-            name={plan.name}
-            price={plan.price}
-            unavailableLabel={t("subscription.unavailable")}
+            key={plan.id}
+            monthlyScanCount={monthlyScanCount}
+            onSelect={() => onSelectPlan(plan.id)}
+            plan={plan}
+            t={t}
           />
         ))}
       </View>
@@ -382,36 +373,68 @@ function OptionSection({
 }
 
 function PlanCard({
-  body,
   current,
   currentLabel,
-  name,
-  price,
-  unavailableLabel
+  monthlyScanCount,
+  onSelect,
+  plan,
+  t
 }: {
-  body: string;
   current?: boolean;
   currentLabel: string;
-  name: string;
-  price: string;
-  unavailableLabel: string;
+  monthlyScanCount: number;
+  onSelect: () => void | Promise<void>;
+  plan: SubscriptionPlan;
+  t: (key: TranslationKey, values?: Record<string, string | number>) => string;
 }) {
   return (
-    <View style={styles.subscriptionCard}>
+    <View style={[styles.subscriptionCard, current && styles.subscriptionCardCurrent]}>
       <View style={styles.planTop}>
         <View style={styles.planNameRow}>
-          <Text style={styles.planName}>{name}</Text>
+          <Text style={styles.planName}>{t(plan.nameKey)}</Text>
           {current && (
             <View style={styles.currentPill}>
               <Text style={styles.currentPillText}>{currentLabel}</Text>
             </View>
           )}
         </View>
-        <Text style={styles.price}>{price}</Text>
+        <Text style={styles.price}>{t(plan.priceKey)}</Text>
       </View>
-      <Text style={styles.benefitBody}>{body}</Text>
-      <Pressable accessibilityRole="button" disabled style={styles.unavailableAction}>
-        <Text style={styles.unavailableActionText}>{unavailableLabel}</Text>
+      <Text style={styles.benefitBody}>{t(plan.bodyKey)}</Text>
+      <View style={styles.limitRow}>
+        <Text style={styles.limitText}>
+          {t("subscription.scansThisMonth", { count: monthlyScanCount, limit: plan.scanLimit })}
+        </Text>
+        <Text style={styles.limitText}>
+          {t("subscription.profileSlots", { limit: plan.profileLimit })}
+        </Text>
+      </View>
+      <View style={styles.featureList}>
+        {plan.featureKeys.map((featureKey) => (
+          <View key={featureKey} style={styles.featureRow}>
+            <Check color={colors.primary} size={16} strokeWidth={2.4} />
+            <Text style={styles.featureText}>{t(featureKey)}</Text>
+          </View>
+        ))}
+        {plan.comingSoonKeys?.map((featureKey) => (
+          <View key={featureKey} style={styles.featureRow}>
+            <Sparkles color={colors.accentMuted} size={16} strokeWidth={2.2} />
+            <Text style={styles.featureText}>{t(featureKey)}</Text>
+            <View style={styles.comingSoonPill}>
+              <Text style={styles.comingSoonText}>{t("subscription.comingSoon")}</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        disabled={current}
+        onPress={onSelect}
+        style={[styles.planAction, current && styles.planActionCurrent]}
+      >
+        <Text style={[styles.planActionText, current && styles.planActionTextCurrent]}>
+          {current ? t("subscription.currentPlanAction") : t("subscription.switchPlan")}
+        </Text>
       </Pressable>
     </View>
   );
@@ -551,6 +574,18 @@ const styles = StyleSheet.create({
   planList: {
     gap: 16
   },
+  testModeCard: {
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primaryMuted,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 16,
+    paddingVertical: 12
+  },
+  testModeText: {
+    color: colors.primaryDark,
+    ...typography.bodySmall
+  },
   subscriptionCard: {
     backgroundColor: colors.surfaceWarm,
     borderColor: colors.borderSoft,
@@ -563,6 +598,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.05,
     shadowRadius: 18
+  },
+  subscriptionCardCurrent: {
+    borderColor: colors.primaryMuted,
+    shadowColor: colors.primary,
+    shadowOpacity: 0.08
   },
   planTop: {
     alignItems: "flex-start",
@@ -604,6 +644,63 @@ const styles = StyleSheet.create({
     color: colors.inkMuted,
     ...typography.bodySmall,
     lineHeight: 20
+  },
+  limitRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8
+  },
+  limitText: {
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 999,
+    color: colors.inkMuted,
+    ...typography.badge,
+    overflow: "hidden",
+    paddingHorizontal: 10,
+    paddingVertical: 6
+  },
+  featureList: {
+    gap: 10
+  },
+  featureRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 9
+  },
+  featureText: {
+    color: colors.ink,
+    flex: 1,
+    ...typography.bodySmall
+  },
+  comingSoonPill: {
+    backgroundColor: colors.accentSoft,
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 4
+  },
+  comingSoonText: {
+    color: colors.accentMuted,
+    ...typography.badge
+  },
+  planAction: {
+    alignItems: "center",
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    minHeight: 46,
+    justifyContent: "center",
+    paddingHorizontal: 20
+  },
+  planActionCurrent: {
+    backgroundColor: colors.backgroundAlt,
+    borderColor: colors.border,
+    borderWidth: StyleSheet.hairlineWidth
+  },
+  planActionText: {
+    color: colors.textInverse,
+    ...typography.label
+  },
+  planActionTextCurrent: {
+    color: colors.inkSubtle
   },
   unavailableAction: {
     alignItems: "center",

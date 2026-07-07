@@ -1,6 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  defaultSubscriptionPlanId,
+  isSubscriptionPlanId
+} from "../constants/subscriptionPlans";
 import { UserProfile } from "../types/allergy";
 import { ScanResult } from "../types/scan";
+import { SubscriptionPlanId } from "../types/subscription";
 
 const keys = {
   onboardingComplete: "sift:onboardingComplete",
@@ -8,7 +13,8 @@ const keys = {
   profiles: "sift:profiles",
   activeProfileId: "sift:activeProfileId",
   scanHistory: "sift:scanHistory",
-  restaurantLanguage: "sift:restaurantLanguage"
+  restaurantLanguage: "sift:restaurantLanguage",
+  subscriptionPlan: "sift:subscriptionPlan"
 };
 
 export type StoredAppState = {
@@ -18,17 +24,27 @@ export type StoredAppState = {
   activeProfileId: string | null;
   scanHistory: ScanResult[];
   restaurantLanguage: string | null;
+  subscriptionPlan: SubscriptionPlanId;
 };
 
 export async function loadStoredAppState(): Promise<StoredAppState> {
-  const [onboardingComplete, profile, profiles, activeProfileId, scanHistory, restaurantLanguage] = await Promise.all([
-    AsyncStorage.getItem(keys.onboardingComplete),
-    AsyncStorage.getItem(keys.profile),
-    AsyncStorage.getItem(keys.profiles),
-    AsyncStorage.getItem(keys.activeProfileId),
-    AsyncStorage.getItem(keys.scanHistory),
-    AsyncStorage.getItem(keys.restaurantLanguage)
-  ]);
+  const [
+    onboardingComplete,
+    profile,
+    profiles,
+    activeProfileId,
+    scanHistory,
+    restaurantLanguage,
+    subscriptionPlan
+  ] = await Promise.all([
+      AsyncStorage.getItem(keys.onboardingComplete),
+      AsyncStorage.getItem(keys.profile),
+      AsyncStorage.getItem(keys.profiles),
+      AsyncStorage.getItem(keys.activeProfileId),
+      AsyncStorage.getItem(keys.scanHistory),
+      AsyncStorage.getItem(keys.restaurantLanguage),
+      AsyncStorage.getItem(keys.subscriptionPlan)
+    ]);
 
   const legacyProfile = profile ? JSON.parse(profile) as UserProfile : null;
   const savedProfiles = profiles ? JSON.parse(profiles) as UserProfile[] : [];
@@ -40,7 +56,8 @@ export async function loadStoredAppState(): Promise<StoredAppState> {
     profiles: normalizedProfiles,
     activeProfileId: activeProfileId ?? normalizedProfiles[0]?.id ?? null,
     scanHistory: scanHistory ? JSON.parse(scanHistory) : [],
-    restaurantLanguage
+    restaurantLanguage,
+    subscriptionPlan: isSubscriptionPlanId(subscriptionPlan) ? subscriptionPlan : defaultSubscriptionPlanId
   };
 }
 
@@ -70,6 +87,10 @@ export async function saveProfiles(profiles: UserProfile[], activeProfileId: str
 
 export async function saveScanHistory(scanHistory: ScanResult[]) {
   await AsyncStorage.setItem(keys.scanHistory, JSON.stringify(scanHistory));
+}
+
+export async function saveSubscriptionPlan(subscriptionPlan: SubscriptionPlanId) {
+  await AsyncStorage.setItem(keys.subscriptionPlan, subscriptionPlan);
 }
 
 export async function clearScanHistory() {

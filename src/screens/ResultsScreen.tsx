@@ -16,6 +16,7 @@ import { stopSpeech } from "../services/speechService";
 
 type ResultsScreenProps = {
   scanResult: ScanResult;
+  showTranslationTools?: boolean;
   onBack: () => void;
   onOpenDish: (dish: DishRisk) => void;
   onOpenHistory?: () => void;
@@ -23,6 +24,7 @@ type ResultsScreenProps = {
 
 export function ResultsScreen({
   scanResult,
+  showTranslationTools = true,
   onBack,
   onOpenDish,
   onOpenHistory
@@ -113,7 +115,7 @@ export function ResultsScreen({
           ))}
         </View>
 
-        {scanResult.restaurantMessage && (
+        {showTranslationTools && scanResult.restaurantMessage && (
           <View style={styles.translationPreview}>
             <View style={styles.translationHeader}>
               <Languages color={colors.primary} size={18} strokeWidth={2.1} />

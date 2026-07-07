@@ -203,15 +203,45 @@ export type TranslationKey =
   | "subscription.free"
   | "subscription.plus"
   | "subscription.premium"
+  | "subscription.pro"
   | "subscription.family"
   | "subscription.freePrice"
   | "subscription.plusPrice"
   | "subscription.premiumPrice"
+  | "subscription.proPrice"
   | "subscription.familyPrice"
   | "subscription.freeBody"
   | "subscription.plusBody"
   | "subscription.premiumBody"
+  | "subscription.proBody"
   | "subscription.familyBody"
+  | "subscription.testMode"
+  | "subscription.switchPlan"
+  | "subscription.currentPlanAction"
+  | "subscription.comingSoon"
+  | "subscription.scansThisMonth"
+  | "subscription.profileSlots"
+  | "subscription.feature.freeScans"
+  | "subscription.feature.freeProfiles"
+  | "subscription.feature.freeHistory"
+  | "subscription.feature.plusScans"
+  | "subscription.feature.plusProfiles"
+  | "subscription.feature.plusHistory"
+  | "subscription.feature.proScans"
+  | "subscription.feature.proProfiles"
+  | "subscription.feature.proHistory"
+  | "subscription.feature.familyScans"
+  | "subscription.feature.familyProfiles"
+  | "subscription.feature.familyHistory"
+  | "subscription.feature.basicRisk"
+  | "subscription.feature.translationCards"
+  | "subscription.feature.voicePlayback"
+  | "subscription.feature.travelTools"
+  | "subscription.feature.familySupport"
+  | "subscription.scanLimitTitle"
+  | "subscription.scanLimitBody"
+  | "subscription.viewPlans"
+  | "subscription.profileLimitReached"
   | "subscription.unavailable"
   | "subscription.current"
   | "subscription.questions"
@@ -529,9 +559,9 @@ const en = {
   "settings.clearHistoryBody": "This only clears saved scans on this device.",
   "settings.cancel": "Cancel",
   "settings.clear": "Clear",
-  "subscription.title": "Sift Premium",
+  "subscription.title": "Sift Plans",
   "subscription.body":
-    "Elevate menu scanning with deeper tools designed for peace of mind.",
+    "Switch plans locally to test limits and paid features before payments are enabled.",
   "subscription.currentPlan": "Current plan",
   "subscription.freeMvp": "Free MVP",
   "subscription.now": "now",
@@ -539,15 +569,45 @@ const en = {
   "subscription.free": "Free",
   "subscription.plus": "Plus",
   "subscription.premium": "Premium",
+  "subscription.pro": "Pro",
   "subscription.family": "Family",
   "subscription.freePrice": "$0",
   "subscription.plusPrice": "$4.99/mo",
   "subscription.premiumPrice": "$8.99/mo",
+  "subscription.proPrice": "$8.99/mo",
   "subscription.familyPrice": "$12.99/mo",
-  "subscription.freeBody": "3 scans/month, 1 profile, basic risk cards, and recent local history.",
-  "subscription.plusBody": "50 scans/month, full local history, translation cards, and richer dish details.",
+  "subscription.freeBody": "Basic local scanning for early testing.",
+  "subscription.plusBody": "More scans, more profiles, translation cards, and read-aloud tools.",
   "subscription.premiumBody": "200 scans/month, travel mode, offline allergy cards, export, and advanced risk detail.",
-  "subscription.familyBody": "500 scans/month, multiple family profiles, child profiles, and shared allergy cards.",
+  "subscription.proBody": "Higher limits plus travel-focused tools as Sift grows.",
+  "subscription.familyBody": "Higher limits for households managing multiple allergy profiles.",
+  "subscription.testMode": "Test mode: switching plans does not start a purchase.",
+  "subscription.switchPlan": "Switch to this plan",
+  "subscription.currentPlanAction": "Current plan",
+  "subscription.comingSoon": "Coming soon",
+  "subscription.scansThisMonth": "{count}/{limit} scans this month",
+  "subscription.profileSlots": "{limit} profile slots",
+  "subscription.feature.freeScans": "3 scans per month",
+  "subscription.feature.freeProfiles": "1 allergy profile",
+  "subscription.feature.freeHistory": "Recent history up to 5 scans",
+  "subscription.feature.plusScans": "50 scans per month",
+  "subscription.feature.plusProfiles": "3 allergy profiles",
+  "subscription.feature.plusHistory": "History up to 50 scans",
+  "subscription.feature.proScans": "200 scans per month",
+  "subscription.feature.proProfiles": "5 allergy profiles",
+  "subscription.feature.proHistory": "History up to 200 scans",
+  "subscription.feature.familyScans": "500 scans per month",
+  "subscription.feature.familyProfiles": "8 allergy profiles",
+  "subscription.feature.familyHistory": "History up to 500 scans",
+  "subscription.feature.basicRisk": "Basic risk cards and staff questions",
+  "subscription.feature.translationCards": "Restaurant translation cards",
+  "subscription.feature.voicePlayback": "Native voice playback",
+  "subscription.feature.travelTools": "Richer travel-focused tools",
+  "subscription.feature.familySupport": "Family profile support",
+  "subscription.scanLimitTitle": "Monthly scan limit reached",
+  "subscription.scanLimitBody": "Your {plan} test plan includes {limit} scans per month. Switch plans to keep testing.",
+  "subscription.viewPlans": "View plans",
+  "subscription.profileLimitReached": "This plan allows {limit} saved profile(s). Switch plans to add more.",
   "subscription.unavailable": "Unavailable right now",
   "subscription.current": "Current",
   "subscription.questions": "Have questions about your plan?",

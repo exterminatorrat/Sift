@@ -23,6 +23,8 @@ type DishDetailScreenProps = {
   dish: DishRisk;
   profile: UserProfile;
   restaurantMessage?: RestaurantMessage;
+  showTranslationTools?: boolean;
+  showVoiceTools?: boolean;
   onBack: () => void;
 };
 
@@ -30,6 +32,8 @@ export function DishDetailScreen({
   dish,
   profile,
   restaurantMessage,
+  showTranslationTools = true,
+  showVoiceTools = true,
   onBack
 }: DishDetailScreenProps) {
   const { languageCode, t } = useI18n();
@@ -71,7 +75,7 @@ export function DishDetailScreen({
           <Text style={styles.summary}>{dish.conservativeLanguage}</Text>
         </View>
 
-        {restaurantMessage && (
+        {showTranslationTools && restaurantMessage && (
           <View style={styles.translationCard}>
             <View style={styles.warningHeader}>
               <TriangleAlert color={colors.avoid} size={20} strokeWidth={2.2} />
@@ -82,15 +86,17 @@ export function DishDetailScreen({
               <Text style={styles.translatedText}>
                 {restaurantMessageText}
               </Text>
-              <VoiceButton
-                fallbackLanguageCode={languageCode}
-                label={t("voice.playForStaff")}
-                languageHint={restaurantMessage.language}
-                stopLabel={t("voice.stop")}
-                text={restaurantMessageText}
-                unavailableLabel={t("voice.unavailable")}
-                style={styles.centeredVoiceButton}
-              />
+              {showVoiceTools && (
+                <VoiceButton
+                  fallbackLanguageCode={languageCode}
+                  label={t("voice.playForStaff")}
+                  languageHint={restaurantMessage.language}
+                  stopLabel={t("voice.stop")}
+                  text={restaurantMessageText}
+                  unavailableLabel={t("voice.unavailable")}
+                  style={styles.centeredVoiceButton}
+                />
+              )}
             </View>
             <View style={styles.translationSecondary}>
               <Text style={styles.englishLead}>{t("dish.allergiesTo")}</Text>
@@ -124,14 +130,16 @@ export function DishDetailScreen({
         </DetailSection>
 
         <DetailSection title={t("dish.questionsToAsk")} icon={MessageSquareText}>
-          <VoiceButton
-            fallbackLanguageCode={languageCode}
-            label={t("voice.readQuestions")}
-            languageHint={profile.preferredLanguage}
-            stopLabel={t("voice.stop")}
-            text={questionText}
-            unavailableLabel={t("voice.unavailable")}
-          />
+          {showVoiceTools && (
+            <VoiceButton
+              fallbackLanguageCode={languageCode}
+              label={t("voice.readQuestions")}
+              languageHint={profile.preferredLanguage}
+              stopLabel={t("voice.stop")}
+              text={questionText}
+              unavailableLabel={t("voice.unavailable")}
+            />
+          )}
           <View style={styles.questionList}>
             {dish.questionsToAsk.map((question) => (
               <View key={question} style={styles.questionRow}>

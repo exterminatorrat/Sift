@@ -24,7 +24,13 @@ import { PreparedMenuImage } from "./src/types/image";
 import { RootStackParamList } from "./src/types/navigation";
 import { ScanResult } from "./src/types/scan";
 import { AuthSession } from "./src/types/auth";
+import { SubscriptionPlanId } from "./src/types/subscription";
 import { LoadingAnalysis } from "./src/components/LoadingAnalysis";
+import {
+  defaultSubscriptionPlanId,
+  getMonthlyScanCount,
+  getSubscriptionPlan
+} from "./src/constants/subscriptionPlans";
 import { createDefaultProfile } from "./src/services/mockAnalysisService";
 import { analyzeMenuImage, createUnclearScanResult } from "./src/services/aiAnalysisService";
 import { loadAuthSession, signInWithApple, signOut } from "./src/services/authService";
@@ -34,7 +40,8 @@ import {
   loadStoredAppState,
   saveOnboardingComplete,
   saveProfiles,
-  saveScanHistory
+  saveScanHistory,
+  saveSubscriptionPlan
 } from "./src/services/storageService";
 import { addScanToHistory, normalizeStoredScanHistory, renameScanInHistory } from "./src/utils/scanHistory";
 import { OnboardingScreen } from "./src/screens/OnboardingScreen";
@@ -82,10 +89,16 @@ export default function App() {
   const [profiles, setProfiles] = useState<UserProfile[]>([createDefaultProfile()]);
   const [activeProfileId, setActiveProfileId] = useState(createDefaultProfile().id);
   const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
+  const [subscriptionPlanId, setSubscriptionPlanId] =
+    useState<SubscriptionPlanId>(defaultSubscriptionPlanId);
   const [pendingImage, setPendingImage] = useState<PreparedMenuImage | null>(null);
   const [pendingImageSource, setPendingImageSource] = useState<PendingImageSource>("camera");
   const [scanError, setScanError] = useState<string | null>(null);
   const profile = profiles.find((item) => item.id === activeProfileId) ?? profiles[0] ?? createDefaultProfile();
+  const subscriptionPlan = getSubscriptionPlan(subscriptionPlanId);
+  const monthlyScanCount = getMonthlyScanCount(scanHistory);
+  const canStartScan = monthlyScanCount < subscriptionPlan.scanLimit;
+  const canCreateProfile = profiles.length < subscriptionPlan.profileLimit;
 
   useEffect(() => {
     let mounted = true;
@@ -102,6 +115,7 @@ export default function App() {
         setProfiles(nextProfiles);
         setActiveProfileId(stored.activeProfileId ?? nextProfiles[0].id);
         setScanHistory(normalizeStoredScanHistory(stored.scanHistory));
+        setSubscriptionPlanId(stored.subscriptionPlan);
       })
       .catch(() => {
         if (mounted) {
@@ -146,6 +160,11 @@ export default function App() {
     setProfiles(nextProfiles);
     setActiveProfileId(nextActiveProfileId);
     await saveProfiles(nextProfiles, nextActiveProfileId);
+  }, []);
+
+  const persistSubscriptionPlan = useCallback(async (nextPlanId: SubscriptionPlanId) => {
+    setSubscriptionPlanId(nextPlanId);
+    await saveSubscriptionPlan(nextPlanId);
   }, []);
 
   if (!isReady || !fontsLoaded) {
@@ -241,6 +260,10 @@ export default function App() {
                           setMainTab("profile");
                           return;
                         }
+                        if (!canStartScan) {
+                          showScanLimitAlert(navigation.navigate);
+                          return;
+                        }
                         setScanError(null);
                         void selectImageFromCamera(navigation.navigate);
                       }}
@@ -249,13 +272,19 @@ export default function App() {
                           setMainTab("profile");
                           return;
                         }
+                        if (!canStartScan) {
+                          showScanLimitAlert(navigation.navigate);
+                          return;
+                        }
                         await selectImageFromLibrary(navigation.navigate);
                       }}
                     />
                   ),
                   profile: (
                     <ProfileScreen
+                      canCreateProfile={canCreateProfile}
                       profile={profile}
+                      profileLimit={subscriptionPlan.profileLimit}
                       profiles={profiles}
                       activeProfileId={activeProfileId}
                       onChangeProfile={async (nextProfile) => {
@@ -271,6 +300,11 @@ export default function App() {
                         await persistProfiles(nextProfiles, profileId);
                       }}
                       onCreateProfile={async (currentProfile) => {
+                        if (!canCreateProfile) {
+                          navigation.navigate("SettingsSubscription");
+                          return;
+                        }
+
                         const profileNumber = profiles.length + 1;
                         const nextProfile: UserProfile = {
                           ...createDefaultProfile(),
@@ -305,6 +339,7 @@ export default function App() {
                       onDone={() => setMainTab("home")}
                       onHome={() => setMainTab("home")}
                       onOpenHistory={() => setMainTab("history")}
+                      onOpenSubscription={() => navigation.navigate("SettingsSubscription")}
                     />
                   )
                 }}
@@ -350,7 +385,7 @@ export default function App() {
               <AnalysisLoadingScreen
                 onAnalyze={async () => {
                   const scanResult = await analyzePendingImage();
-                  const nextHistory = addScanToHistory(scanHistory, scanResult);
+                  const nextHistory = addScanToHistory(scanHistory, scanResult, subscriptionPlan.historyLimit);
                   await persistScanHistory(nextHistory);
                   navigation.replace("Results", { scanId: scanResult.id });
                 }}
@@ -386,6 +421,7 @@ export default function App() {
               return (
                 <ResultsScreen
                   scanResult={scanResult}
+                  showTranslationTools={subscriptionPlan.features.translationCards}
                   onBack={() => {
                     if (returnToHistory) {
                       navigation.goBack();
@@ -440,6 +476,8 @@ export default function App() {
                   dish={dish}
                   profile={profile}
                   restaurantMessage={scanResult.restaurantMessage}
+                  showTranslationTools={subscriptionPlan.features.translationCards}
+                  showVoiceTools={subscriptionPlan.features.voicePlayback}
                   onBack={() => navigation.goBack()}
                 />
               );
@@ -474,8 +512,13 @@ export default function App() {
           <Stack.Screen name="SettingsSubscription" options={{ animation: "slide_from_right" }}>
             {({ navigation }) => (
               <SubscriptionScreen
+                currentPlanId={subscriptionPlanId}
+                monthlyScanCount={monthlyScanCount}
                 onBack={() => navigation.goBack()}
                 onOpenSupport={() => navigation.navigate("SettingsHelp")}
+                onSelectPlan={(planId) => {
+                  void persistSubscriptionPlan(planId);
+                }}
               />
             )}
           </Stack.Screen>
@@ -514,6 +557,11 @@ export default function App() {
       params?: RootStackParamList[RouteName]
     ) => void
   ) {
+    if (!canStartScan) {
+      showScanLimitAlert(navigate);
+      return;
+    }
+
     try {
       setScanError(null);
       const image = await captureMenuImage();
@@ -533,6 +581,11 @@ export default function App() {
       params?: RootStackParamList[RouteName]
     ) => void
   ) {
+    if (!canStartScan) {
+      showScanLimitAlert(navigate);
+      return;
+    }
+
     try {
       setScanError(null);
       const image = await pickMenuImage();
@@ -575,6 +628,22 @@ export default function App() {
     } finally {
       setPendingImage(null);
     }
+  }
+
+  function showScanLimitAlert(
+    navigate: <RouteName extends keyof RootStackParamList>(
+      screen: RouteName,
+      params?: RootStackParamList[RouteName]
+    ) => void
+  ) {
+    Alert.alert(
+      "Monthly scan limit reached",
+      `Your ${subscriptionPlan.label} test plan includes ${subscriptionPlan.scanLimit} scans per month. Switch plans to keep testing.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "View plans", onPress: () => navigate("SettingsSubscription") }
+      ]
+    );
   }
 }
 

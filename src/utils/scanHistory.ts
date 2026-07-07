@@ -1,11 +1,15 @@
 import { ScanResult } from "../types/scan";
 
-const MAX_HISTORY_ITEMS = 20;
+const DEFAULT_MAX_HISTORY_ITEMS = 20;
 
-export function addScanToHistory(scanHistory: ScanResult[], scanResult: ScanResult) {
+export function addScanToHistory(
+  scanHistory: ScanResult[],
+  scanResult: ScanResult,
+  maxHistoryItems = DEFAULT_MAX_HISTORY_ITEMS
+) {
   const preparedScan = prepareScanForHistory(scanResult);
   const withoutDuplicate = scanHistory.filter((scan) => scan.id !== preparedScan.id);
-  return [preparedScan, ...withoutDuplicate].slice(0, MAX_HISTORY_ITEMS);
+  return [preparedScan, ...withoutDuplicate].slice(0, maxHistoryItems);
 }
 
 export function renameScanInHistory(scanHistory: ScanResult[], scanId: string, title: string) {
