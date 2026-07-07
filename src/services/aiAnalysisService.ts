@@ -92,12 +92,23 @@ export function createUnclearScanResult(profile: UserProfile, imageUri?: string)
           "Can you confirm whether sauces, oils, broths, marinades, or garnishes contain these allergens?",
           "Is this prepared on shared equipment with my allergens?"
         ],
-        conservativeLanguage: "Not enough information. Retake the photo or ask staff directly."
+        conservativeLanguage: "Not enough information. Retake the photo or ask staff directly.",
+        transparency: {
+          visibleMenuText: ["Menu image or analysis result was unclear."],
+          profileFactors: profile.allergies.map((allergy) => `${allergy.name}: ${allergy.severity}`),
+          commonRiskPatterns: ["Sauces, oils, broths, marinades, and shared equipment could not be checked."],
+          uncertainty: ["The image or model response did not provide enough reliable menu detail."]
+        }
       }
     ],
     imageQuality: {
       readability: "poor",
       issues: ["analysis_failed"]
+    },
+    transparency: {
+      checked: ["Menu photo", "Allergy profile"],
+      limitations: ["Sift could not extract enough reliable menu detail from this scan."],
+      sourceReferences: []
     }
   };
 }

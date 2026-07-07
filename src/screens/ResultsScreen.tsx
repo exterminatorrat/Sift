@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Image, Modal, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Linking, Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChevronLeft, Image as ImageIcon, Languages } from "lucide-react-native";
+import { ChevronLeft, Image as ImageIcon, Languages, ListChecks } from "lucide-react-native";
 import { DishRisk, ScanResult } from "../types/scan";
 import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
@@ -33,6 +33,12 @@ export function ResultsScreen({
   const summaryMeta = getRiskMeta(scanResult.scanSummary.overallRisk, t);
   const [photoOpen, setPhotoOpen] = useState(false);
   const hasMenuPhoto = Boolean(scanResult.imageUri);
+  const scanTransparency = scanResult.transparency ?? {
+    checked: ["Menu photo", "Allergy profile", "Common ingredient and preparation patterns"],
+    limitations: ["Sift cannot verify full ingredients, kitchen preparation, or cross-contact."],
+    sourceReferences: [],
+    webSearchQueries: []
+  };
   const restaurantMessageText =
     scanResult.restaurantMessage?.translated ?? scanResult.restaurantMessage?.english ?? "";
   const userLanguageMessageText =
@@ -106,6 +112,55 @@ export function ResultsScreen({
         </View>
 
         <DisclaimerBanner compact />
+
+        <View style={styles.transparencyCard}>
+          <View style={styles.translationHeader}>
+            <ListChecks color={colors.primary} size={18} strokeWidth={2.1} />
+            <Text style={styles.translationTitle}>{t("results.whatSiftChecked")}</Text>
+          </View>
+          <View style={styles.transparencyList}>
+            {scanTransparency.checked.map((item) => (
+              <Text key={item} style={styles.transparencyItem}>- {item}</Text>
+            ))}
+          </View>
+          <View style={styles.userLanguageReference}>
+            {scanTransparency.limitations.map((item) => (
+              <Text key={item} style={styles.userLanguageBody}>- {item}</Text>
+            ))}
+          </View>
+          <View style={styles.userLanguageReference}>
+            <Text style={styles.userLanguageLabel}>{t("results.referencesReturned")}</Text>
+            {scanTransparency.sourceReferences.length > 0 ? (
+              <View style={styles.sourceList}>
+                {scanTransparency.sourceReferences.map((source) => (
+                  <Text
+                    key={source.uri}
+                    onPress={() => {
+                      void Linking.openURL(source.uri);
+                    }}
+                    style={styles.sourceLink}
+                  >
+                    {source.title}
+                  </Text>
+                ))}
+              </View>
+            ) : (
+              <Text style={styles.userLanguageBody}>{t("results.noReferences")}</Text>
+            )}
+          </View>
+          {scanTransparency.webSearchQueries && scanTransparency.webSearchQueries.length > 0 && (
+            <View style={styles.queryList}>
+              <Text style={styles.userLanguageLabel}>{t("results.searchQueries")}</Text>
+              <View style={styles.queryPills}>
+                {scanTransparency.webSearchQueries.map((query) => (
+                  <View key={query} style={styles.queryPill}>
+                    <Text style={styles.queryPillText}>{query}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+        </View>
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{t("results.dishesFound")}</Text>
@@ -324,6 +379,21 @@ const styles = StyleSheet.create({
   cards: {
     gap: 16
   },
+  transparencyCard: {
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 10,
+    padding: 16
+  },
+  transparencyList: {
+    gap: 6
+  },
+  transparencyItem: {
+    color: colors.ink,
+    ...typography.bodySmall
+  },
   translationPreview: {
     backgroundColor: colors.surfaceWarm,
     borderColor: colors.border,
@@ -362,6 +432,32 @@ const styles = StyleSheet.create({
     color: colors.inkMuted,
     ...typography.caption,
     lineHeight: 19
+  },
+  sourceList: {
+    gap: 8
+  },
+  sourceLink: {
+    color: colors.primary,
+    ...typography.bodySmall,
+    textDecorationLine: "underline"
+  },
+  queryList: {
+    gap: 8
+  },
+  queryPills: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8
+  },
+  queryPill: {
+    backgroundColor: colors.primarySoft,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6
+  },
+  queryPillText: {
+    color: colors.primaryDark,
+    ...typography.badge
   },
   savedNote: {
     color: colors.inkSubtle,

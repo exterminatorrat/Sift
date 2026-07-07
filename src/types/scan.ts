@@ -19,6 +19,26 @@ export type ImageQuality = {
   issues: string[];
 };
 
+export type DishTransparency = {
+  visibleMenuText: string[];
+  profileFactors: string[];
+  commonRiskPatterns: string[];
+  uncertainty: string[];
+};
+
+export type SourceReference = {
+  title: string;
+  uri: string;
+  source?: string | null;
+};
+
+export type ScanTransparency = {
+  checked: string[];
+  limitations: string[];
+  sourceReferences: SourceReference[];
+  webSearchQueries?: string[];
+};
+
 export type DishRisk = {
   id: string;
   dishName: string;
@@ -31,6 +51,7 @@ export type DishRisk = {
   questionsToAsk: string[];
   questionsToAskUserLanguage?: string[];
   conservativeLanguage: string;
+  transparency?: DishTransparency;
 };
 
 export type ScanResult = {
@@ -46,4 +67,5 @@ export type ScanResult = {
   dishes: DishRisk[];
   restaurantMessage?: RestaurantMessage;
   imageQuality: ImageQuality;
+  transparency?: ScanTransparency;
 };

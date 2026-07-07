@@ -92,7 +92,8 @@ export function validateScanResult(value: unknown): ScanResultValidation {
       scanSummary: scanSummary.value,
       dishes,
       restaurantMessage: restaurantMessage.value,
-      imageQuality: imageQuality.value
+      imageQuality: imageQuality.value,
+      transparency: validateScanTransparency(value.transparency)
     }
   };
 }
@@ -173,8 +174,62 @@ function validateDish(value: unknown): Validation<ScanResult["dishes"][number]> 
       reason,
       questionsToAsk,
       questionsToAskUserLanguage: questionsToAskUserLanguage ?? undefined,
-      conservativeLanguage
+      conservativeLanguage,
+      transparency: validateDishTransparency(value.transparency)
     }
+  };
+}
+
+function validateDishTransparency(value: unknown): ScanResult["dishes"][number]["transparency"] {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const visibleMenuText = readStringArray(value.visibleMenuText);
+  const profileFactors = readStringArray(value.profileFactors);
+  const commonRiskPatterns = readStringArray(value.commonRiskPatterns);
+  const uncertainty = readStringArray(value.uncertainty);
+
+  if (!visibleMenuText || !profileFactors || !commonRiskPatterns || !uncertainty) {
+    return undefined;
+  }
+
+  return {
+    visibleMenuText,
+    profileFactors,
+    commonRiskPatterns,
+    uncertainty
+  };
+}
+
+function validateScanTransparency(value: unknown): ScanResult["transparency"] {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const checked = readStringArray(value.checked);
+  const limitations = readStringArray(value.limitations);
+  const webSearchQueries = readStringArray(value.webSearchQueries);
+  const sourceReferences = Array.isArray(value.sourceReferences)
+    ? value.sourceReferences
+        .filter(isRecord)
+        .map((source) => ({
+          title: readString(source.title),
+          uri: readString(source.uri),
+          source: readOptionalString(source.source)
+        }))
+        .filter((source) => source.title && source.uri)
+    : null;
+
+  if (!checked || !limitations || !sourceReferences) {
+    return undefined;
+  }
+
+  return {
+    checked,
+    limitations,
+    sourceReferences,
+    webSearchQueries: webSearchQueries ?? undefined
   };
 }
 

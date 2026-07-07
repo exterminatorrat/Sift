@@ -31,6 +31,14 @@ type AnalysisOutput = {
   model: string;
   provider: AnalysisProvider;
   text: string;
+  sourceReferences?: SourceReference[];
+  webSearchQueries?: string[];
+};
+
+type SourceReference = {
+  title: string;
+  uri: string;
+  source?: string | null;
 };
 
 type ScanResult = {
@@ -58,6 +66,12 @@ type ScanResult = {
     questionsToAsk: string[];
     questionsToAskUserLanguage?: string[];
     conservativeLanguage: string;
+    transparency?: {
+      visibleMenuText: string[];
+      profileFactors: string[];
+      commonRiskPatterns: string[];
+      uncertainty: string[];
+    };
   }>;
   restaurantMessage?: {
     english: string;
@@ -69,6 +83,12 @@ type ScanResult = {
   imageQuality: {
     readability: ImageReadability;
     issues: string[];
+  };
+  transparency?: {
+    checked: string[];
+    limitations: string[];
+    sourceReferences: SourceReference[];
+    webSearchQueries?: string[];
   };
 };
 
@@ -102,7 +122,8 @@ const scanResultSchema = {
     "scanSummary",
     "dishes",
     "restaurantMessage",
-    "imageQuality"
+    "imageQuality",
+    "transparency"
   ],
   properties: {
     id: { type: "string" },
@@ -141,7 +162,8 @@ const scanResultSchema = {
           "reason",
           "questionsToAsk",
           "questionsToAskUserLanguage",
-          "conservativeLanguage"
+          "conservativeLanguage",
+          "transparency"
         ],
         properties: {
           id: { type: "string" },
@@ -157,7 +179,18 @@ const scanResultSchema = {
           reason: { type: "string" },
           questionsToAsk: { type: "array", minItems: 1, maxItems: 6, items: { type: "string" } },
           questionsToAskUserLanguage: { type: "array", minItems: 1, maxItems: 6, items: { type: "string" } },
-          conservativeLanguage: { type: "string" }
+          conservativeLanguage: { type: "string" },
+          transparency: {
+            type: "object",
+            additionalProperties: false,
+            required: ["visibleMenuText", "profileFactors", "commonRiskPatterns", "uncertainty"],
+            properties: {
+              visibleMenuText: { type: "array", maxItems: 5, items: { type: "string" } },
+              profileFactors: { type: "array", maxItems: 5, items: { type: "string" } },
+              commonRiskPatterns: { type: "array", maxItems: 5, items: { type: "string" } },
+              uncertainty: { type: "array", maxItems: 5, items: { type: "string" } }
+            }
+          }
         }
       }
     },
@@ -181,6 +214,29 @@ const scanResultSchema = {
         readability: { type: "string", enum: ["clear", "partially_clear", "poor"] },
         issues: { type: "array", items: { type: "string" } }
       }
+    },
+    transparency: {
+      type: "object",
+      additionalProperties: false,
+      required: ["checked", "limitations", "sourceReferences", "webSearchQueries"],
+      properties: {
+        checked: { type: "array", maxItems: 6, items: { type: "string" } },
+        limitations: { type: "array", maxItems: 6, items: { type: "string" } },
+        sourceReferences: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["title", "uri", "source"],
+            properties: {
+              title: { type: "string" },
+              uri: { type: "string" },
+              source: { type: ["string", "null"] }
+            }
+          }
+        },
+        webSearchQueries: { type: "array", items: { type: "string" } }
+      }
     }
   }
 };
@@ -203,7 +259,10 @@ Deno.serve(async (request) => {
     try {
       const analysis = await analyzeMenu(body);
       const scanResult = sanitizeScanResult(
-        normalizeScanResult(parseModelJson(analysis.text), body.profile.id)
+        mergeAnalysisSources(
+          normalizeScanResult(parseModelJson(analysis.text), body.profile.id),
+          analysis
+        )
       );
       const validationError = validateScanResult(scanResult);
 
@@ -414,7 +473,16 @@ async function analyzeWithGemini(request: AnalyzeMenuRequest): Promise<AnalysisO
           temperature: Number(Deno.env.get("GEMINI_TEMPERATURE") ?? 0.1),
           maxOutputTokens: Number(Deno.env.get("GEMINI_MAX_OUTPUT_TOKENS") ?? 3500),
           responseMimeType: "application/json"
-        }
+        },
+        ...(Deno.env.get("GEMINI_ENABLE_GROUNDING") === "true"
+          ? {
+              tools: [
+                {
+                  googleSearch: {}
+                }
+              ]
+            }
+          : {})
       })
     }
   );
@@ -428,7 +496,9 @@ async function analyzeWithGemini(request: AnalyzeMenuRequest): Promise<AnalysisO
   return {
     model,
     provider: "gemini",
-    text: extractGeminiOutputText(data)
+    text: extractGeminiOutputText(data),
+    sourceReferences: extractGeminiSourceReferences(data),
+    webSearchQueries: extractGeminiWebSearchQueries(data)
   };
 }
 
@@ -450,10 +520,14 @@ function buildSystemPrompt() {
     "If a target restaurant language is requested, provide a simple polite restaurantMessage.translated in that language. If uncertain, keep translated null.",
     "Set restaurantMessage.userLanguageText to the same restaurant-facing allergy message translated into the user's preferred language. If the user's preferred language is English, this may match english.",
     "Set restaurantMessage.language to the restaurant language name and restaurantMessage.userLanguage to the user's preferred language name when known.",
+    "For each dish, include transparency as brief user-facing evidence, not hidden chain-of-thought. List visible menu text signals, profile factors, common risk patterns, and uncertainty.",
+    "For scan-level transparency, list what was checked and key limitations.",
+    "Set transparency.sourceReferences to an empty array. Do not invent citations or URLs. Real Gemini grounding sources are attached by the server if returned by the API.",
+    "Set transparency.webSearchQueries to an empty array. Real Gemini search queries are attached by the server if returned by the API.",
     "Use restaurantName as a short 1-4 word saved-scan title, not necessarily a literal restaurant name. Summarize the whole menu theme, not individual dishes. Examples: Japanese menu, Mexican menu, Steak and seafood, Cafe breakfast.",
     "If no useful menu theme is visible, set restaurantName to null.",
     "Return only JSON matching the provided schema.",
-    "Use camelCase keys exactly as specified: scanSummary, overallRisk, dishName, riskLevel, possibleAllergens, hiddenRiskIngredients, crossContactConcerns, questionsToAsk, questionsToAskUserLanguage, conservativeLanguage, restaurantMessage, imageQuality.",
+    "Use camelCase keys exactly as specified: scanSummary, overallRisk, dishName, riskLevel, possibleAllergens, hiddenRiskIngredients, crossContactConcerns, questionsToAsk, questionsToAskUserLanguage, conservativeLanguage, transparency, restaurantMessage, imageQuality.",
     `Required JSON schema: ${JSON.stringify(scanResultSchema)}`
   ].join("\n");
 }
@@ -473,10 +547,13 @@ function buildUserPrompt(request: AnalyzeMenuRequest) {
       includeCommonHiddenIngredientPatterns: true,
       includeCrossContactWhenRelevant: true,
       includeRestaurantFacingMessage: true,
+      includeUserFacingTransparency: true,
+      doNotExposeHiddenChainOfThought: true,
       questionsToAskLanguage: "restaurant language when known; otherwise user language",
       questionsToAskUserLanguage: "translate each staff question into the user's preferred language",
       restaurantMessageTranslatedLanguage: "restaurant language when known",
       restaurantMessageUserLanguageText: "user preferred language",
+      sourceReferences: "leave empty; server attaches Gemini grounding sources if available",
       limitationsText: "Visible menu text and common ingredient patterns only.",
       riskLevels: ["low_risk", "ask_staff", "high_risk", "avoid_unless_confirmed", "unclear"]
     }
@@ -539,6 +616,14 @@ function validateScanResult(value: ScanResult): string | null {
     return "invalid_image_quality_issues";
   }
 
+  if (!isRecord(value.transparency) || !isStringArray(value.transparency.checked) || !isStringArray(value.transparency.limitations)) {
+    return "invalid_transparency";
+  }
+
+  if (!Array.isArray(value.transparency.sourceReferences)) {
+    return "invalid_transparency_sources";
+  }
+
   if (value.restaurantMessage && !readString(value.restaurantMessage.english)) {
     return "invalid_restaurant_message";
   }
@@ -573,13 +658,23 @@ function validateDish(dish: unknown): string | null {
     !isStringArray(dish.crossContactConcerns) ||
     !isStringArray(dish.questionsToAsk) ||
     !isStringArray(dish.questionsToAskUserLanguage) ||
-    dish.questionsToAsk.length === 0
+    dish.questionsToAsk.length === 0 ||
+    !isRecord(dish.transparency)
   ) {
     return "dish_invalid_arrays";
   }
 
   if (dish.questionsToAskUserLanguage.length === 0) {
     return "dish_missing_user_language_questions";
+  }
+
+  if (
+    !isStringArray(dish.transparency.visibleMenuText) ||
+    !isStringArray(dish.transparency.profileFactors) ||
+    !isStringArray(dish.transparency.commonRiskPatterns) ||
+    !isStringArray(dish.transparency.uncertainty)
+  ) {
+    return "dish_invalid_transparency";
   }
 
   return null;
@@ -637,6 +732,47 @@ function extractGeminiOutputText(data: any): string {
   return text;
 }
 
+function extractGeminiSourceReferences(data: any): SourceReference[] {
+  const chunks = data?.candidates?.[0]?.groundingMetadata?.groundingChunks;
+  if (!Array.isArray(chunks)) {
+    return [];
+  }
+
+  const seen = new Set<string>();
+  return chunks
+    .map((chunk) => {
+      const web = chunk?.web;
+      const uri = typeof web?.uri === "string" ? web.uri.trim() : "";
+      const title = typeof web?.title === "string" ? web.title.trim() : "";
+
+      return {
+        title: title || uri,
+        uri,
+        source: "Google Search grounding"
+      };
+    })
+    .filter((source) => {
+      if (!source.uri || seen.has(source.uri)) {
+        return false;
+      }
+      seen.add(source.uri);
+      return true;
+    })
+    .slice(0, 6);
+}
+
+function extractGeminiWebSearchQueries(data: any): string[] {
+  const queries = data?.candidates?.[0]?.groundingMetadata?.webSearchQueries;
+  if (!Array.isArray(queries)) {
+    return [];
+  }
+
+  return queries
+    .filter((query): query is string => typeof query === "string" && query.trim().length > 0)
+    .map((query) => query.trim())
+    .slice(0, 6);
+}
+
 function extractJsonText(value: string): string {
   const trimmed = value.trim();
   const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
@@ -678,6 +814,7 @@ function normalizeScanResult(value: Record<string, unknown>, profileId: string):
   const scanSummary = readRecord(value.scanSummary) ?? readRecord(value.scan_summary);
   const restaurantMessage = readRecord(value.restaurantMessage) ?? readRecord(value.restaurant_message);
   const imageQuality = readRecord(value.imageQuality) ?? readRecord(value.image_quality);
+  const transparency = readRecord(value.transparency);
 
   return {
     id: readString(value.id) || `scan-${Date.now()}`,
@@ -727,6 +864,16 @@ function normalizeScanResult(value: Record<string, unknown>, profileId: string):
         ? imageQuality!.readability as ImageReadability
         : "poor",
       issues: isStringArray(imageQuality?.issues) ? imageQuality!.issues : []
+    },
+    transparency: {
+      checked: readStringArray(transparency?.checked).length > 0
+        ? readStringArray(transparency?.checked)
+        : ["Menu photo", "Allergy profile", "Common ingredient and preparation patterns"],
+      limitations: readStringArray(transparency?.limitations).length > 0
+        ? readStringArray(transparency?.limitations)
+        : ["Sift cannot verify full ingredients, staff practices, or kitchen cross-contact."],
+      sourceReferences: readSourceReferences(transparency?.sourceReferences),
+      webSearchQueries: readStringArray(transparency?.webSearchQueries)
     }
   };
 }
@@ -764,7 +911,22 @@ function normalizeDish(value: unknown, index: number): ScanResult["dishes"][numb
     questionsToAskUserLanguage,
     conservativeLanguage:
       readString(dish.conservativeLanguage ?? dish.safe_language) ||
-      "Not enough information. Ask staff before ordering."
+      "Not enough information. Ask staff before ordering.",
+    transparency: normalizeDishTransparency(dish)
+  };
+}
+
+function normalizeDishTransparency(dish: Record<string, unknown>): ScanResult["dishes"][number]["transparency"] {
+  const transparency = readRecord(dish.transparency);
+  return {
+    visibleMenuText: readStringArray(transparency?.visibleMenuText).length > 0
+      ? readStringArray(transparency?.visibleMenuText)
+      : [readString(dish.dishName), readString(dish.menuDescription)].filter(Boolean),
+    profileFactors: readStringArray(transparency?.profileFactors),
+    commonRiskPatterns: readStringArray(transparency?.commonRiskPatterns),
+    uncertainty: readStringArray(transparency?.uncertainty).length > 0
+      ? readStringArray(transparency?.uncertainty)
+      : ["Menu descriptions may omit sauces, oils, marinades, garnishes, and kitchen preparation details."]
   };
 }
 
@@ -784,7 +946,13 @@ function createUnclearDish(): ScanResult["dishes"][number] {
     questionsToAskUserLanguage: [
       "Can you confirm whether this dish contains any of my listed allergens?"
     ],
-    conservativeLanguage: "Not enough information. Retake the photo or ask staff directly."
+    conservativeLanguage: "Not enough information. Retake the photo or ask staff directly.",
+    transparency: {
+      visibleMenuText: ["Menu image unclear"],
+      profileFactors: [],
+      commonRiskPatterns: ["Ingredients, sauces, oils, and preparation details could not be read."],
+      uncertainty: ["The image or model response did not provide enough reliable menu detail."]
+    }
   };
 }
 
@@ -807,6 +975,36 @@ function createFallbackScanResult(profileId: string, analysisModel: string | nul
     imageQuality: {
       readability: "poor",
       issues: ["analysis_failed"]
+    },
+    transparency: {
+      checked: ["Menu photo", "Allergy profile"],
+      limitations: ["Sift could not extract enough reliable menu detail from this scan."],
+      sourceReferences: [],
+      webSearchQueries: []
+    }
+  };
+}
+
+function mergeAnalysisSources(scanResult: ScanResult, analysis: AnalysisOutput): ScanResult {
+  const transparency = scanResult.transparency ?? {
+    checked: ["Menu photo", "Allergy profile", "Common ingredient and preparation patterns"],
+    limitations: ["Sift cannot verify full ingredients, staff practices, or kitchen cross-contact."],
+    sourceReferences: [],
+    webSearchQueries: []
+  };
+
+  return {
+    ...scanResult,
+    transparency: {
+      ...transparency,
+      sourceReferences:
+        analysis.provider === "gemini" && analysis.sourceReferences
+          ? analysis.sourceReferences
+          : transparency.sourceReferences,
+      webSearchQueries:
+        analysis.provider === "gemini" && analysis.webSearchQueries
+          ? analysis.webSearchQueries
+          : transparency.webSearchQueries
     }
   };
 }
@@ -890,6 +1088,22 @@ function readStringArray(value: unknown): string[] {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
     : [];
+}
+
+function readSourceReferences(value: unknown): SourceReference[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(isRecord)
+    .map((source) => ({
+      title: readString(source.title),
+      uri: readString(source.uri),
+      source: readString(source.source) || null
+    }))
+    .filter((source) => source.title && source.uri)
+    .slice(0, 6);
 }
 
 function trimTrailingSlash(value: string) {

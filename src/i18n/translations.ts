@@ -117,6 +117,10 @@ export type TranslationKey =
   | "results.dishesFound"
   | "results.restaurantMessage"
   | "results.userLanguageReference"
+  | "results.whatSiftChecked"
+  | "results.referencesReturned"
+  | "results.noReferences"
+  | "results.searchQueries"
   | "results.savedToHistory"
   | "dish.severeAllergyAlert"
   | "dish.readCarefully"
@@ -126,6 +130,11 @@ export type TranslationKey =
   | "dish.hiddenRiskIngredients"
   | "dish.crossContactConcerns"
   | "dish.questionsToAsk"
+  | "dish.howSiftReachedThis"
+  | "dish.visibleMenuText"
+  | "dish.profileFactors"
+  | "dish.commonRiskPatterns"
+  | "dish.uncertainty"
   | "dish.profileNote"
   | "dish.backToResults"
   | "dish.emptyPossibleAllergens"
@@ -483,6 +492,10 @@ const en = {
   "results.dishesFound": "Dishes found",
   "results.restaurantMessage": "Show this allergy message to staff",
   "results.userLanguageReference": "Translation for you",
+  "results.whatSiftChecked": "What Sift checked",
+  "results.referencesReturned": "References returned",
+  "results.noReferences": "No external source URLs were returned for this scan.",
+  "results.searchQueries": "Search queries",
   "results.savedToHistory": "Saved to scan history",
   "dish.severeAllergyAlert": "Severe allergy alert",
   "dish.readCarefully": "Please read carefully",
@@ -492,6 +505,11 @@ const en = {
   "dish.hiddenRiskIngredients": "Hidden-risk ingredients",
   "dish.crossContactConcerns": "Cross-contact concerns",
   "dish.questionsToAsk": "Questions to ask staff",
+  "dish.howSiftReachedThis": "How Sift reached this",
+  "dish.visibleMenuText": "Visible menu text",
+  "dish.profileFactors": "Profile factors",
+  "dish.commonRiskPatterns": "Common risk patterns",
+  "dish.uncertainty": "Uncertainty",
   "dish.profileNote": "Built for {name}: {allergies}",
   "dish.backToResults": "Back to results",
   "dish.emptyPossibleAllergens": "No obvious listed allergen from visible menu text.",

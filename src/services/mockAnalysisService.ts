@@ -142,7 +142,12 @@ export function getMockScanResult(profile: UserProfile): ScanResult {
       issues: []
     },
     restaurantMessage: buildRestaurantMessage(profile),
-    dishes
+    dishes,
+    transparency: {
+      checked: ["Visible sample menu text", "Allergy profile", "Common hidden-ingredient patterns"],
+      limitations: ["Mock scans do not use external sources or restaurant-specific ingredient data."],
+      sourceReferences: []
+    }
   };
 }
 
@@ -183,7 +188,20 @@ function buildDishRisk(template: MockDishTemplate, profile: UserProfile): DishRi
     reason: buildReason(template, riskLevel, directMatches, hiddenMatches, crossContactMatches, hasSevereVaguePrepConcern),
     questionsToAsk: buildQuestions(template, profile, directMatches, hiddenMatches, crossContactMatches),
     questionsToAskUserLanguage: buildQuestions(template, profile, directMatches, hiddenMatches, crossContactMatches),
-    conservativeLanguage: conservativeLanguageFor(riskLevel)
+    conservativeLanguage: conservativeLanguageFor(riskLevel),
+    transparency: {
+      visibleMenuText: [template.dishName, template.menuDescription],
+      profileFactors: profile.allergies.map((allergy) =>
+        `${allergy.name}: ${allergy.severity}${allergy.avoidCrossContact ? ", cross-contact sensitive" : ""}`
+      ),
+      commonRiskPatterns: unique([
+        ...template.hiddenRiskIngredients,
+        ...template.crossContactConcerns
+      ]).slice(0, 5),
+      uncertainty: [
+        "Mock analysis cannot confirm actual ingredients, kitchen preparation, or cross-contact."
+      ]
+    }
   };
 }
 

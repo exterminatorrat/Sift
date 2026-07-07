@@ -3,8 +3,9 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ChevronLeft,
+  Lightbulb,
   LucideIcon,
-  MessageSquareText,
+  MessageSquareText
 } from "lucide-react-native";
 import { UserProfile } from "../types/allergy";
 import { DishRisk } from "../types/scan";
@@ -36,6 +37,7 @@ export function DishDetailScreen({
   const { languageCode, t } = useI18n();
   const meta = getRiskMeta(dish.riskLevel, t);
   const questionText = dish.questionsToAsk.join("\n\n");
+  const transparency = dish.transparency ?? buildFallbackTransparency(dish, profile);
 
   useEffect(() => () => {
     void stopSpeech();
@@ -122,6 +124,13 @@ export function DishDetailScreen({
           </View>
         </DetailSection>
 
+        <DetailSection title={t("dish.howSiftReachedThis")} icon={Lightbulb}>
+          <EvidenceGroup title={t("dish.visibleMenuText")} items={transparency.visibleMenuText} />
+          <EvidenceGroup title={t("dish.profileFactors")} items={transparency.profileFactors} />
+          <EvidenceGroup title={t("dish.commonRiskPatterns")} items={transparency.commonRiskPatterns} />
+          <EvidenceGroup title={t("dish.uncertainty")} items={transparency.uncertainty} />
+        </DetailSection>
+
         <PrimaryButton label={t("dish.backToResults")} onPress={handleBack} tone="secondary" />
       </ScrollView>
     </SafeAreaView>
@@ -166,6 +175,36 @@ function TokenList({ items, emptyLabel, tone = "default" }: TokenListProps) {
       ))}
     </View>
   );
+}
+
+function EvidenceGroup({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <View style={styles.evidenceGroup}>
+      <Text style={styles.evidenceTitle}>{title}</Text>
+      <View style={styles.evidenceList}>
+        {items.map((item) => (
+          <Text key={item} style={styles.evidenceItem}>- {item}</Text>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function buildFallbackTransparency(dish: DishRisk, profile: UserProfile): NonNullable<DishRisk["transparency"]> {
+  return {
+    visibleMenuText: [dish.dishName, dish.menuDescription ?? ""].filter(Boolean),
+    profileFactors: profile.allergies.map((allergy) =>
+      `${allergy.name}: ${allergy.severity}${allergy.avoidCrossContact ? ", cross-contact sensitive" : ""}`
+    ),
+    commonRiskPatterns: [...dish.hiddenRiskIngredients, ...dish.crossContactConcerns].slice(0, 6),
+    uncertainty: [
+      "Menu descriptions may omit sauces, oils, marinades, garnishes, and kitchen preparation details."
+    ]
+  };
 }
 
 const styles = StyleSheet.create({
@@ -306,5 +345,20 @@ const styles = StyleSheet.create({
     color: colors.inkMuted,
     ...typography.caption,
     lineHeight: 18
+  },
+  evidenceGroup: {
+    gap: 7
+  },
+  evidenceTitle: {
+    color: colors.inkSubtle,
+    ...typography.badge,
+    textTransform: "uppercase"
+  },
+  evidenceList: {
+    gap: 5
+  },
+  evidenceItem: {
+    color: colors.inkMuted,
+    ...typography.bodySmall
   }
 });
