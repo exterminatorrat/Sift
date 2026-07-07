@@ -87,6 +87,11 @@ export function createUnclearScanResult(profile: UserProfile, imageUri?: string)
           "Can you confirm whether sauces, oils, broths, marinades, or garnishes contain these allergens?",
           "Is this prepared on shared equipment with my allergens?"
         ],
+        questionsToAskUserLanguage: [
+          "Can you confirm whether this dish contains any of my listed allergens?",
+          "Can you confirm whether sauces, oils, broths, marinades, or garnishes contain these allergens?",
+          "Is this prepared on shared equipment with my allergens?"
+        ],
         conservativeLanguage: "Not enough information. Retake the photo or ask staff directly."
       }
     ],

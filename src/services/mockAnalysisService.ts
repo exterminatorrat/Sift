@@ -182,6 +182,7 @@ function buildDishRisk(template: MockDishTemplate, profile: UserProfile): DishRi
     crossContactConcerns,
     reason: buildReason(template, riskLevel, directMatches, hiddenMatches, crossContactMatches, hasSevereVaguePrepConcern),
     questionsToAsk: buildQuestions(template, profile, directMatches, hiddenMatches, crossContactMatches),
+    questionsToAskUserLanguage: buildQuestions(template, profile, directMatches, hiddenMatches, crossContactMatches),
     conservativeLanguage: conservativeLanguageFor(riskLevel)
   };
 }
@@ -294,7 +295,9 @@ function buildRestaurantMessage(profile: UserProfile): ScanResult["restaurantMes
     language:
       profile.restaurantLanguage && profile.restaurantLanguage.toLowerCase() !== "english"
         ? profile.restaurantLanguage
-        : null
+        : null,
+    userLanguageText: `${severityText}. Can you confirm whether this dish contains these ingredients in sauces, oils, marinades, broths, dressings, or garnishes?${crossContactText} If you are not sure, I should not order it.`,
+    userLanguage: profile.preferredLanguage
   };
 }
 

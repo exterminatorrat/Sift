@@ -56,12 +56,15 @@ type ScanResult = {
     crossContactConcerns: string[];
     reason: string;
     questionsToAsk: string[];
+    questionsToAskUserLanguage?: string[];
     conservativeLanguage: string;
   }>;
   restaurantMessage?: {
     english: string;
     translated?: string | null;
     language?: string | null;
+    userLanguageText?: string | null;
+    userLanguage?: string | null;
   } | null;
   imageQuality: {
     readability: ImageReadability;
@@ -137,6 +140,7 @@ const scanResultSchema = {
           "crossContactConcerns",
           "reason",
           "questionsToAsk",
+          "questionsToAskUserLanguage",
           "conservativeLanguage"
         ],
         properties: {
@@ -152,6 +156,7 @@ const scanResultSchema = {
           crossContactConcerns: { type: "array", items: { type: "string" } },
           reason: { type: "string" },
           questionsToAsk: { type: "array", minItems: 1, maxItems: 6, items: { type: "string" } },
+          questionsToAskUserLanguage: { type: "array", minItems: 1, maxItems: 6, items: { type: "string" } },
           conservativeLanguage: { type: "string" }
         }
       }
@@ -159,11 +164,13 @@ const scanResultSchema = {
     restaurantMessage: {
       type: ["object", "null"],
       additionalProperties: false,
-      required: ["english", "translated", "language"],
+      required: ["english", "translated", "language", "userLanguageText", "userLanguage"],
       properties: {
         english: { type: "string" },
         translated: { type: ["string", "null"] },
-        language: { type: ["string", "null"] }
+        language: { type: ["string", "null"] },
+        userLanguageText: { type: ["string", "null"] },
+        userLanguage: { type: ["string", "null"] }
       }
     },
     imageQuality: {
@@ -438,11 +445,15 @@ function buildSystemPrompt() {
     "If text is blurry, cut off, translated poorly, unreadable, or ingredients are not listed, mark affected dishes unclear or ask_staff.",
     "For low_risk, still include confirmation language when allergies are severe.",
     "Questions must be specific, short, and usable with restaurant staff.",
-    "If a target restaurant language is requested, provide a simple polite translated restaurant message. If uncertain, keep translated null.",
+    "For each dish, write questionsToAsk in the target restaurant language when provided. If no target restaurant language is provided, use the user's preferred language.",
+    "For each dish, write questionsToAskUserLanguage in the user's preferred language as a direct translation/reference for the user.",
+    "If a target restaurant language is requested, provide a simple polite restaurantMessage.translated in that language. If uncertain, keep translated null.",
+    "Set restaurantMessage.userLanguageText to the same restaurant-facing allergy message translated into the user's preferred language. If the user's preferred language is English, this may match english.",
+    "Set restaurantMessage.language to the restaurant language name and restaurantMessage.userLanguage to the user's preferred language name when known.",
     "Use restaurantName as a short 1-4 word saved-scan title, not necessarily a literal restaurant name. Summarize the whole menu theme, not individual dishes. Examples: Japanese menu, Mexican menu, Steak and seafood, Cafe breakfast.",
     "If no useful menu theme is visible, set restaurantName to null.",
     "Return only JSON matching the provided schema.",
-    "Use camelCase keys exactly as specified: scanSummary, overallRisk, dishName, riskLevel, possibleAllergens, hiddenRiskIngredients, crossContactConcerns, questionsToAsk, conservativeLanguage, restaurantMessage, imageQuality.",
+    "Use camelCase keys exactly as specified: scanSummary, overallRisk, dishName, riskLevel, possibleAllergens, hiddenRiskIngredients, crossContactConcerns, questionsToAsk, questionsToAskUserLanguage, conservativeLanguage, restaurantMessage, imageQuality.",
     `Required JSON schema: ${JSON.stringify(scanResultSchema)}`
   ].join("\n");
 }
@@ -452,6 +463,7 @@ function buildUserPrompt(request: AnalyzeMenuRequest) {
     task: "Analyze this menu image for possible allergen risk.",
     appName: "Sift",
     userProfile: request.profile,
+    userLanguage: request.profile.preferredLanguage,
     restaurantLanguage: request.restaurantLanguage ?? request.profile.restaurantLanguage ?? null,
     outputRequirements: {
       oneCardPerVisibleDishWhenPossible: true,
@@ -461,6 +473,10 @@ function buildUserPrompt(request: AnalyzeMenuRequest) {
       includeCommonHiddenIngredientPatterns: true,
       includeCrossContactWhenRelevant: true,
       includeRestaurantFacingMessage: true,
+      questionsToAskLanguage: "restaurant language when known; otherwise user language",
+      questionsToAskUserLanguage: "translate each staff question into the user's preferred language",
+      restaurantMessageTranslatedLanguage: "restaurant language when known",
+      restaurantMessageUserLanguageText: "user preferred language",
       limitationsText: "Visible menu text and common ingredient patterns only.",
       riskLevels: ["low_risk", "ask_staff", "high_risk", "avoid_unless_confirmed", "unclear"]
     }
@@ -527,6 +543,14 @@ function validateScanResult(value: ScanResult): string | null {
     return "invalid_restaurant_message";
   }
 
+  if (
+    value.restaurantMessage &&
+    value.restaurantMessage.translated &&
+    !readString(value.restaurantMessage.userLanguageText)
+  ) {
+    return "missing_user_language_restaurant_message";
+  }
+
   return null;
 }
 
@@ -548,9 +572,14 @@ function validateDish(dish: unknown): string | null {
     !isStringArray(dish.hiddenRiskIngredients) ||
     !isStringArray(dish.crossContactConcerns) ||
     !isStringArray(dish.questionsToAsk) ||
+    !isStringArray(dish.questionsToAskUserLanguage) ||
     dish.questionsToAsk.length === 0
   ) {
     return "dish_invalid_arrays";
+  }
+
+  if (dish.questionsToAskUserLanguage.length === 0) {
+    return "dish_missing_user_language_questions";
   }
 
   return null;
@@ -678,7 +707,19 @@ function normalizeScanResult(value: Record<string, unknown>, profileId: string):
           language:
             typeof restaurantMessage.language === "string"
               ? restaurantMessage.language
-              : null
+              : null,
+          userLanguageText:
+            typeof restaurantMessage.userLanguageText === "string"
+              ? restaurantMessage.userLanguageText
+              : typeof restaurantMessage.user_language_text === "string"
+                ? restaurantMessage.user_language_text
+                : readString(restaurantMessage.english) || null,
+          userLanguage:
+            typeof restaurantMessage.userLanguage === "string"
+              ? restaurantMessage.userLanguage
+              : typeof restaurantMessage.user_language === "string"
+                ? restaurantMessage.user_language
+                : null
         }
       : null,
     imageQuality: {
@@ -692,6 +733,15 @@ function normalizeScanResult(value: Record<string, unknown>, profileId: string):
 
 function normalizeDish(value: unknown, index: number): ScanResult["dishes"][number] {
   const dish: Record<string, unknown> = isRecord(value) ? value : {};
+  const questionsToAsk =
+    readStringArray(dish.questionsToAsk ?? dish.questions_to_ask).length > 0
+      ? readStringArray(dish.questionsToAsk ?? dish.questions_to_ask)
+      : ["Can you confirm whether this dish contains any of my listed allergens?"];
+  const questionsToAskUserLanguage =
+    readStringArray(dish.questionsToAskUserLanguage ?? dish.questions_to_ask_user_language).length > 0
+      ? readStringArray(dish.questionsToAskUserLanguage ?? dish.questions_to_ask_user_language)
+      : questionsToAsk;
+
   return {
     id: readString(dish.id) || `dish-${index + 1}`,
     dishName: readString(dish.dishName) || readString(dish.dish_name) || `Dish ${index + 1}`,
@@ -710,9 +760,8 @@ function normalizeDish(value: unknown, index: number): ScanResult["dishes"][numb
     hiddenRiskIngredients: readStringArray(dish.hiddenRiskIngredients ?? dish.hidden_risk_ingredients),
     crossContactConcerns: readStringArray(dish.crossContactConcerns ?? dish.cross_contact_concerns),
     reason: readString(dish.reason) || "The model did not provide enough reliable detail.",
-    questionsToAsk: readStringArray(dish.questionsToAsk ?? dish.questions_to_ask).length > 0
-      ? readStringArray(dish.questionsToAsk ?? dish.questions_to_ask)
-      : ["Can you confirm whether this dish contains any of my listed allergens?"],
+    questionsToAsk,
+    questionsToAskUserLanguage,
     conservativeLanguage:
       readString(dish.conservativeLanguage ?? dish.safe_language) ||
       "Not enough information. Ask staff before ordering."
@@ -730,6 +779,9 @@ function createUnclearDish(): ScanResult["dishes"][number] {
     crossContactConcerns: [],
     reason: "The image or model response did not provide enough reliable menu detail.",
     questionsToAsk: [
+      "Can you confirm whether this dish contains any of my listed allergens?"
+    ],
+    questionsToAskUserLanguage: [
       "Can you confirm whether this dish contains any of my listed allergens?"
     ],
     conservativeLanguage: "Not enough information. Retake the photo or ask staff directly."

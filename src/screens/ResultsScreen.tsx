@@ -35,6 +35,11 @@ export function ResultsScreen({
   const hasMenuPhoto = Boolean(scanResult.imageUri);
   const restaurantMessageText =
     scanResult.restaurantMessage?.translated ?? scanResult.restaurantMessage?.english ?? "";
+  const userLanguageMessageText =
+    scanResult.restaurantMessage?.userLanguageText ?? scanResult.restaurantMessage?.english ?? "";
+  const showUserLanguageMessage =
+    Boolean(userLanguageMessageText) &&
+    userLanguageMessageText.toLowerCase() !== restaurantMessageText.toLowerCase();
 
   useEffect(() => () => {
     void stopSpeech();
@@ -124,6 +129,12 @@ export function ResultsScreen({
             <Text style={styles.translationBody}>
               {restaurantMessageText}
             </Text>
+            {showUserLanguageMessage && (
+              <View style={styles.userLanguageReference}>
+                <Text style={styles.userLanguageLabel}>{t("results.userLanguageReference")}</Text>
+                <Text style={styles.userLanguageBody}>{userLanguageMessageText}</Text>
+              </View>
+            )}
             <VoiceButton
               fallbackLanguageCode={languageCode}
               label={t("voice.playMessage")}
@@ -335,6 +346,22 @@ const styles = StyleSheet.create({
   translationBody: {
     color: colors.inkMuted,
     ...typography.bodySmall
+  },
+  userLanguageReference: {
+    borderTopColor: colors.borderSoft,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: 7,
+    paddingTop: 10
+  },
+  userLanguageLabel: {
+    color: colors.inkSubtle,
+    ...typography.badge,
+    textTransform: "uppercase"
+  },
+  userLanguageBody: {
+    color: colors.inkMuted,
+    ...typography.caption,
+    lineHeight: 19
   },
   savedNote: {
     color: colors.inkSubtle,

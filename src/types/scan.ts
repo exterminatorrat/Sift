@@ -10,6 +10,8 @@ export type RestaurantMessage = {
   english: string;
   translated?: string | null;
   language?: string | null;
+  userLanguageText?: string | null;
+  userLanguage?: string | null;
 };
 
 export type ImageQuality = {
@@ -27,6 +29,7 @@ export type DishRisk = {
   crossContactConcerns: string[];
   reason: string;
   questionsToAsk: string[];
+  questionsToAskUserLanguage?: string[];
   conservativeLanguage: string;
 };
 

@@ -116,6 +116,7 @@ export type TranslationKey =
   | "results.readability.poor"
   | "results.dishesFound"
   | "results.restaurantMessage"
+  | "results.userLanguageReference"
   | "results.savedToHistory"
   | "dish.severeAllergyAlert"
   | "dish.readCarefully"
@@ -480,7 +481,8 @@ const en = {
   "results.readability.partiallyClear": "partially clear",
   "results.readability.poor": "poor",
   "results.dishesFound": "Dishes found",
-  "results.restaurantMessage": "Restaurant message",
+  "results.restaurantMessage": "Show this allergy message to staff",
+  "results.userLanguageReference": "Translation for you",
   "results.savedToHistory": "Saved to scan history",
   "dish.severeAllergyAlert": "Severe allergy alert",
   "dish.readCarefully": "Please read carefully",

@@ -146,6 +146,7 @@ function validateDish(value: unknown): Validation<ScanResult["dishes"][number]> 
   const hiddenRiskIngredients = readStringArray(value.hiddenRiskIngredients);
   const crossContactConcerns = readStringArray(value.crossContactConcerns);
   const questionsToAsk = readStringArray(value.questionsToAsk);
+  const questionsToAskUserLanguage = readStringArray(value.questionsToAskUserLanguage);
 
   if (!id || !dishName || !riskLevel || !reason || !conservativeLanguage) {
     return invalid("Dish entry is missing required text fields.");
@@ -171,6 +172,7 @@ function validateDish(value: unknown): Validation<ScanResult["dishes"][number]> 
       crossContactConcerns,
       reason,
       questionsToAsk,
+      questionsToAskUserLanguage: questionsToAskUserLanguage ?? undefined,
       conservativeLanguage
     }
   };
@@ -216,7 +218,9 @@ function validateRestaurantMessage(value: unknown): Validation<ScanResult["resta
     value: {
       english,
       translated: readOptionalString(value.translated),
-      language: readOptionalString(value.language)
+      language: readOptionalString(value.language),
+      userLanguageText: readOptionalString(value.userLanguageText),
+      userLanguage: readOptionalString(value.userLanguage)
     }
   };
 }

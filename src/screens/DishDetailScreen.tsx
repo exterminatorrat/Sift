@@ -5,10 +5,9 @@ import {
   ChevronLeft,
   LucideIcon,
   MessageSquareText,
-  TriangleAlert
 } from "lucide-react-native";
 import { UserProfile } from "../types/allergy";
-import { DishRisk, RestaurantMessage } from "../types/scan";
+import { DishRisk } from "../types/scan";
 import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
 import { DisclaimerBanner } from "../components/DisclaimerBanner";
@@ -22,8 +21,7 @@ import { stopSpeech } from "../services/speechService";
 type DishDetailScreenProps = {
   dish: DishRisk;
   profile: UserProfile;
-  restaurantMessage?: RestaurantMessage;
-  showTranslationTools?: boolean;
+  restaurantLanguage?: string | null;
   showVoiceTools?: boolean;
   onBack: () => void;
 };
@@ -31,14 +29,12 @@ type DishDetailScreenProps = {
 export function DishDetailScreen({
   dish,
   profile,
-  restaurantMessage,
-  showTranslationTools = true,
+  restaurantLanguage,
   showVoiceTools = true,
   onBack
 }: DishDetailScreenProps) {
   const { languageCode, t } = useI18n();
   const meta = getRiskMeta(dish.riskLevel, t);
-  const restaurantMessageText = restaurantMessage?.translated ?? restaurantMessage?.english ?? "";
   const questionText = dish.questionsToAsk.join("\n\n");
 
   useEffect(() => () => {
@@ -75,41 +71,6 @@ export function DishDetailScreen({
           <Text style={styles.summary}>{dish.conservativeLanguage}</Text>
         </View>
 
-        {showTranslationTools && restaurantMessage && (
-          <View style={styles.translationCard}>
-            <View style={styles.warningHeader}>
-              <TriangleAlert color={colors.avoid} size={20} strokeWidth={2.2} />
-              <Text style={styles.warningText}>{t("dish.severeAllergyAlert")}</Text>
-            </View>
-            <View style={styles.translationPrimary}>
-              <Text style={styles.translationPrompt}>{t("dish.readCarefully")}</Text>
-              <Text style={styles.translatedText}>
-                {restaurantMessageText}
-              </Text>
-              {showVoiceTools && (
-                <VoiceButton
-                  fallbackLanguageCode={languageCode}
-                  label={t("voice.playForStaff")}
-                  languageHint={restaurantMessage.language}
-                  stopLabel={t("voice.stop")}
-                  text={restaurantMessageText}
-                  unavailableLabel={t("voice.unavailable")}
-                  style={styles.centeredVoiceButton}
-                />
-              )}
-            </View>
-            <View style={styles.translationSecondary}>
-              <Text style={styles.englishLead}>{t("dish.allergiesTo")}</Text>
-              <TokenList
-                emptyLabel={t("dish.emptyPossibleAllergens")}
-                items={profile.allergies.map((allergy) => allergy.name)}
-                tone="alert"
-              />
-              <Text style={styles.englishReference}>{restaurantMessage.english}</Text>
-            </View>
-          </View>
-        )}
-
         <DetailSection title={t("dish.whyFlagged")}>
           <Text style={styles.paragraph}>{dish.reason}</Text>
         </DetailSection>
@@ -134,19 +95,30 @@ export function DishDetailScreen({
             <VoiceButton
               fallbackLanguageCode={languageCode}
               label={t("voice.readQuestions")}
-              languageHint={profile.preferredLanguage}
+              languageHint={restaurantLanguage ?? profile.restaurantLanguage ?? profile.preferredLanguage}
               stopLabel={t("voice.stop")}
               text={questionText}
               unavailableLabel={t("voice.unavailable")}
             />
           )}
           <View style={styles.questionList}>
-            {dish.questionsToAsk.map((question) => (
-              <View key={question} style={styles.questionRow}>
+            {dish.questionsToAsk.map((question, index) => {
+              const userLanguageQuestion = dish.questionsToAskUserLanguage?.[index];
+              const showUserLanguageQuestion =
+                userLanguageQuestion && userLanguageQuestion.toLowerCase() !== question.toLowerCase();
+
+              return (
+              <View key={`${question}-${index}`} style={styles.questionRow}>
                 <Text style={styles.bullet}>-</Text>
-                <Text style={styles.question}>{question}</Text>
+                <View style={styles.questionTextGroup}>
+                  <Text style={styles.question}>{question}</Text>
+                  {showUserLanguageQuestion && (
+                    <Text style={styles.questionTranslation}>{userLanguageQuestion}</Text>
+                  )}
+                </View>
               </View>
-            ))}
+              );
+            })}
           </View>
         </DetailSection>
 
@@ -326,77 +298,13 @@ const styles = StyleSheet.create({
     flex: 1,
     ...typography.bodySmall
   },
-  messageLabel: {
-    color: colors.primary,
-    ...typography.badge,
-    textTransform: "uppercase"
+  questionTextGroup: {
+    flex: 1,
+    gap: 5
   },
-  messageText: {
-    color: colors.ink,
-    ...typography.bodySmall,
-    lineHeight: 22
-  },
-  translationCard: {
-    backgroundColor: colors.surfaceWarm,
-    borderRadius: 24,
-    elevation: 4,
-    overflow: "hidden",
-    shadowColor: colors.ink,
-    shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.08,
-    shadowRadius: 40
-  },
-  warningHeader: {
-    alignItems: "center",
-    backgroundColor: colors.highSoft,
-    flexDirection: "row",
-    gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 12
-  },
-  warningText: {
-    color: colors.avoid,
-    ...typography.badge,
-    lineHeight: 16,
-    textTransform: "uppercase"
-  },
-  translationPrimary: {
-    alignItems: "center",
-    borderBottomColor: colors.borderSoft,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: 24,
-    padding: 24
-  },
-  translationPrompt: {
+  questionTranslation: {
     color: colors.inkMuted,
-    ...typography.sectionTitle,
-    textAlign: "center"
-  },
-  translatedText: {
-    color: colors.ink,
-    ...typography.title,
-    fontSize: 30,
-    lineHeight: 42,
-    textAlign: "center"
-  },
-  centeredVoiceButton: {
-    alignItems: "center"
-  },
-  translationSecondary: {
-    alignItems: "center",
-    backgroundColor: colors.backgroundAlt,
-    gap: 12,
-    padding: 24
-  },
-  englishLead: {
-    color: colors.ink,
-    ...typography.sectionTitle,
-    textAlign: "center"
-  },
-  englishReference: {
-    color: colors.inkMuted,
-    ...typography.bodyLarge,
-    marginTop: 8,
-    textAlign: "center"
+    ...typography.caption,
+    lineHeight: 18
   }
 });

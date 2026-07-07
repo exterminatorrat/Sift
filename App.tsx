@@ -475,8 +475,7 @@ export default function App() {
                 <DishDetailScreen
                   dish={dish}
                   profile={profile}
-                  restaurantMessage={scanResult.restaurantMessage}
-                  showTranslationTools={subscriptionPlan.features.translationCards}
+                  restaurantLanguage={scanResult.restaurantMessage?.language ?? profile.restaurantLanguage}
                   showVoiceTools={subscriptionPlan.features.voicePlayback}
                   onBack={() => navigation.goBack()}
                 />
