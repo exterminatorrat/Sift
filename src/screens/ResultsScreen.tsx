@@ -1,5 +1,5 @@
-import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import { Image, Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronLeft, Image as ImageIcon, Languages } from "lucide-react-native";
 import { DishRisk, ScanResult } from "../types/scan";
@@ -27,6 +27,8 @@ export function ResultsScreen({
 }: ResultsScreenProps) {
   const { languageCode, t } = useI18n();
   const summaryMeta = getRiskMeta(scanResult.scanSummary.overallRisk, t);
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const hasMenuPhoto = Boolean(scanResult.imageUri);
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -65,6 +67,17 @@ export function ResultsScreen({
               readability: t(readabilityLabelKey(scanResult.imageQuality.readability))
             })}
           </Text>
+          {hasMenuPhoto && (
+            <AnimatedPressable
+              accessibilityLabel={t("results.viewPhoto")}
+              accessibilityRole="button"
+              onPress={() => setPhotoOpen(true)}
+              scaleTo={0.94}
+              style={styles.photoButton}
+            >
+              <Text style={styles.photoButtonText}>{t("results.viewPhoto")}</Text>
+            </AnimatedPressable>
+          )}
         </View>
 
         <DisclaimerBanner compact />
@@ -100,6 +113,37 @@ export function ResultsScreen({
           </Text>
         )}
       </ScrollView>
+
+      {scanResult.imageUri && (
+        <Modal
+          animationType="fade"
+          onRequestClose={() => setPhotoOpen(false)}
+          transparent
+          visible={photoOpen}
+        >
+          <View style={styles.photoOverlay}>
+            <View style={styles.photoViewer}>
+              <View style={styles.photoHeader}>
+                <Text style={styles.photoTitle}>{t("results.menuPhoto")}</Text>
+                <AnimatedPressable
+                  accessibilityLabel={t("common.close")}
+                  accessibilityRole="button"
+                  onPress={() => setPhotoOpen(false)}
+                  scaleTo={0.92}
+                  style={styles.photoCloseButton}
+                >
+                  <Text style={styles.photoCloseText}>{t("common.close")}</Text>
+                </AnimatedPressable>
+              </View>
+              <Image
+                resizeMode="contain"
+                source={{ uri: scanResult.imageUri }}
+                style={styles.menuPhoto}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
@@ -209,6 +253,20 @@ const styles = StyleSheet.create({
     ...typography.label,
     textTransform: "capitalize"
   },
+  photoButton: {
+    alignItems: "center",
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primaryMuted,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  photoButtonText: {
+    color: colors.primaryDark,
+    ...typography.badge
+  },
   sectionHeader: {
     alignItems: "center",
     flexDirection: "row",
@@ -255,5 +313,53 @@ const styles = StyleSheet.create({
     ...typography.badge,
     textAlign: "center",
     textTransform: "uppercase"
+  },
+  photoOverlay: {
+    alignItems: "center",
+    backgroundColor: "rgba(28, 30, 28, 0.62)",
+    flex: 1,
+    justifyContent: "center",
+    padding: 20
+  },
+  photoViewer: {
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.border,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    maxHeight: "84%",
+    overflow: "hidden",
+    padding: 12,
+    width: "100%"
+  },
+  photoHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingBottom: 10
+  },
+  photoTitle: {
+    color: colors.ink,
+    ...typography.sectionTitle
+  },
+  photoCloseButton: {
+    alignItems: "center",
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  photoCloseText: {
+    color: colors.ink,
+    ...typography.badge
+  },
+  menuPhoto: {
+    backgroundColor: colors.ink,
+    borderRadius: 12,
+    height: 520,
+    maxHeight: "92%",
+    width: "100%"
   }
 });

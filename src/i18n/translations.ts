@@ -63,6 +63,8 @@ export type TranslationKey =
   | "results.title"
   | "results.heroSubtitle"
   | "results.imageReadability"
+  | "results.viewPhoto"
+  | "results.menuPhoto"
   | "results.readability.clear"
   | "results.readability.partiallyClear"
   | "results.readability.poor"
@@ -333,6 +335,8 @@ const en = {
   "results.title": "Scan Results",
   "results.heroSubtitle": "{restaurantName} for {profileName}",
   "results.imageReadability": "Image readability: {readability}",
+  "results.viewPhoto": "View photo",
+  "results.menuPhoto": "Menu photo",
   "results.readability.clear": "clear",
   "results.readability.partiallyClear": "partially clear",
   "results.readability.poor": "poor",
