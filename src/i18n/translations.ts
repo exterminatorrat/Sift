@@ -31,7 +31,24 @@ export type TranslationKey =
   | "onboarding.headline"
   | "onboarding.body"
   | "onboarding.safety"
+  | "onboarding.stepOne"
+  | "onboarding.stepTwo"
+  | "onboarding.stepThree"
+  | "onboarding.scanTitle"
+  | "onboarding.scanBody"
+  | "onboarding.safetyTitle"
+  | "onboarding.safetyBody"
+  | "onboarding.questionsTitle"
+  | "onboarding.questionsBody"
+  | "onboarding.continue"
   | "onboarding.getStarted"
+  | "login.eyebrow"
+  | "login.title"
+  | "login.body"
+  | "login.trustTitle"
+  | "login.trustBody"
+  | "login.appleUnavailableTitle"
+  | "login.appleUnavailableBody"
   | "nav.home"
   | "nav.history"
   | "nav.profile"
@@ -303,7 +320,30 @@ const en = {
     "Sift helps you scan menus for possible allergen risks, hidden ingredients, and the exact questions to ask staff.",
   "onboarding.safety":
     "Sift cannot guarantee food safety. Always confirm with restaurant staff, especially for severe allergies.",
+  "onboarding.stepOne": "Step 1 of 3",
+  "onboarding.stepTwo": "Step 2 of 3",
+  "onboarding.stepThree": "Step 3 of 3",
+  "onboarding.scanTitle": "Scan menus for possible allergy risks.",
+  "onboarding.scanBody":
+    "Take or upload a menu photo. Sift reads visible menu text and looks for listed allergens and common hidden-risk patterns.",
+  "onboarding.safetyTitle": "Sift helps you decide what to ask.",
+  "onboarding.safetyBody":
+    "Sift cannot confirm ingredients, kitchen preparation, or cross-contact. Always confirm with restaurant staff.",
+  "onboarding.questionsTitle": "Leave with clear staff questions.",
+  "onboarding.questionsBody":
+    "Sift turns each scan into risk cards, explanations, and simple restaurant-facing messages.",
+  "onboarding.continue": "Continue",
   "onboarding.getStarted": "Get Started",
+  "login.eyebrow": "Account",
+  "login.title": "Sign in to Sift",
+  "login.body":
+    "Use your Apple account so Sift can keep your allergy profiles and scan flow connected to you.",
+  "login.trustTitle": "Your scans stay practical.",
+  "login.trustBody":
+    "Sift stores your profile and scan history for the app experience. It does not guarantee food safety or replace staff confirmation.",
+  "login.appleUnavailableTitle": "Apple sign-in is unavailable here",
+  "login.appleUnavailableBody":
+    "Sign in with Apple is available on supported iPhone devices. Test this flow on an iPhone build or Expo Go where Apple authentication is supported.",
   "nav.home": "Home",
   "nav.history": "History",
   "nav.profile": "Profile",

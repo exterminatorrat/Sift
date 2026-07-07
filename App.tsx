@@ -163,7 +163,7 @@ export default function App() {
       <I18nProvider language={profile.preferredLanguage}>
         <NavigationContainer>
           <Stack.Navigator
-            initialRouteName={!authSession ? "Login" : onboardingComplete ? "Home" : "Onboarding"}
+            initialRouteName={!onboardingComplete ? "Onboarding" : !authSession ? "Login" : "Home"}
             screenOptions={{ animation: "none", headerShown: false }}
           >
           <Stack.Screen name="Login">
@@ -176,7 +176,9 @@ export default function App() {
                   setAuthError(null);
                   try {
                     const nextAuthSession = await signInWithApple();
+                    const nextTab = profile.allergies.length === 0 ? "profile" : "home";
                     setAuthSession(nextAuthSession);
+                    setMainTab(nextTab);
                     navigation.replace(onboardingComplete ? "Home" : "Onboarding");
                   } catch (error) {
                     const message = error instanceof Error ? error.message : "Could not sign in with Apple.";
@@ -194,8 +196,13 @@ export default function App() {
               <OnboardingScreen
                 onGetStarted={async () => {
                   setOnboardingComplete(true);
-                  setMainTab("profile");
                   await saveOnboardingComplete(true);
+                  if (!authSession) {
+                    navigation.replace("Login");
+                    return;
+                  }
+
+                  setMainTab(profile.allergies.length === 0 ? "profile" : "home");
                   navigation.replace("Home");
                 }}
               />
@@ -458,7 +465,7 @@ export default function App() {
                   setOnboardingComplete(false);
                   setMainTab("home");
                   await saveOnboardingComplete(false);
-                  navigation.replace("Login");
+                  navigation.replace("Onboarding");
                 }}
               />
             )}

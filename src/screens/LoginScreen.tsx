@@ -7,6 +7,7 @@ import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
 import { AuthSession } from "../types/auth";
 import { isAppleSignInAvailable } from "../services/authService";
+import { useI18n } from "../i18n/I18nProvider";
 
 type LoginScreenProps = {
   error?: string | null;
@@ -19,6 +20,7 @@ export function LoginScreen({
   loading = false,
   onSignInWithApple
 }: LoginScreenProps) {
+  const { t } = useI18n();
   const [appleAvailable, setAppleAvailable] = useState(false);
 
   useEffect(() => {
@@ -48,10 +50,14 @@ export function LoginScreen({
         </View>
 
         <View style={styles.copy}>
-          <Text style={styles.title}>Sign in to Sift</Text>
-          <Text style={styles.body}>
-            Use your Apple account to keep your allergy profiles and scan flow tied to you.
-          </Text>
+          <Text style={styles.eyebrow}>{t("login.eyebrow")}</Text>
+          <Text style={styles.title}>{t("login.title")}</Text>
+          <Text style={styles.body}>{t("login.body")}</Text>
+        </View>
+
+        <View style={styles.trustCard}>
+          <Text style={styles.trustTitle}>{t("login.trustTitle")}</Text>
+          <Text style={styles.trustBody}>{t("login.trustBody")}</Text>
         </View>
 
         <View style={styles.actionArea}>
@@ -65,9 +71,8 @@ export function LoginScreen({
             />
           ) : (
             <View style={styles.unavailable}>
-              <Text style={styles.unavailableText}>
-                Apple sign-in is available on supported iPhone devices.
-              </Text>
+              <Text style={styles.unavailableTitle}>{t("login.appleUnavailableTitle")}</Text>
+              <Text style={styles.unavailableText}>{t("login.appleUnavailableBody")}</Text>
             </View>
           )}
 
@@ -88,7 +93,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     justifyContent: "center",
-    padding: 32
+    padding: 28
   },
   mark: {
     alignItems: "center",
@@ -100,24 +105,48 @@ const styles = StyleSheet.create({
   },
   copy: {
     alignItems: "center",
-    gap: 14,
-    marginTop: 42
+    marginTop: 34
+  },
+  eyebrow: {
+    color: colors.inkSubtle,
+    ...typography.badge,
+    marginBottom: 12,
+    textTransform: "uppercase"
   },
   title: {
     color: colors.primaryDark,
-    ...typography.display,
+    ...typography.title,
     textAlign: "center"
   },
   body: {
     color: colors.inkMuted,
     ...typography.bodyLarge,
+    marginTop: 16,
     maxWidth: 318,
     textAlign: "center"
+  },
+  trustCard: {
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginTop: 34,
+    padding: 18,
+    width: "100%"
+  },
+  trustTitle: {
+    color: colors.ink,
+    ...typography.label
+  },
+  trustBody: {
+    color: colors.inkMuted,
+    ...typography.bodySmall,
+    marginTop: 8
   },
   actionArea: {
     alignItems: "center",
     gap: 14,
-    marginTop: 72,
+    marginTop: 34,
     width: "100%"
   },
   appleButton: {
@@ -129,8 +158,14 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
+    gap: 8,
     padding: 16,
     width: "100%"
+  },
+  unavailableTitle: {
+    color: colors.ink,
+    ...typography.label,
+    textAlign: "center"
   },
   unavailableText: {
     color: colors.inkMuted,
