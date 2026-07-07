@@ -194,15 +194,33 @@ export default function App() {
           <Stack.Screen name="Onboarding">
             {({ navigation }) => (
               <OnboardingScreen
-                onGetStarted={async () => {
+                authError={authError}
+                authLoading={authLoading}
+                authSession={authSession}
+                profile={profile}
+                onSignInWithApple={async () => {
+                  setAuthLoading(true);
+                  setAuthError(null);
+                  try {
+                    const nextAuthSession = await signInWithApple();
+                    setAuthSession(nextAuthSession);
+                    return true;
+                  } catch (error) {
+                    const message = error instanceof Error ? error.message : "Could not sign in with Apple.";
+                    setAuthError(message);
+                    return false;
+                  } finally {
+                    setAuthLoading(false);
+                  }
+                }}
+                onComplete={async (nextProfile) => {
+                  const nextProfiles = profiles.some((item) => item.id === nextProfile.id)
+                    ? profiles.map((item) => (item.id === nextProfile.id ? nextProfile : item))
+                    : [...profiles, nextProfile];
+                  await persistProfiles(nextProfiles, nextProfile.id);
                   setOnboardingComplete(true);
                   await saveOnboardingComplete(true);
-                  if (!authSession) {
-                    navigation.replace("Login");
-                    return;
-                  }
-
-                  setMainTab(profile.allergies.length === 0 ? "profile" : "home");
+                  setMainTab("home");
                   navigation.replace("Home");
                 }}
               />

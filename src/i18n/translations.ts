@@ -41,6 +41,35 @@ export type TranslationKey =
   | "onboarding.questionsTitle"
   | "onboarding.questionsBody"
   | "onboarding.continue"
+  | "onboarding.stepProgress"
+  | "onboarding.welcomeTitle"
+  | "onboarding.welcomeBody"
+  | "onboarding.safetyBoundaryTitle"
+  | "onboarding.safetyBoundaryBody"
+  | "onboarding.accountTitle"
+  | "onboarding.accountBody"
+  | "onboarding.profileSetupTitle"
+  | "onboarding.profileSetupBody"
+  | "onboarding.scanTipsTitle"
+  | "onboarding.scanTipsBody"
+  | "onboarding.plusTitle"
+  | "onboarding.plusBody"
+  | "onboarding.iUnderstand"
+  | "onboarding.createProfile"
+  | "onboarding.continueFree"
+  | "onboarding.profileNameLabel"
+  | "onboarding.profileNameDefault"
+  | "onboarding.chooseAllergies"
+  | "onboarding.customAllergen"
+  | "onboarding.sensitivityLabel"
+  | "onboarding.crossContactTitle"
+  | "onboarding.crossContactBody"
+  | "onboarding.tipReadable"
+  | "onboarding.tipDescriptions"
+  | "onboarding.tipNoGlare"
+  | "onboarding.plusFeatureScans"
+  | "onboarding.plusFeatureTranslations"
+  | "onboarding.plusFeatureFamily"
   | "onboarding.getStarted"
   | "login.eyebrow"
   | "login.title"
@@ -333,6 +362,41 @@ const en = {
   "onboarding.questionsBody":
     "Sift turns each scan into risk cards, explanations, and simple restaurant-facing messages.",
   "onboarding.continue": "Continue",
+  "onboarding.stepProgress": "{current} of {total}",
+  "onboarding.welcomeTitle": "Know what to ask before you eat.",
+  "onboarding.welcomeBody":
+    "Sift scans menu photos for possible allergen risks, hidden ingredients, and staff questions.",
+  "onboarding.safetyBoundaryTitle": "Sift does not guarantee food safety.",
+  "onboarding.safetyBoundaryBody":
+    "Sift analyzes visible menu text and common ingredient patterns. Always confirm ingredients and preparation with restaurant staff.",
+  "onboarding.accountTitle": "Save your allergy profile.",
+  "onboarding.accountBody":
+    "Use Sign in with Apple so your allergy profile, scan history, and future subscription stay connected to your account.",
+  "onboarding.profileSetupTitle": "Create your allergy profile.",
+  "onboarding.profileSetupBody":
+    "Choose the allergies Sift should check for first. You can edit details later in your profile.",
+  "onboarding.scanTipsTitle": "Photograph the menu from above.",
+  "onboarding.scanTipsBody":
+    "Keep the page vertical, flat, and readable. Include dish descriptions when possible.",
+  "onboarding.plusTitle": "Sift Plus is coming.",
+  "onboarding.plusBody":
+    "More scans, translation cards, saved history, and family profiles. Continue free while the MVP is in testing.",
+  "onboarding.iUnderstand": "I understand",
+  "onboarding.createProfile": "Create profile",
+  "onboarding.continueFree": "Continue for free",
+  "onboarding.profileNameLabel": "Who is this profile for?",
+  "onboarding.profileNameDefault": "Me",
+  "onboarding.chooseAllergies": "Choose allergies",
+  "onboarding.customAllergen": "Custom allergen",
+  "onboarding.sensitivityLabel": "How sensitive should Sift be?",
+  "onboarding.crossContactTitle": "Ask about cross-contact",
+  "onboarding.crossContactBody": "Include shared equipment and prep questions by default.",
+  "onboarding.tipReadable": "Readable text",
+  "onboarding.tipDescriptions": "Full dish descriptions",
+  "onboarding.tipNoGlare": "No glare",
+  "onboarding.plusFeatureScans": "More menu scans",
+  "onboarding.plusFeatureTranslations": "Travel translation cards",
+  "onboarding.plusFeatureFamily": "Family profiles",
   "onboarding.getStarted": "Get Started",
   "login.eyebrow": "Account",
   "login.title": "Sign in to Sift",
