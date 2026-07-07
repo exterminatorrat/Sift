@@ -163,7 +163,7 @@ export default function App() {
       <I18nProvider language={profile.preferredLanguage}>
         <NavigationContainer>
           <Stack.Navigator
-            initialRouteName={!onboardingComplete ? "Onboarding" : "Home"}
+            initialRouteName={!authSession ? "Login" : !onboardingComplete ? "Onboarding" : "Home"}
             screenOptions={{ animation: "none", headerShown: false }}
           >
           <Stack.Screen name="Login">
@@ -465,7 +465,7 @@ export default function App() {
                   setOnboardingComplete(false);
                   setMainTab("home");
                   await saveOnboardingComplete(false);
-                  navigation.replace("Onboarding");
+                  navigation.replace("Login");
                 }}
               />
             )}
