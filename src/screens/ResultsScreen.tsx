@@ -40,7 +40,9 @@ export function ResultsScreen({
     webSearchQueries: []
   };
   const restaurantMessageText =
-    scanResult.restaurantMessage?.translated ?? scanResult.restaurantMessage?.english ?? "";
+    showTranslationTools
+      ? scanResult.restaurantMessage?.translated ?? scanResult.restaurantMessage?.english ?? ""
+      : scanResult.restaurantMessage?.english ?? "";
   const userLanguageMessageText =
     scanResult.restaurantMessage?.userLanguageText ?? scanResult.restaurantMessage?.english ?? "";
   const showUserLanguageMessage =
@@ -175,7 +177,7 @@ export function ResultsScreen({
           ))}
         </View>
 
-        {showTranslationTools && scanResult.restaurantMessage && (
+        {scanResult.restaurantMessage && (
           <View style={styles.translationPreview}>
             <View style={styles.translationHeader}>
               <Languages color={colors.primary} size={18} strokeWidth={2.1} />
@@ -184,20 +186,22 @@ export function ResultsScreen({
             <Text style={styles.translationBody}>
               {restaurantMessageText}
             </Text>
-            {showUserLanguageMessage && (
+            {showTranslationTools && showUserLanguageMessage && (
               <View style={styles.userLanguageReference}>
                 <Text style={styles.userLanguageLabel}>{t("results.userLanguageReference")}</Text>
                 <Text style={styles.userLanguageBody}>{userLanguageMessageText}</Text>
               </View>
             )}
-            <VoiceButton
-              fallbackLanguageCode={languageCode}
-              label={t("voice.playMessage")}
-              languageHint={scanResult.restaurantMessage.language}
-              stopLabel={t("voice.stop")}
-              text={restaurantMessageText}
-              unavailableLabel={t("voice.unavailable")}
-            />
+            {showTranslationTools && (
+              <VoiceButton
+                fallbackLanguageCode={languageCode}
+                label={t("voice.playMessage")}
+                languageHint={scanResult.restaurantMessage.language}
+                stopLabel={t("voice.stop")}
+                text={restaurantMessageText}
+                unavailableLabel={t("voice.unavailable")}
+              />
+            )}
           </View>
         )}
 
