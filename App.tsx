@@ -421,7 +421,6 @@ export default function App() {
               return (
                 <ResultsScreen
                   scanResult={scanResult}
-                  showTranslationTools={subscriptionPlan.features.translationCards}
                   onBack={() => {
                     if (returnToHistory) {
                       navigation.goBack();

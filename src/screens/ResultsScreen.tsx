@@ -12,11 +12,11 @@ import { VoiceButton } from "../components/VoiceButton";
 import { getRiskMeta } from "../utils/riskLabels";
 import { formatDateTime } from "../utils/formatters";
 import { useI18n } from "../i18n/I18nProvider";
+import { AppLanguageCode, getLanguageCode } from "../i18n/translations";
 import { stopSpeech } from "../services/speechService";
 
 type ResultsScreenProps = {
   scanResult: ScanResult;
-  showTranslationTools?: boolean;
   onBack: () => void;
   onOpenDish: (dish: DishRisk) => void;
   onOpenHistory?: () => void;
@@ -24,7 +24,6 @@ type ResultsScreenProps = {
 
 export function ResultsScreen({
   scanResult,
-  showTranslationTools = true,
   onBack,
   onOpenDish,
   onOpenHistory
@@ -40,14 +39,13 @@ export function ResultsScreen({
     webSearchQueries: []
   };
   const restaurantMessageText =
-    showTranslationTools
-      ? scanResult.restaurantMessage?.translated ?? scanResult.restaurantMessage?.english ?? ""
-      : scanResult.restaurantMessage?.english ?? "";
+    scanResult.restaurantMessage?.translated ?? scanResult.restaurantMessage?.english ?? "";
   const userLanguageMessageText =
     scanResult.restaurantMessage?.userLanguageText ?? scanResult.restaurantMessage?.english ?? "";
   const showUserLanguageMessage =
     Boolean(userLanguageMessageText) &&
     userLanguageMessageText.toLowerCase() !== restaurantMessageText.toLowerCase();
+  const restaurantMessageHeader = getStaffMessageHeader(scanResult.restaurantMessage?.language);
 
   useEffect(() => () => {
     void stopSpeech();
@@ -179,28 +177,29 @@ export function ResultsScreen({
 
         {scanResult.restaurantMessage && (
           <View style={styles.translationPreview}>
-            <View style={styles.translationHeader}>
-              <Languages color={colors.primary} size={18} strokeWidth={2.1} />
-              <Text style={styles.translationTitle}>{t("results.restaurantMessage")}</Text>
-            </View>
-            <Text style={styles.translationBody}>
-              {restaurantMessageText}
-            </Text>
-            {showTranslationTools && showUserLanguageMessage && (
-              <View style={styles.userLanguageReference}>
-                <Text style={styles.userLanguageLabel}>{t("results.userLanguageReference")}</Text>
-                <Text style={styles.userLanguageBody}>{userLanguageMessageText}</Text>
+            <View style={styles.staffMessageHeader}>
+              <View style={styles.translationHeaderText}>
+                <Languages color={colors.primary} size={18} strokeWidth={2.1} />
+                <Text style={styles.translationTitle}>{restaurantMessageHeader}</Text>
               </View>
-            )}
-            {showTranslationTools && (
               <VoiceButton
                 fallbackLanguageCode={languageCode}
                 label={t("voice.playMessage")}
                 languageHint={scanResult.restaurantMessage.language}
                 stopLabel={t("voice.stop")}
+                style={styles.headerVoiceButton}
                 text={restaurantMessageText}
                 unavailableLabel={t("voice.unavailable")}
               />
+            </View>
+            <Text style={styles.translationBody}>
+              {restaurantMessageText}
+            </Text>
+            {showUserLanguageMessage && (
+              <View style={styles.userLanguageReference}>
+                <Text style={styles.userLanguageLabel}>{t("results.userLanguageReference")}</Text>
+                <Text style={styles.userLanguageBody}>{userLanguageMessageText}</Text>
+              </View>
             )}
           </View>
         )}
@@ -254,6 +253,24 @@ function readabilityLabelKey(readability: ScanResult["imageQuality"]["readabilit
     return "results.readability.partiallyClear" as const;
   }
   return "results.readability.poor" as const;
+}
+
+const staffMessageHeaderByLanguage: Record<AppLanguageCode, string> = {
+  de: "Diese Allergie-Nachricht dem Personal zeigen",
+  en: "Show this allergy message to staff",
+  es: "Muestra este mensaje de alergia al personal",
+  fr: "Montrez ce message d'allergie au personnel",
+  it: "Mostra questo messaggio sulle allergie al personale",
+  ja: "このアレルギーのメッセージを店員に見せてください",
+  ko: "이 알레르기 메시지를 직원에게 보여 주세요",
+  pt: "Mostre esta mensagem de alergia à equipe",
+  th: "แสดงข้อความแพ้อาหารนี้ให้พนักงานดู",
+  "zh-Hans": "请向工作人员出示这条过敏信息",
+  "zh-Hant": "請向工作人員出示這條過敏資訊"
+};
+
+function getStaffMessageHeader(language?: string | null) {
+  return staffMessageHeaderByLanguage[language ? getLanguageCode(language) : "en"];
 }
 
 const styles = StyleSheet.create({
@@ -410,6 +427,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: 8
+  },
+  staffMessageHeader: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: 12,
+    justifyContent: "space-between"
+  },
+  translationHeaderText: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+    gap: 8,
+    paddingTop: 8
+  },
+  headerVoiceButton: {
+    alignItems: "flex-end",
+    flexShrink: 0
   },
   translationTitle: {
     color: colors.ink,
