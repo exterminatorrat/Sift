@@ -556,7 +556,7 @@ function DeleteScanDialog({ dialog, onCancel, onConfirm }: DeleteScanDialogProps
             }
           ]}
         >
-          <View style={styles.confirmHeader}>
+          <View style={styles.confirmContent}>
             <View style={styles.confirmIconWrap}>
               <Trash2 color={colors.avoid} size={19} strokeWidth={2.3} />
             </View>
@@ -877,8 +877,7 @@ const styles = StyleSheet.create({
   renameHeader: {
     gap: 6
   },
-  confirmHeader: {
-    flexDirection: "row",
+  confirmContent: {
     gap: 14
   },
   confirmIconWrap: {
