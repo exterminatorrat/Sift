@@ -248,31 +248,34 @@ function SwipeableScanCard({
       }}
       style={[
         styles.deletingCardShell,
-        isDeleting && { height: deleteHeight },
-        {
-          opacity: deleteOpacity,
-          transform: [{ translateX: deleteTranslateX }]
-        }
+        isDeleting && { height: deleteHeight }
       ]}
     >
-      <View ref={cardRef} collapsable={false}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityHint="Long press for scan options"
-        disabled={isDeleting}
-        onLongPress={openActions}
-        onPress={() => {
-          if (didLongPress.current) {
-            didLongPress.current = false;
-            return;
-          }
-          onOpen(scan.id);
+      <Animated.View
+        style={{
+          opacity: deleteOpacity,
+          transform: [{ translateX: deleteTranslateX }]
         }}
-        style={styles.item}
       >
-        <ScanCardContent scan={scan} scanTitle={scanTitle} />
-      </Pressable>
-    </View>
+        <View ref={cardRef} collapsable={false}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityHint="Long press for scan options"
+            disabled={isDeleting}
+            onLongPress={openActions}
+            onPress={() => {
+              if (didLongPress.current) {
+                didLongPress.current = false;
+                return;
+              }
+              onOpen(scan.id);
+            }}
+            style={styles.item}
+          >
+            <ScanCardContent scan={scan} scanTitle={scanTitle} />
+          </Pressable>
+        </View>
+      </Animated.View>
     </Animated.View>
   );
 }
@@ -508,6 +511,7 @@ type DeleteScanDialogProps = {
 };
 
 function DeleteScanDialog({ dialog, onCancel, onConfirm }: DeleteScanDialogProps) {
+  const isClosing = useRef(false);
   const scale = useRef(new Animated.Value(0.96)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -516,6 +520,7 @@ function DeleteScanDialog({ dialog, onCancel, onConfirm }: DeleteScanDialogProps
       return;
     }
 
+    isClosing.current = false;
     scale.setValue(0.96);
     opacity.setValue(0);
     Animated.parallel([
@@ -534,17 +539,42 @@ function DeleteScanDialog({ dialog, onCancel, onConfirm }: DeleteScanDialogProps
     ]).start();
   }, [dialog, opacity, scale]);
 
+  const closeWithAnimation = (afterClose?: () => void) => {
+    if (isClosing.current) {
+      return;
+    }
+
+    isClosing.current = true;
+    Animated.parallel([
+      Animated.timing(opacity, {
+        duration: 120,
+        easing: Easing.out(Easing.cubic),
+        toValue: 0,
+        useNativeDriver: true
+      }),
+      Animated.timing(scale, {
+        duration: 120,
+        easing: Easing.out(Easing.cubic),
+        toValue: 0.97,
+        useNativeDriver: true
+      })
+    ]).start(() => {
+      afterClose?.();
+      onCancel();
+    });
+  };
+
   if (!dialog) {
     return null;
   }
 
   return (
-    <Modal animationType="none" transparent visible onRequestClose={onCancel}>
+    <Modal animationType="none" transparent visible onRequestClose={() => closeWithAnimation()}>
       <View style={styles.confirmOverlay}>
         <Pressable
           accessibilityLabel="Close delete confirmation"
           accessibilityRole="button"
-          onPress={onCancel}
+          onPress={() => closeWithAnimation()}
           style={styles.renameDismissLayer}
         />
         <Animated.View
@@ -570,14 +600,14 @@ function DeleteScanDialog({ dialog, onCancel, onConfirm }: DeleteScanDialogProps
           <View style={styles.renameActions}>
             <Pressable
               accessibilityRole="button"
-              onPress={onCancel}
+              onPress={() => closeWithAnimation()}
               style={({ pressed }) => [styles.renameButton, pressed && styles.renameButtonPressed]}
             >
               <Text style={styles.renameCancelText}>Cancel</Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              onPress={() => onConfirm(dialog.scan)}
+              onPress={() => closeWithAnimation(() => onConfirm(dialog.scan))}
               style={({ pressed }) => [
                 styles.renameButton,
                 styles.deleteConfirmButton,
