@@ -195,9 +195,8 @@ Deno.serve(async (request) => {
 
     try {
       const analysis = await analyzeMenu(body);
-      const scanResult = normalizeScanResult(
-        JSON.parse(extractJsonText(analysis.text)) as Partial<ScanResult>,
-        body.profile.id
+      const scanResult = sanitizeScanResult(
+        normalizeScanResult(parseModelJson(analysis.text), body.profile.id)
       );
       const validationError = validateScanResult(scanResult);
 
@@ -625,43 +624,68 @@ function extractJsonText(value: string): string {
   return trimmed;
 }
 
-function normalizeScanResult(value: Partial<ScanResult>, profileId: string): ScanResult {
+function parseModelJson(text: string): Record<string, unknown> {
+  const jsonText = extractJsonText(text);
+
+  try {
+    const parsed = JSON.parse(jsonText);
+    if (isRecord(parsed)) {
+      return parsed;
+    }
+    if (typeof parsed === "string") {
+      const nested = JSON.parse(extractJsonText(parsed));
+      if (isRecord(nested)) {
+        return nested;
+      }
+    }
+  } catch {
+    throw new Error("Model JSON output could not be parsed.");
+  }
+
+  throw new Error("Model JSON output was not an object.");
+}
+
+function normalizeScanResult(value: Record<string, unknown>, profileId: string): ScanResult {
+  const scanSummary = readRecord(value.scanSummary) ?? readRecord(value.scan_summary);
+  const restaurantMessage = readRecord(value.restaurantMessage) ?? readRecord(value.restaurant_message);
+  const imageQuality = readRecord(value.imageQuality) ?? readRecord(value.image_quality);
+
   return {
     id: readString(value.id) || `scan-${Date.now()}`,
-    createdAt: readString(value.createdAt) || new Date().toISOString(),
+    createdAt: readString(value.createdAt ?? value.created_at) || new Date().toISOString(),
     imageUri: null,
-    restaurantName: typeof value.restaurantName === "string" ? value.restaurantName : null,
+    restaurantName: readString(value.restaurantName ?? value.restaurant_name) || null,
     profileId,
     scanSummary: {
-      overallRisk: riskLevels.has(value.scanSummary?.overallRisk as RiskLevel)
-        ? value.scanSummary!.overallRisk
+      overallRisk: riskLevels.has(readString(scanSummary?.overallRisk ?? scanSummary?.overall_risk) as RiskLevel)
+        ? readString(scanSummary?.overallRisk ?? scanSummary?.overall_risk) as RiskLevel
         : "unclear",
-      summary: readString(value.scanSummary?.summary) || "We could not analyze this menu clearly.",
+      summary: readString(scanSummary?.summary) || "We could not analyze this menu clearly.",
       limitations:
-        readString(value.scanSummary?.limitations) ||
+        readString(scanSummary?.limitations) ||
         "Visible menu text and common ingredient patterns only."
     },
     dishes: Array.isArray(value.dishes)
       ? value.dishes.map((dish, index) => normalizeDish(dish, index))
       : [createUnclearDish()],
-    restaurantMessage: value.restaurantMessage
+    restaurantMessage: restaurantMessage
       ? {
-          english: readString(value.restaurantMessage.english),
+          english: readString(restaurantMessage.english),
           translated:
-            typeof value.restaurantMessage.translated === "string"
-              ? value.restaurantMessage.translated
+            typeof restaurantMessage.translated === "string"
+              ? restaurantMessage.translated
               : null,
           language:
-            typeof value.restaurantMessage.language === "string"
-              ? value.restaurantMessage.language
+            typeof restaurantMessage.language === "string"
+              ? restaurantMessage.language
               : null
         }
       : null,
     imageQuality: {
-      readability: readabilityValues.has(value.imageQuality?.readability as ImageReadability)
-        ? value.imageQuality!.readability
+      readability: readabilityValues.has(imageQuality?.readability as ImageReadability)
+        ? imageQuality!.readability as ImageReadability
         : "poor",
-      issues: isStringArray(value.imageQuality?.issues) ? value.imageQuality!.issues : []
+      issues: isStringArray(imageQuality?.issues) ? imageQuality!.issues : []
     }
   };
 }
@@ -735,6 +759,35 @@ function createFallbackScanResult(profileId: string, analysisModel: string | nul
   };
 }
 
+function sanitizeScanResult(scanResult: ScanResult): ScanResult {
+  return rewriteBannedSafetyLanguage(scanResult) as ScanResult;
+}
+
+function rewriteBannedSafetyLanguage(value: unknown): unknown {
+  if (typeof value === "string") {
+    return value
+      .replace(/safe to eat/gi, "low risk based on visible menu text")
+      .replace(/safe for (you|the user|this allergy)/gi, "low risk based on visible menu text")
+      .replace(/you can eat/gi, "ask staff to confirm before ordering")
+      .replace(/probably fine/gi, "low risk based on visible menu text, but confirm with staff")
+      .replace(/guaranteed/gi, "not confirmed")
+      .replace(/completely safe/gi, "low risk based on visible menu text")
+      .replace(/allergen[- ]free/gi, "without the listed allergen based on available information");
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(rewriteBannedSafetyLanguage);
+  }
+
+  if (isRecord(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, rewriteBannedSafetyLanguage(item)])
+    );
+  }
+
+  return value;
+}
+
 function containsBannedSafetyLanguage(value: unknown): boolean {
   const bannedPatterns = [
     /safe to eat/i,
@@ -767,6 +820,10 @@ function isAllowedMimeType(value: unknown): value is AnalyzeMenuRequest["mimeTyp
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function readRecord(value: unknown): Record<string, unknown> | null {
+  return isRecord(value) ? value : null;
 }
 
 function readString(value: unknown): string {
