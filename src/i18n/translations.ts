@@ -43,6 +43,7 @@ export type TranslationKey =
   | "home.editProfile"
   | "home.scanMenu"
   | "home.scanBody"
+  | "home.scanHint"
   | "home.uploadPhoto"
   | "home.recentScans"
   | "home.viewAll"
@@ -315,6 +316,7 @@ const en = {
   "home.editProfile": "Edit profile",
   "home.scanMenu": "Scan Menu",
   "home.scanBody": "Analyze ingredients instantly",
+  "home.scanHint": "For best results, photograph the menu vertically from above.",
   "home.uploadPhoto": "Upload Photo",
   "home.recentScans": "Recent Scans",
   "home.viewAll": "View All",

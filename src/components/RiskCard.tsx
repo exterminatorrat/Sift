@@ -95,7 +95,6 @@ export function RiskCard({ dish, onPress }: RiskCardProps) {
             </View>
           ))}
         </View>
-        <Text style={[styles.action, { color: meta.color }]}>{meta.action}</Text>
       </Pressable>
     </Animated.View>
   );
@@ -177,11 +176,5 @@ const styles = StyleSheet.create({
     color: colors.inkMuted,
     ...typography.badge,
     fontSize: 11
-  },
-  action: {
-    marginTop: 12,
-    ...typography.label,
-    fontFamily: typography.label.fontFamily,
-    fontWeight: "600"
   }
 });
