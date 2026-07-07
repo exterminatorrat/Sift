@@ -12,6 +12,7 @@ import { VoiceButton } from "../components/VoiceButton";
 import { getRiskMeta } from "../utils/riskLabels";
 import { formatDateTime } from "../utils/formatters";
 import { useI18n } from "../i18n/I18nProvider";
+import { getLanguageCode } from "../i18n/translations";
 import { stopSpeech } from "../services/speechService";
 
 type ResultsScreenProps = {
@@ -39,6 +40,13 @@ export function ResultsScreen({
   };
   const restaurantMessageText =
     scanResult.restaurantMessage?.translated ?? scanResult.restaurantMessage?.english ?? "";
+  const restaurantLanguageIsEnglish =
+    getLanguageCode(scanResult.restaurantMessage?.language) === "en";
+  const restaurantLanguageMessageMissing =
+    Boolean(scanResult.restaurantMessage?.language) &&
+    !restaurantLanguageIsEnglish &&
+    !scanResult.restaurantMessage?.translated;
+  const staffMessageSpeechText = restaurantLanguageMessageMissing ? "" : restaurantMessageText;
   const userLanguageMessageText =
     scanResult.restaurantMessage?.userLanguageText ?? scanResult.restaurantMessage?.english ?? "";
   const showUserLanguageMessage =
@@ -187,13 +195,16 @@ export function ResultsScreen({
                 languageHint={scanResult.restaurantMessage.language}
                 stopLabel={t("voice.stop")}
                 style={styles.headerVoiceButton}
-                text={restaurantMessageText}
+                text={staffMessageSpeechText}
                 unavailableLabel={t("voice.unavailable")}
               />
             </View>
             <Text style={styles.translationBody}>
               {restaurantMessageText}
             </Text>
+            {restaurantLanguageMessageMissing && (
+              <Text style={styles.missingTranslationText}>{t("results.restaurantMessageMissing")}</Text>
+            )}
             {showUserLanguageMessage && (
               <View style={styles.userLanguageReference}>
                 <Text style={styles.userLanguageLabel}>{t("results.userLanguageReference")}</Text>
@@ -435,6 +446,11 @@ const styles = StyleSheet.create({
   translationBody: {
     color: colors.inkMuted,
     ...typography.bodySmall
+  },
+  missingTranslationText: {
+    color: colors.avoid,
+    ...typography.caption,
+    lineHeight: 18
   },
   userLanguageReference: {
     borderTopColor: colors.borderSoft,

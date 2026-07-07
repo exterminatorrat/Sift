@@ -117,6 +117,7 @@ export type TranslationKey =
   | "results.dishesFound"
   | "results.restaurantMessage"
   | "results.userLanguageReference"
+  | "results.restaurantMessageMissing"
   | "results.whatSiftChecked"
   | "results.referencesReturned"
   | "results.noReferences"
@@ -492,6 +493,7 @@ const en = {
   "results.dishesFound": "Dishes found",
   "results.restaurantMessage": "Show this allergy message to staff",
   "results.userLanguageReference": "Translation for you",
+  "results.restaurantMessageMissing": "Restaurant-language message was not generated for this scan. Re-scan with a restaurant language selected.",
   "results.whatSiftChecked": "What Sift checked",
   "results.referencesReturned": "References returned",
   "results.noReferences": "No external source URLs were returned for this scan.",

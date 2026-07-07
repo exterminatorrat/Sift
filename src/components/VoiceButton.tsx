@@ -124,6 +124,10 @@ const styles = StyleSheet.create({
   iconButton: {
     height: 38,
     paddingHorizontal: 0,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
     width: 38
   },
   buttonActive: {
