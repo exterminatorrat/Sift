@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Image, Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronLeft, Image as ImageIcon, Languages } from "lucide-react-native";
@@ -8,9 +8,11 @@ import { typography } from "../constants/typography";
 import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { RiskCard } from "../components/RiskCard";
 import { AnimatedPressable } from "../components/AnimatedPressable";
+import { VoiceButton } from "../components/VoiceButton";
 import { getRiskMeta } from "../utils/riskLabels";
 import { formatDateTime } from "../utils/formatters";
 import { useI18n } from "../i18n/I18nProvider";
+import { stopSpeech } from "../services/speechService";
 
 type ResultsScreenProps = {
   scanResult: ScanResult;
@@ -29,6 +31,22 @@ export function ResultsScreen({
   const summaryMeta = getRiskMeta(scanResult.scanSummary.overallRisk, t);
   const [photoOpen, setPhotoOpen] = useState(false);
   const hasMenuPhoto = Boolean(scanResult.imageUri);
+  const restaurantMessageText =
+    scanResult.restaurantMessage?.translated ?? scanResult.restaurantMessage?.english ?? "";
+
+  useEffect(() => () => {
+    void stopSpeech();
+  }, []);
+
+  const handleBack = () => {
+    void stopSpeech();
+    onBack();
+  };
+
+  const handleOpenDish = (dish: DishRisk) => {
+    void stopSpeech();
+    onOpenDish(dish);
+  };
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -37,7 +55,7 @@ export function ResultsScreen({
           <AnimatedPressable
             accessibilityLabel={t("common.back")}
             accessibilityRole="button"
-            onPress={onBack}
+            onPress={handleBack}
             scaleTo={0.92}
             style={styles.backButton}
           >
@@ -91,7 +109,7 @@ export function ResultsScreen({
 
         <View style={styles.cards}>
           {scanResult.dishes.map((dish) => (
-            <RiskCard key={dish.id} dish={dish} onPress={() => onOpenDish(dish)} />
+            <RiskCard key={dish.id} dish={dish} onPress={() => handleOpenDish(dish)} />
           ))}
         </View>
 
@@ -102,8 +120,16 @@ export function ResultsScreen({
               <Text style={styles.translationTitle}>{t("results.restaurantMessage")}</Text>
             </View>
             <Text style={styles.translationBody}>
-              {scanResult.restaurantMessage.translated ?? scanResult.restaurantMessage.english}
+              {restaurantMessageText}
             </Text>
+            <VoiceButton
+              fallbackLanguageCode={languageCode}
+              label={t("voice.playMessage")}
+              languageHint={scanResult.restaurantMessage.language}
+              stopLabel={t("voice.stop")}
+              text={restaurantMessageText}
+              unavailableLabel={t("voice.unavailable")}
+            />
           </View>
         )}
 

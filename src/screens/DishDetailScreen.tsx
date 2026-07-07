@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -15,7 +15,9 @@ import { DisclaimerBanner } from "../components/DisclaimerBanner";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { getRiskMeta } from "../utils/riskLabels";
 import { AnimatedPressable } from "../components/AnimatedPressable";
+import { VoiceButton } from "../components/VoiceButton";
 import { useI18n } from "../i18n/I18nProvider";
+import { stopSpeech } from "../services/speechService";
 
 type DishDetailScreenProps = {
   dish: DishRisk;
@@ -30,8 +32,19 @@ export function DishDetailScreen({
   restaurantMessage,
   onBack
 }: DishDetailScreenProps) {
-  const { t } = useI18n();
+  const { languageCode, t } = useI18n();
   const meta = getRiskMeta(dish.riskLevel, t);
+  const restaurantMessageText = restaurantMessage?.translated ?? restaurantMessage?.english ?? "";
+  const questionText = dish.questionsToAsk.join("\n\n");
+
+  useEffect(() => () => {
+    void stopSpeech();
+  }, []);
+
+  const handleBack = () => {
+    void stopSpeech();
+    onBack();
+  };
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -40,7 +53,7 @@ export function DishDetailScreen({
           <AnimatedPressable
             accessibilityLabel={t("common.back")}
             accessibilityRole="button"
-            onPress={onBack}
+            onPress={handleBack}
             scaleTo={0.92}
             style={styles.backButton}
           >
@@ -67,8 +80,17 @@ export function DishDetailScreen({
             <View style={styles.translationPrimary}>
               <Text style={styles.translationPrompt}>{t("dish.readCarefully")}</Text>
               <Text style={styles.translatedText}>
-                {restaurantMessage.translated ?? restaurantMessage.english}
+                {restaurantMessageText}
               </Text>
+              <VoiceButton
+                fallbackLanguageCode={languageCode}
+                label={t("voice.playForStaff")}
+                languageHint={restaurantMessage.language}
+                stopLabel={t("voice.stop")}
+                text={restaurantMessageText}
+                unavailableLabel={t("voice.unavailable")}
+                style={styles.centeredVoiceButton}
+              />
             </View>
             <View style={styles.translationSecondary}>
               <Text style={styles.englishLead}>{t("dish.allergiesTo")}</Text>
@@ -102,6 +124,14 @@ export function DishDetailScreen({
         </DetailSection>
 
         <DetailSection title={t("dish.questionsToAsk")} icon={MessageSquareText}>
+          <VoiceButton
+            fallbackLanguageCode={languageCode}
+            label={t("voice.readQuestions")}
+            languageHint={profile.preferredLanguage}
+            stopLabel={t("voice.stop")}
+            text={questionText}
+            unavailableLabel={t("voice.unavailable")}
+          />
           <View style={styles.questionList}>
             {dish.questionsToAsk.map((question) => (
               <View key={question} style={styles.questionRow}>
@@ -112,7 +142,7 @@ export function DishDetailScreen({
           </View>
         </DetailSection>
 
-        <PrimaryButton label={t("dish.backToResults")} onPress={onBack} tone="secondary" />
+        <PrimaryButton label={t("dish.backToResults")} onPress={handleBack} tone="secondary" />
       </ScrollView>
     </SafeAreaView>
   );
@@ -340,6 +370,9 @@ const styles = StyleSheet.create({
     fontSize: 30,
     lineHeight: 42,
     textAlign: "center"
+  },
+  centeredVoiceButton: {
+    alignItems: "center"
   },
   translationSecondary: {
     alignItems: "center",

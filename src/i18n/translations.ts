@@ -130,6 +130,11 @@ export type TranslationKey =
   | "dish.emptyPossibleAllergens"
   | "dish.emptyHiddenRisk"
   | "dish.emptyCrossContact"
+  | "voice.playMessage"
+  | "voice.playForStaff"
+  | "voice.readQuestions"
+  | "voice.stop"
+  | "voice.unavailable"
   | "profile.title"
   | "profile.body"
   | "profile.savedProfiles"
@@ -460,6 +465,11 @@ const en = {
   "dish.emptyPossibleAllergens": "No obvious listed allergen from visible menu text.",
   "dish.emptyHiddenRisk": "No common hidden ingredient pattern was flagged.",
   "dish.emptyCrossContact": "No specific cross-contact concern was found.",
+  "voice.playMessage": "Play message",
+  "voice.playForStaff": "Play for staff",
+  "voice.readQuestions": "Read questions",
+  "voice.stop": "Stop",
+  "voice.unavailable": "Could not play audio on this device.",
   "profile.title": "Allergy Profile",
   "profile.body": "Choose allergies and severity. Sift uses this profile to scan menus and prepare questions.",
   "profile.savedProfiles": "Saved profiles",
