@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     width: 44
   },
   pageTitle: {
-    color: colors.ink,
+    color: colors.primaryDark,
     ...typography.pageTitle,
     flex: 1,
     textAlign: "center"
