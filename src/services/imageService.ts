@@ -14,6 +14,7 @@ export class ImageAccessError extends Error {
     super(message);
     this.name = "ImageAccessError";
     this.code = code;
+    Object.setPrototypeOf(this, ImageAccessError.prototype);
   }
 }
 

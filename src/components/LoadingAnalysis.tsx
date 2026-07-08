@@ -95,11 +95,74 @@ const loadingPhrases: Partial<Record<AppLanguageCode, LoadingPhrase[]>> = {
 };
 
 const MENU_SHEET_HEIGHT = 154;
+const cleanLoadingPhrases: Partial<Record<AppLanguageCode, LoadingPhrase[]>> = {
+  en: loadingPhrases.en,
+  es: [
+    { title: "Leyendo el menú...", subtitle: "Buscando platos e ingredientes visibles" },
+    { title: "Rastreando riesgos ocultos...", subtitle: "Revisando salsas, aceites, caldos y guarniciones" },
+    { title: "Comparando con tu perfil...", subtitle: "Ajustando el riesgo por gravedad y contacto cruzado" },
+    { title: "Preparando preguntas...", subtitle: "Convirtiendo la incertidumbre en preguntas útiles" }
+  ],
+  fr: [
+    { title: "Lecture du menu...", subtitle: "Repérage des plats et ingrédients visibles" },
+    { title: "Recherche de risques cachés...", subtitle: "Sauces, huiles, bouillons et garnitures" },
+    { title: "Vérification du profil...", subtitle: "Ajustement selon la gravité et le contact croisé" },
+    { title: "Préparation des questions...", subtitle: "Transformer l'incertitude en questions utiles" }
+  ],
+  it: [
+    { title: "Lettura del menu...", subtitle: "Estrazione di piatti e ingredienti visibili" },
+    { title: "Tracciamento dei rischi nascosti...", subtitle: "Controllo di salse, oli, brodi e guarnizioni" },
+    { title: "Confronto con il tuo profilo...", subtitle: "Regolazione del rischio per gravità e contatto incrociato" },
+    { title: "Preparazione delle domande...", subtitle: "Trasformare l'incertezza in cosa chiedere" }
+  ],
+  ja: [
+    { title: "メニューを読んでいます...", subtitle: "見える料理名と材料を確認しています" },
+    { title: "隠れたリスクを確認中...", subtitle: "ソース、油、だし、付け合わせを見ています" },
+    { title: "プロフィールと照合中...", subtitle: "重症度と交差接触を考慮しています" },
+    { title: "質問を準備中...", subtitle: "スタッフに確認する内容を整理しています" }
+  ],
+  de: [
+    { title: "Speisekarte wird gelesen...", subtitle: "Sichtbare Gerichte und Zutaten werden erkannt" },
+    { title: "Versteckte Risiken werden geprüft...", subtitle: "Saucen, Öle, Brühen und Garnituren" },
+    { title: "Profil wird abgeglichen...", subtitle: "Risiko nach Schweregrad und Kreuzkontakt" },
+    { title: "Fragen werden vorbereitet...", subtitle: "Aus Unsicherheit werden konkrete Fragen" }
+  ],
+  ko: [
+    { title: "메뉴를 읽는 중...", subtitle: "보이는 음식과 재료를 확인하고 있어요" },
+    { title: "숨은 위험을 확인 중...", subtitle: "소스, 오일, 육수, 고명을 살펴보고 있어요" },
+    { title: "프로필과 대조 중...", subtitle: "중증도와 교차 접촉을 반영하고 있어요" },
+    { title: "직원에게 물어볼 질문 준비 중...", subtitle: "불확실한 부분을 질문으로 정리하고 있어요" }
+  ],
+  "zh-Hans": [
+    { title: "正在读取菜单...", subtitle: "提取可见菜品和配料" },
+    { title: "正在追踪隐藏风险...", subtitle: "检查酱料、油、汤底和配菜" },
+    { title: "正在对照过敏档案...", subtitle: "根据严重程度和交叉接触调整风险" },
+    { title: "正在准备询问员工的问题...", subtitle: "把不确定之处整理成问题" }
+  ],
+  "zh-Hant": [
+    { title: "正在讀取菜單...", subtitle: "提取可見菜品和配料" },
+    { title: "正在追蹤隱藏風險...", subtitle: "檢查醬料、油、湯底和配菜" },
+    { title: "正在對照過敏檔案...", subtitle: "根據嚴重程度和交叉接觸調整風險" },
+    { title: "正在準備詢問員工的問題...", subtitle: "把不確定之處整理成問題" }
+  ],
+  pt: [
+    { title: "Lendo o cardápio...", subtitle: "Extraindo pratos e ingredientes visíveis" },
+    { title: "Rastreando riscos ocultos...", subtitle: "Verificando molhos, óleos, caldos e guarnições" },
+    { title: "Comparando com seu perfil...", subtitle: "Ajustando risco por gravidade e contato cruzado" },
+    { title: "Preparando perguntas...", subtitle: "Transformando incertezas em perguntas úteis" }
+  ],
+  th: [
+    { title: "กำลังอ่านเมนู...", subtitle: "ตรวจหาชื่ออาหารและส่วนผสมที่มองเห็นได้" },
+    { title: "กำลังตรวจหาความเสี่ยงแอบแฝง...", subtitle: "ตรวจสอบซอส น้ำมัน น้ำซุป และเครื่องเคียง" },
+    { title: "กำลังเทียบกับโปรไฟล์ของคุณ...", subtitle: "ปรับระดับความเสี่ยงตามความรุนแรงและการปนเปื้อนข้าม" },
+    { title: "กำลังเตรียมคำถามสำหรับพนักงาน...", subtitle: "แปลงความไม่แน่ใจเป็นคำถามที่ใช้ได้จริง" }
+  ]
+};
 const loadingIcons = [FileSearch, ShieldAlert, ScanSearch, MessageCircleQuestion, ListChecks];
 
 export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }: LoadingAnalysisProps) {
   const { languageCode, t } = useI18n();
-  const phrases = loadingPhrases[languageCode] ?? loadingPhrases.en!;
+  const phrases = cleanLoadingPhrases[languageCode] ?? cleanLoadingPhrases.en!;
   const [phraseIndex, setPhraseIndex] = useState(0);
   const copyIn = useRef(new Animated.Value(0)).current;
   const scanProgress = useRef(new Animated.Value(0)).current;
