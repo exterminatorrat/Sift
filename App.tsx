@@ -431,6 +431,17 @@ export default function App() {
                     setMainTab("home");
                     navigation.navigate("Home");
                   }}
+                  onDeleteScan={async (scanId) => {
+                    if (returnToHistory) {
+                      navigation.goBack();
+                      await deleteScan(scanId);
+                      return;
+                    }
+
+                    setMainTab("home");
+                    navigation.navigate("Home");
+                    await deleteScan(scanId);
+                  }}
                   onOpenHistory={() => {
                     setMainTab("history");
                     navigation.navigate("Home");
@@ -441,6 +452,9 @@ export default function App() {
                       dishId: dish.id
                     })
                   }
+                  onRenameScan={(scanId, title) => {
+                    void renameScan(scanId, title);
+                  }}
                 />
               );
             }}

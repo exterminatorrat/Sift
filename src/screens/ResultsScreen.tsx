@@ -1,7 +1,29 @@
-import React, { useEffect, useState } from "react";
-import { Image, Linking, Modal, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  Easing,
+  Image,
+  KeyboardAvoidingView,
+  Linking,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChevronLeft, Image as ImageIcon, Languages, ListChecks } from "lucide-react-native";
+import {
+  ChevronLeft,
+  Image as ImageIcon,
+  Languages,
+  ListChecks,
+  MoreHorizontal,
+  Pencil,
+  Trash2
+} from "lucide-react-native";
 import { DishRisk, ScanResult } from "../types/scan";
 import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
@@ -18,19 +40,27 @@ import { stopSpeech } from "../services/speechService";
 type ResultsScreenProps = {
   scanResult: ScanResult;
   onBack: () => void;
+  onDeleteScan?: (scanId: string) => void | Promise<void>;
   onOpenDish: (dish: DishRisk) => void;
   onOpenHistory?: () => void;
+  onRenameScan?: (scanId: string, title: string) => void | Promise<void>;
 };
 
 export function ResultsScreen({
   scanResult,
   onBack,
+  onDeleteScan,
   onOpenDish,
-  onOpenHistory
+  onOpenHistory,
+  onRenameScan
 }: ResultsScreenProps) {
   const { languageCode, t } = useI18n();
   const summaryMeta = getRiskMeta(scanResult.scanSummary.overallRisk, t);
+  const scanTitle = scanResult.restaurantName ?? t("home.menuScan");
   const [photoOpen, setPhotoOpen] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const hasMenuPhoto = Boolean(scanResult.imageUri);
   const scanTransparency = scanResult.transparency ?? {
     checked: ["Menu photo", "Allergy profile", "Common ingredient and preparation patterns"],
@@ -81,7 +111,19 @@ export function ResultsScreen({
             <ChevronLeft color={colors.ink} size={22} strokeWidth={2.2} />
           </AnimatedPressable>
           <Text style={styles.pageTitle}>{t("results.title")}</Text>
-          <View style={styles.headerSpacer} />
+          {onRenameScan || onDeleteScan ? (
+            <AnimatedPressable
+              accessibilityLabel="Open scan options"
+              accessibilityRole="button"
+              onPress={() => setActionsOpen(true)}
+              scaleTo={0.92}
+              style={styles.headerActionButton}
+            >
+              <MoreHorizontal color={colors.ink} size={21} strokeWidth={2.2} />
+            </AnimatedPressable>
+          ) : (
+            <View style={styles.headerSpacer} />
+          )}
         </View>
 
         <View style={styles.summary}>
@@ -251,7 +293,337 @@ export function ResultsScreen({
           </View>
         </Modal>
       )}
+
+      <ScanActionsModal
+        onClose={() => setActionsOpen(false)}
+        onDelete={() => {
+          setActionsOpen(false);
+          setDeleteOpen(true);
+        }}
+        onRename={() => {
+          setActionsOpen(false);
+          setRenameOpen(true);
+        }}
+        showDelete={Boolean(onDeleteScan)}
+        showRename={Boolean(onRenameScan)}
+        visible={actionsOpen}
+      />
+      <RenameScanModal
+        initialTitle={scanTitle}
+        onCancel={() => setRenameOpen(false)}
+        onSave={(title) => {
+          void onRenameScan?.(scanResult.id, title);
+          setRenameOpen(false);
+        }}
+        visible={renameOpen}
+      />
+      <DeleteScanModal
+        onCancel={() => setDeleteOpen(false)}
+        onConfirm={() => {
+          setDeleteOpen(false);
+          void onDeleteScan?.(scanResult.id);
+        }}
+        title={scanTitle}
+        visible={deleteOpen}
+      />
     </SafeAreaView>
+  );
+}
+
+type ScanActionsModalProps = {
+  onClose: () => void;
+  onDelete: () => void;
+  onRename: () => void;
+  showDelete: boolean;
+  showRename: boolean;
+  visible: boolean;
+};
+
+function ScanActionsModal({
+  onClose,
+  onDelete,
+  onRename,
+  showDelete,
+  showRename,
+  visible
+}: ScanActionsModalProps) {
+  const scale = useRef(new Animated.Value(0.96)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+
+    scale.setValue(0.96);
+    opacity.setValue(0);
+    Animated.parallel([
+      Animated.timing(opacity, {
+        duration: 130,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true
+      }),
+      Animated.timing(scale, {
+        duration: 170,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true
+      })
+    ]).start();
+  }, [opacity, scale, visible]);
+
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <Modal animationType="none" onRequestClose={onClose} transparent visible>
+      <View style={styles.actionOverlay}>
+        <Pressable
+          accessibilityLabel="Close scan options"
+          accessibilityRole="button"
+          onPress={onClose}
+          style={styles.actionDismissLayer}
+        />
+        <Animated.View
+          style={[
+            styles.actionMenu,
+            {
+              opacity,
+              transform: [{ scale }]
+            }
+          ]}
+        >
+          {showRename && (
+            <Pressable
+              accessibilityRole="button"
+              onPress={onRename}
+              style={({ pressed }) => [styles.actionMenuRow, pressed && styles.actionMenuRowPressed]}
+            >
+              <Pencil color={colors.ink} size={17} strokeWidth={2.2} />
+              <Text style={styles.actionMenuText}>Rename</Text>
+            </Pressable>
+          )}
+          {showRename && showDelete && <View style={styles.actionMenuDivider} />}
+          {showDelete && (
+            <Pressable
+              accessibilityRole="button"
+              onPress={onDelete}
+              style={({ pressed }) => [styles.actionMenuRow, pressed && styles.actionMenuRowPressed]}
+            >
+              <Trash2 color={colors.avoid} size={17} strokeWidth={2.2} />
+              <Text style={styles.actionMenuDeleteText}>Delete</Text>
+            </Pressable>
+          )}
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+}
+
+type RenameScanModalProps = {
+  initialTitle: string;
+  onCancel: () => void;
+  onSave: (title: string) => void;
+  visible: boolean;
+};
+
+function RenameScanModal({ initialTitle, onCancel, onSave, visible }: RenameScanModalProps) {
+  const [draftTitle, setDraftTitle] = useState(initialTitle);
+  const scale = useRef(new Animated.Value(0.96)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+
+    setDraftTitle(initialTitle);
+    scale.setValue(0.96);
+    opacity.setValue(0);
+    Animated.parallel([
+      Animated.timing(opacity, {
+        duration: 130,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true
+      }),
+      Animated.timing(scale, {
+        duration: 170,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true
+      })
+    ]).start();
+  }, [initialTitle, opacity, scale, visible]);
+
+  if (!visible) {
+    return null;
+  }
+
+  const trimmedTitle = draftTitle.trim();
+
+  return (
+    <Modal animationType="none" onRequestClose={onCancel} transparent visible>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.renameOverlay}
+      >
+        <Pressable
+          accessibilityLabel="Close rename scan"
+          accessibilityRole="button"
+          onPress={onCancel}
+          style={styles.renameDismissLayer}
+        />
+        <Animated.View
+          style={[
+            styles.renameCard,
+            {
+              opacity,
+              transform: [{ scale }]
+            }
+          ]}
+        >
+          <View style={styles.renameHeader}>
+            <Text style={styles.renameTitle}>Rename scan</Text>
+            <Text style={styles.renameBody}>Give this saved scan a short, recognizable name.</Text>
+          </View>
+          <TextInput
+            autoCapitalize="words"
+            autoCorrect={false}
+            autoFocus
+            onChangeText={setDraftTitle}
+            onSubmitEditing={() => {
+              if (trimmedTitle) {
+                onSave(trimmedTitle);
+              }
+            }}
+            placeholder="Scan name"
+            placeholderTextColor={colors.inkSubtle}
+            returnKeyType="done"
+            selectTextOnFocus
+            style={styles.renameInput}
+            value={draftTitle}
+          />
+          <View style={styles.renameActions}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={onCancel}
+              style={({ pressed }) => [styles.renameButton, pressed && styles.renameButtonPressed]}
+            >
+              <Text style={styles.renameCancelText}>Cancel</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              disabled={!trimmedTitle}
+              onPress={() => onSave(trimmedTitle)}
+              style={({ pressed }) => [
+                styles.renameButton,
+                styles.renameSaveButton,
+                !trimmedTitle && styles.renameSaveButtonDisabled,
+                pressed && trimmedTitle && styles.renameSaveButtonPressed
+              ]}
+            >
+              <Text style={styles.renameSaveText}>Save</Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+type DeleteScanModalProps = {
+  onCancel: () => void;
+  onConfirm: () => void;
+  title: string;
+  visible: boolean;
+};
+
+function DeleteScanModal({ onCancel, onConfirm, title, visible }: DeleteScanModalProps) {
+  const scale = useRef(new Animated.Value(0.96)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+
+    scale.setValue(0.96);
+    opacity.setValue(0);
+    Animated.parallel([
+      Animated.timing(opacity, {
+        duration: 130,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true
+      }),
+      Animated.timing(scale, {
+        duration: 170,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true
+      })
+    ]).start();
+  }, [opacity, scale, visible]);
+
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <Modal animationType="none" onRequestClose={onCancel} transparent visible>
+      <View style={styles.renameOverlay}>
+        <Pressable
+          accessibilityLabel="Close delete confirmation"
+          accessibilityRole="button"
+          onPress={onCancel}
+          style={styles.renameDismissLayer}
+        />
+        <Animated.View
+          style={[
+            styles.renameCard,
+            {
+              opacity,
+              transform: [{ scale }]
+            }
+          ]}
+        >
+          <View style={styles.confirmContent}>
+            <View style={styles.confirmIconWrap}>
+              <Trash2 color={colors.avoid} size={19} strokeWidth={2.3} />
+            </View>
+            <View style={styles.renameHeader}>
+              <Text style={styles.renameTitle}>Delete scan?</Text>
+              <Text style={styles.renameBody}>
+                This removes "{title}" from your saved scan history on this device.
+              </Text>
+            </View>
+          </View>
+          <View style={styles.renameActions}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={onCancel}
+              style={({ pressed }) => [styles.renameButton, pressed && styles.renameButtonPressed]}
+            >
+              <Text style={styles.renameCancelText}>Cancel</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={onConfirm}
+              style={({ pressed }) => [
+                styles.renameButton,
+                styles.deleteConfirmButton,
+                pressed && styles.deleteConfirmButtonPressed
+              ]}
+            >
+              <Text style={styles.renameSaveText}>Delete</Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
   );
 }
 
@@ -304,6 +676,21 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     height: 44,
+    width: 44
+  },
+  headerActionButton: {
+    alignItems: "center",
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    elevation: 2,
+    height: 44,
+    justifyContent: "center",
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
     width: 44
   },
   summary: {
@@ -540,6 +927,150 @@ const styles = StyleSheet.create({
   photoCloseText: {
     color: colors.ink,
     ...typography.badge
+  },
+  actionOverlay: {
+    alignItems: "flex-end",
+    backgroundColor: "rgba(24, 35, 33, 0.16)",
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 78
+  },
+  actionDismissLayer: {
+    ...StyleSheet.absoluteFillObject
+  },
+  actionMenu: {
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.border,
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    elevation: 5,
+    overflow: "hidden",
+    shadowColor: colors.ink,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.14,
+    shadowRadius: 28,
+    width: 176
+  },
+  actionMenuRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 10,
+    minHeight: 48,
+    paddingHorizontal: 16
+  },
+  actionMenuRowPressed: {
+    backgroundColor: colors.surfaceMuted
+  },
+  actionMenuText: {
+    color: colors.ink,
+    ...typography.label
+  },
+  actionMenuDeleteText: {
+    color: colors.avoid,
+    ...typography.label
+  },
+  actionMenuDivider: {
+    backgroundColor: colors.borderSoft,
+    height: StyleSheet.hairlineWidth
+  },
+  renameOverlay: {
+    alignItems: "center",
+    backgroundColor: "rgba(24, 35, 33, 0.28)",
+    flex: 1,
+    justifyContent: "center",
+    padding: 22
+  },
+  renameDismissLayer: {
+    ...StyleSheet.absoluteFillObject
+  },
+  renameCard: {
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.border,
+    borderRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 18,
+    padding: 18,
+    shadowColor: colors.ink,
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.15,
+    shadowRadius: 28,
+    width: "100%"
+  },
+  renameHeader: {
+    flex: 1,
+    gap: 6
+  },
+  renameTitle: {
+    color: colors.ink,
+    ...typography.sectionTitle
+  },
+  renameBody: {
+    color: colors.inkMuted,
+    ...typography.bodySmall
+  },
+  renameInput: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    color: colors.ink,
+    minHeight: 52,
+    paddingHorizontal: 14,
+    paddingVertical: 0,
+    textAlignVertical: "center",
+    ...typography.body
+  },
+  renameActions: {
+    flexDirection: "row",
+    gap: 10
+  },
+  renameButton: {
+    alignItems: "center",
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: 999,
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 46
+  },
+  renameButtonPressed: {
+    opacity: 0.78,
+    transform: [{ scale: 0.98 }]
+  },
+  renameCancelText: {
+    color: colors.ink,
+    ...typography.label
+  },
+  renameSaveButton: {
+    backgroundColor: colors.primary
+  },
+  renameSaveButtonPressed: {
+    backgroundColor: colors.primaryDark
+  },
+  renameSaveButtonDisabled: {
+    backgroundColor: colors.disabled
+  },
+  renameSaveText: {
+    color: colors.textInverse,
+    ...typography.label
+  },
+  confirmContent: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: 12
+  },
+  confirmIconWrap: {
+    alignItems: "center",
+    backgroundColor: colors.avoidSoft,
+    borderRadius: 999,
+    height: 42,
+    justifyContent: "center",
+    width: 42
+  },
+  deleteConfirmButton: {
+    backgroundColor: colors.avoid
+  },
+  deleteConfirmButtonPressed: {
+    backgroundColor: colors.danger
   },
   menuPhoto: {
     backgroundColor: colors.ink,
