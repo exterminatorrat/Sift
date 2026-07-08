@@ -99,36 +99,39 @@ export function ResultsScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.headerBackdrop} />
-      <View style={styles.pageHeader}>
-        <AnimatedPressable
-          accessibilityLabel={t("common.back")}
-          accessibilityRole="button"
-          onPress={handleBack}
-          scaleTo={0.92}
-          style={styles.backButton}
-        >
-          <ChevronLeft color={colors.ink} size={22} strokeWidth={2.2} />
-        </AnimatedPressable>
-        <Text style={styles.pageTitle}>{t("results.title")}</Text>
-        {onRenameScan || onDeleteScan ? (
+      <View style={styles.fixedHeader}>
+        <View style={styles.pageHeader}>
           <AnimatedPressable
-            accessibilityLabel="Open scan options"
+            accessibilityLabel={t("common.back")}
             accessibilityRole="button"
-            onPress={() => setActionsOpen(true)}
+            onPress={handleBack}
             scaleTo={0.92}
-            style={styles.headerActionButton}
+            style={styles.backButton}
           >
-            <MoreHorizontal color={colors.ink} size={21} strokeWidth={2.2} />
+            <ChevronLeft color={colors.ink} size={22} strokeWidth={2.2} />
           </AnimatedPressable>
-        ) : (
-          <View style={styles.headerSpacer} />
-        )}
+          <Text style={styles.pageTitle}>{t("results.title")}</Text>
+          {onRenameScan || onDeleteScan ? (
+            <AnimatedPressable
+              accessibilityLabel="Open scan options"
+              accessibilityRole="button"
+              onPress={() => setActionsOpen(true)}
+              scaleTo={0.92}
+              style={styles.headerActionButton}
+            >
+              <MoreHorizontal color={colors.ink} size={21} strokeWidth={2.2} />
+            </AnimatedPressable>
+          ) : (
+            <View style={styles.headerSpacer} />
+          )}
+        </View>
       </View>
-      <View pointerEvents="none" style={styles.headerFade} />
-
+      <View pointerEvents="none" style={styles.headerFade}>
+        <View style={[styles.headerFadeBand, styles.headerFadeStrong]} />
+        <View style={[styles.headerFadeBand, styles.headerFadeMedium]} />
+        <View style={[styles.headerFadeBand, styles.headerFadeSoft]} />
+      </View>
       <ScrollView contentContainerStyle={styles.content}>
-
         <View style={styles.summary}>
           <View style={styles.summaryTop}>
             <View style={[styles.badge, { backgroundColor: summaryMeta.background }]}>
@@ -648,37 +651,50 @@ const styles = StyleSheet.create({
   content: {
     gap: 16,
     padding: 24,
-    paddingBottom: 24,
-    paddingTop: 82
+    paddingBottom: 12,
+    paddingTop: 0
   },
-  headerBackdrop: {
+  fixedHeader: {
     backgroundColor: colors.background,
-    height: 80,
-    left: 0,
-    position: "absolute",
-    right: 0,
-    top: 0,
-    zIndex: 2
+    paddingBottom: 14,
+    paddingHorizontal: 24,
+    paddingTop: 18,
+    shadowColor: colors.background,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.9,
+    shadowRadius: 14,
+    zIndex: 3
   },
   headerFade: {
-    backgroundColor: "rgba(255, 248, 239, 0.88)",
     height: 18,
+    overflow: "hidden",
+    zIndex: 2
+  },
+  headerFadeBand: {
+    backgroundColor: colors.background,
     left: 0,
     position: "absolute",
-    right: 0,
-    top: 80,
-    zIndex: 2
+    right: 0
+  },
+  headerFadeStrong: {
+    height: 6,
+    opacity: 0.82,
+    top: 0
+  },
+  headerFadeMedium: {
+    height: 7,
+    opacity: 0.42,
+    top: 5
+  },
+  headerFadeSoft: {
+    height: 8,
+    opacity: 0.16,
+    top: 10
   },
   pageHeader: {
     alignItems: "center",
-    backgroundColor: colors.background,
     flexDirection: "row",
-    justifyContent: "space-between",
-    left: 24,
-    position: "absolute",
-    right: 24,
-    top: 18,
-    zIndex: 3
+    justifyContent: "space-between"
   },
   backButton: {
     alignItems: "center",
@@ -960,7 +976,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(24, 35, 33, 0.16)",
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 78
+    paddingTop: 112
   },
   actionDismissLayer: {
     ...StyleSheet.absoluteFillObject
