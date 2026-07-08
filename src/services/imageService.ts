@@ -27,7 +27,7 @@ export async function pickMenuImage(): Promise<PreparedMenuImage | null> {
   try {
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: false,
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       quality: 1
     });
 
@@ -54,7 +54,7 @@ export async function captureMenuImage(): Promise<PreparedMenuImage | null> {
   try {
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: false,
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       quality: 1
     });
 
