@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
-import { ChefHat, CookingPot, Salad, Soup, UtensilsCrossed } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
 import { AppTopBar } from "./AppTopBar";
@@ -94,20 +93,26 @@ const loadingPhrases: Partial<Record<AppLanguageCode, LoadingPhrase[]>> = {
   ]
 };
 
-const loadingIcons = [ChefHat, CookingPot, Soup, Salad, UtensilsCrossed];
+const MENU_SHEET_HEIGHT = 154;
 
 export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }: LoadingAnalysisProps) {
   const { languageCode, t } = useI18n();
   const phrases = loadingPhrases[languageCode] ?? loadingPhrases.en!;
   const [phraseIndex, setPhraseIndex] = useState(0);
-  const pulse = useRef(new Animated.Value(0)).current;
   const copyIn = useRef(new Animated.Value(0)).current;
   const scanProgress = useRef(new Animated.Value(0)).current;
+  const sheetIn = useRef(new Animated.Value(0)).current;
 
   const phrase = phrases[phraseIndex % phrases.length];
-  const ActiveLoadingIcon = loadingIcons[phraseIndex % loadingIcons.length];
 
   useEffect(() => {
+    Animated.timing(sheetIn, {
+      duration: 260,
+      easing: Easing.out(Easing.cubic),
+      toValue: 1,
+      useNativeDriver: true
+    }).start();
+
     Animated.timing(copyIn, {
       duration: 320,
       easing: Easing.out(Easing.cubic),
@@ -115,47 +120,29 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
       useNativeDriver: true
     }).start();
 
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          duration: 1450,
-          easing: Easing.inOut(Easing.cubic),
-          toValue: 1,
-          useNativeDriver: true
-        }),
-        Animated.timing(pulse, {
-          duration: 1450,
-          easing: Easing.inOut(Easing.cubic),
-          toValue: 0,
-          useNativeDriver: true
-        })
-      ])
-    );
-    loop.start();
-
     const scanLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(scanProgress, {
-          duration: 1800,
-          easing: Easing.inOut(Easing.cubic),
-          toValue: 1,
+          duration: 1,
+          easing: Easing.linear,
+          toValue: 0,
           useNativeDriver: true
         }),
         Animated.timing(scanProgress, {
           duration: 1800,
           easing: Easing.inOut(Easing.cubic),
-          toValue: 0,
+          toValue: 1,
           useNativeDriver: true
-        })
+        }),
+        Animated.delay(260)
       ])
     );
     scanLoop.start();
 
     return () => {
-      loop.stop();
       scanLoop.stop();
     };
-  }, [copyIn, pulse, scanProgress]);
+  }, [copyIn, scanProgress, sheetIn]);
 
   useEffect(() => {
     if (phrases.length <= 1) {
@@ -184,76 +171,125 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
 
   const scanTranslateY = scanProgress.interpolate({
     inputRange: [0, 1],
-    outputRange: [-140, 34]
+    outputRange: [-18, MENU_SHEET_HEIGHT + 18]
   });
-  const markerScale = pulse.interpolate({
+  const sheetScale = sheetIn.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.86, 1.12]
+    outputRange: [0.96, 1]
   });
-  const iconTranslateY = pulse.interpolate({
+  const sheetTranslateY = sheetIn.interpolate({
     inputRange: [0, 1],
-    outputRange: [-4, 4]
-  });
-  const iconRotate = pulse.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["-3deg", "3deg"]
-  });
-  const iconScale = copyIn.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.86, 1]
+    outputRange: [10, 0]
   });
   const copyTranslateY = copyIn.interpolate({
     inputRange: [0, 1],
     outputRange: [12, 0]
+  });
+  const beamOpacity = scanProgress.interpolate({
+    inputRange: [0, 0.08, 0.92, 1],
+    outputRange: [0, 1, 1, 0],
+    extrapolate: "clamp"
+  });
+  const firstHighlightOpacity = scanProgress.interpolate({
+    inputRange: [0, 0.18, 0.28, 1],
+    outputRange: [0, 0, 1, 1],
+    extrapolate: "clamp"
+  });
+  const secondHighlightOpacity = scanProgress.interpolate({
+    inputRange: [0, 0.44, 0.54, 1],
+    outputRange: [0, 0, 1, 1],
+    extrapolate: "clamp"
+  });
+  const thirdHighlightOpacity = scanProgress.interpolate({
+    inputRange: [0, 0.66, 0.76, 1],
+    outputRange: [0, 0, 1, 1],
+    extrapolate: "clamp"
+  });
+  const markerScale = scanProgress.interpolate({
+    inputRange: [0, 0.2, 0.34, 0.56, 0.7, 1],
+    outputRange: [0.86, 0.86, 1.05, 1.05, 1, 1],
+    extrapolate: "clamp"
   });
 
   return (
     <SafeAreaView style={styles.screen}>
       {showTopBar && <AppTopBar showBack={showBack} onBack={onBack} />}
       <View style={styles.content}>
-        <View style={styles.pulseWrap}>
+        <Animated.View
+          style={[
+            styles.loaderWrap,
+            {
+              opacity: sheetIn,
+              transform: [{ translateY: sheetTranslateY }, { scale: sheetScale }]
+            }
+          ]}
+        >
           <View style={styles.scanStage}>
-            <Animated.View
-              style={[
-                styles.iconBadge,
-                {
-                  opacity: copyIn,
-                  transform: [{ translateY: iconTranslateY }, { rotate: iconRotate }, { scale: iconScale }]
-                }
-              ]}
-            >
-              <ActiveLoadingIcon color={colors.primaryDark} size={30} strokeWidth={1.9} />
-            </Animated.View>
             <View style={styles.menuSheet}>
               <Animated.View
                 style={[
-                  styles.scanBand,
+                  styles.scanWash,
                   {
+                    opacity: beamOpacity,
                     transform: [{ translateY: scanTranslateY }]
                   }
                 ]}
               />
-              <View style={styles.menuLineStrong} />
+              <Animated.View
+                style={[
+                  styles.scanBeam,
+                  {
+                    opacity: beamOpacity,
+                    transform: [{ translateY: scanTranslateY }]
+                  }
+                ]}
+              />
+              <View style={styles.menuHeaderLine} />
               <View style={styles.menuLine} />
               <View style={[styles.menuLine, styles.menuLineMedium]} />
-              <View style={styles.menuLine} />
-              <View style={[styles.menuLine, styles.menuLineShort]} />
               <View style={styles.menuDivider} />
               <View style={styles.menuRow}>
-                <View style={styles.menuDot} />
-                <View style={styles.menuLineSmall} />
+                <View style={styles.menuTextGroup}>
+                  <View style={styles.menuLineSmall} />
+                  <View style={[styles.menuLineTiny, styles.menuLineMuted]} />
+                </View>
+                <Animated.View
+                  style={[
+                    styles.riskMark,
+                    styles.riskMarkAsk,
+                    { opacity: firstHighlightOpacity, transform: [{ scale: markerScale }] }
+                  ]}
+                />
               </View>
               <View style={styles.menuRow}>
-                <Animated.View style={[styles.riskMarker, { transform: [{ scale: markerScale }] }]} />
-                <View style={styles.menuLineSmall} />
+                <View style={styles.menuTextGroup}>
+                  <View style={[styles.menuLineSmall, styles.menuLineWide]} />
+                  <View style={[styles.menuLineTiny, styles.menuLineMuted]} />
+                </View>
+                <Animated.View
+                  style={[
+                    styles.riskMark,
+                    styles.riskMarkHigh,
+                    { opacity: secondHighlightOpacity, transform: [{ scale: markerScale }] }
+                  ]}
+                />
               </View>
               <View style={styles.menuRow}>
-                <View style={styles.menuDotMuted} />
-                <View style={[styles.menuLineSmall, styles.menuLineTiny]} />
+                <View style={styles.menuTextGroup}>
+                  <View style={[styles.menuLineSmall, styles.menuLineShort]} />
+                  <View style={[styles.menuLineTiny, styles.menuLineMuted]} />
+                </View>
+                <Animated.View
+                  style={[
+                    styles.riskMark,
+                    styles.riskMarkLow,
+                    { opacity: thirdHighlightOpacity, transform: [{ scale: markerScale }] }
+                  ]}
+                />
               </View>
             </View>
           </View>
-        </View>
+        </Animated.View>
 
         <Animated.View
           style={[
@@ -284,7 +320,7 @@ const styles = StyleSheet.create({
     paddingTop: 56,
     justifyContent: "flex-start"
   },
-  pulseWrap: {
+  loaderWrap: {
     alignItems: "center",
     height: 228,
     justifyContent: "center",
@@ -292,119 +328,118 @@ const styles = StyleSheet.create({
   },
   scanStage: {
     alignItems: "center",
-    backgroundColor: colors.surfaceWarm,
+    backgroundColor: "#FFF4E6",
     borderColor: colors.borderSoft,
-    borderRadius: 28,
+    borderRadius: 32,
     borderWidth: StyleSheet.hairlineWidth,
     elevation: 2,
-    height: 188,
+    height: 196,
     justifyContent: "center",
-    paddingTop: 26,
     position: "relative",
     shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 18 },
     shadowOpacity: 0.07,
     shadowRadius: 28,
-    width: 150
-  },
-  iconBadge: {
-    alignItems: "center",
-    backgroundColor: colors.primarySoft,
-    borderColor: colors.primaryMuted,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: 58,
-    justifyContent: "center",
-    position: "absolute",
-    shadowColor: colors.primaryDark,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    top: -18,
-    width: 58,
-    zIndex: 2
+    width: 148
   },
   menuSheet: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
-    height: 132,
-    justifyContent: "center",
+    height: MENU_SHEET_HEIGHT,
     overflow: "hidden",
-    paddingHorizontal: 18,
-    width: 96
+    paddingHorizontal: 16,
+    paddingTop: 18,
+    width: 104
   },
-  scanBand: {
-    backgroundColor: colors.primarySoft,
-    bottom: 0,
-    height: 26,
+  scanWash: {
+    backgroundColor: "rgba(31, 138, 131, 0.11)",
+    height: 34,
     left: 0,
-    opacity: 0.9,
     position: "absolute",
     right: 0
   },
-  menuLineStrong: {
+  scanBeam: {
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    height: 2,
+    left: 10,
+    position: "absolute",
+    right: 10,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.28,
+    shadowRadius: 6
+  },
+  menuHeaderLine: {
     backgroundColor: colors.primary,
     borderRadius: 999,
     height: 5,
-    marginBottom: 12,
-    width: 38
+    marginBottom: 13,
+    width: 42
   },
   menuLine: {
-    backgroundColor: colors.borderStrong,
+    backgroundColor: colors.border,
     borderRadius: 999,
     height: 4,
     marginBottom: 8,
-    opacity: 0.75,
-    width: 58
+    width: 66
   },
   menuLineMedium: {
-    width: 46
-  },
-  menuLineShort: {
-    width: 36
+    width: 52
   },
   menuDivider: {
     backgroundColor: colors.border,
     height: StyleSheet.hairlineWidth,
-    marginBottom: 9,
-    marginTop: 3,
+    marginBottom: 12,
+    marginTop: 7,
     width: "100%"
   },
   menuRow: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 6,
-    marginTop: 5
+    justifyContent: "space-between",
+    marginBottom: 12
   },
-  menuDot: {
-    backgroundColor: colors.primaryMuted,
-    borderRadius: 999,
-    height: 7,
-    width: 7
-  },
-  menuDotMuted: {
-    backgroundColor: colors.borderStrong,
-    borderRadius: 999,
-    height: 7,
-    width: 7
-  },
-  riskMarker: {
-    backgroundColor: colors.ask,
-    borderRadius: 999,
-    height: 8,
-    width: 8
+  menuTextGroup: {
+    gap: 5
   },
   menuLineSmall: {
     backgroundColor: colors.borderStrong,
     borderRadius: 999,
-    height: 3,
-    opacity: 0.7,
+    height: 4,
+    opacity: 0.55,
     width: 42
   },
   menuLineTiny: {
+    backgroundColor: colors.border,
+    borderRadius: 999,
+    height: 3,
     width: 30
+  },
+  menuLineWide: {
+    width: 50
+  },
+  menuLineShort: {
+    width: 34
+  },
+  menuLineMuted: {
+    opacity: 0.85
+  },
+  riskMark: {
+    borderRadius: 999,
+    height: 9,
+    width: 9
+  },
+  riskMarkAsk: {
+    backgroundColor: colors.ask
+  },
+  riskMarkHigh: {
+    backgroundColor: colors.high
+  },
+  riskMarkLow: {
+    backgroundColor: colors.low
   },
   copy: {
     alignItems: "center",
