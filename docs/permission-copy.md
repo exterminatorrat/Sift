@@ -50,6 +50,14 @@ Apple Sign In lets you create or access a Sift account using your Apple ID. If e
 
 When AI analysis is enabled, Sift sends your allergy profile and selected menu image to Sift's analysis service so it can return structured risk cards, explanations, and staff questions. Sift does not use AI analysis to guarantee food safety.
 
+**Short scan disclosure**
+
+This scan sends your selected menu image and allergy profile details to Sift's analysis service so AI can generate risk prompts. Results may be wrong or incomplete.
+
+**Short AI disclosure**
+
+Sift uses AI to analyze visible menu text. Results can be wrong or incomplete and do not guarantee food safety. Always confirm with restaurant staff before ordering.
+
 ## App Store Privacy Notes
 
 - Sift accesses the camera only after the user chooses to scan a menu.

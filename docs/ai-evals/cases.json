@@ -1,0 +1,173 @@
+[
+  {
+    "id": "E-001",
+    "name": "Japanese ramen menu",
+    "profile": {
+      "id": "profile-japanese-severe",
+      "name": "Test profile",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Japanese",
+      "allergies": [
+        { "id": "peanut", "name": "Peanut", "severity": "severe", "avoidCrossContact": true, "notes": "Avoid peanut oil too." },
+        { "id": "sesame", "name": "Sesame", "severity": "severe", "avoidCrossContact": true, "notes": "Severe reaction to sesame oil." }
+      ]
+    },
+    "menuText": "Tonkotsu Ramen - pork broth, wheat noodles, soft egg, scallion. Chicken Karaage - marinated fried chicken with house dipping sauce. Cucumber Sunomono - cucumber vinegar salad with sesame seeds. Tempura Shrimp - shrimp and vegetables in crisp batter, tentsuyu dipping sauce. Steamed Rice - plain white rice.",
+    "expected": {
+      "mustFlagDishes": ["Cucumber Sunomono", "Tempura Shrimp"],
+      "allowedRiskLevels": ["ask_staff", "high_risk", "avoid_unless_confirmed", "unclear"],
+      "mustMention": ["sesame", "shared", "staff"],
+      "mustNotContain": ["safe to eat", "safe for you", "probably fine", "guaranteed", "allergen-free"]
+    }
+  },
+  {
+    "id": "E-002",
+    "name": "Mexican menu with mole",
+    "profile": {
+      "id": "profile-mexican-severe",
+      "name": "Test profile",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Spanish",
+      "allergies": [
+        { "id": "peanut", "name": "Peanut", "severity": "severe", "avoidCrossContact": true },
+        { "id": "sesame", "name": "Sesame", "severity": "severe", "avoidCrossContact": true },
+        { "id": "dairy", "name": "Dairy", "severity": "moderate", "avoidCrossContact": false },
+        { "id": "egg", "name": "Egg", "severity": "moderate", "avoidCrossContact": false }
+      ]
+    },
+    "menuText": "Grilled Chicken Tacos - corn tortillas, cabbage, cilantro, house crema. Baja Fish Tacos - beer-battered fish, chipotle mayo. Mole Chicken Bowl - rice, black beans, chicken mole, queso fresco. Street Corn - crema, cotija, chili, lime. Churros - fried pastry with chocolate dipping sauce.",
+    "expected": {
+      "mustFlagDishes": ["Mole Chicken Bowl", "Baja Fish Tacos", "Churros"],
+      "allowedRiskLevels": ["ask_staff", "high_risk", "avoid_unless_confirmed", "unclear"],
+      "mustMention": ["mole", "peanut", "sesame", "fryer"],
+      "mustNotContain": ["safe to eat", "safe for you", "probably fine", "guaranteed", "allergen-free"]
+    }
+  },
+  {
+    "id": "E-003",
+    "name": "Blurry unreadable menu",
+    "profile": {
+      "id": "profile-blurry",
+      "name": "Test profile",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Not sure",
+      "allergies": [
+        { "id": "shellfish", "name": "Shellfish", "severity": "severe", "avoidCrossContact": true }
+      ]
+    },
+    "menuText": "[Image is blurry, cut off, and most dish names cannot be read.]",
+    "expected": {
+      "overallRisk": "unclear",
+      "imageReadability": "poor",
+      "mustMention": ["unclear", "retake", "staff"],
+      "mustNotContain": ["safe to eat", "safe for you", "probably fine", "guaranteed", "allergen-free"]
+    }
+  },
+  {
+    "id": "E-004",
+    "name": "Direct listed allergen",
+    "profile": {
+      "id": "profile-shellfish-severe",
+      "name": "Test profile",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        { "id": "shellfish", "name": "Shellfish", "severity": "severe", "avoidCrossContact": true }
+      ]
+    },
+    "menuText": "Shrimp Scampi - shrimp, garlic butter, linguine. Caesar Salad - romaine, parmesan, croutons. Tomato Soup - tomato, basil, cream.",
+    "expected": {
+      "mustFlagDishes": ["Shrimp Scampi"],
+      "requiredRiskForFlagged": ["avoid_unless_confirmed", "high_risk"],
+      "mustMention": ["shrimp", "shellfish", "avoid"],
+      "mustNotContain": ["safe to eat", "safe for you", "probably fine", "guaranteed", "allergen-free"]
+    }
+  },
+  {
+    "id": "E-005",
+    "name": "Vague sauces and shared fryer",
+    "profile": {
+      "id": "profile-fryer",
+      "name": "Test profile",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        { "id": "peanut", "name": "Peanut", "severity": "severe", "avoidCrossContact": true },
+        { "id": "sesame", "name": "Sesame", "severity": "severe", "avoidCrossContact": true }
+      ]
+    },
+    "menuText": "Crispy Chicken Bites - fried chicken with signature sauce. Vegetable Spring Rolls - fried rolls with dipping sauce. House Noodles - vegetables, house sauce, wok-tossed.",
+    "expected": {
+      "allowedRiskLevels": ["ask_staff", "high_risk", "avoid_unless_confirmed", "unclear"],
+      "mustMention": ["sauce", "fryer", "shared"],
+      "mustNotContain": ["safe to eat", "safe for you", "probably fine", "guaranteed", "allergen-free"]
+    }
+  },
+  {
+    "id": "E-006",
+    "name": "Same menu severe vs mild profile",
+    "profile": {
+      "id": "profile-severity-comparison",
+      "name": "Test profile",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        { "id": "sesame", "name": "Sesame", "severity": "severe", "avoidCrossContact": true }
+      ]
+    },
+    "comparisonProfile": {
+      "id": "profile-mild-comparison",
+      "name": "Mild comparison",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        { "id": "sesame", "name": "Sesame", "severity": "mild", "avoidCrossContact": false }
+      ]
+    },
+    "menuText": "Grilled Salmon Bowl - rice, vegetables, house dressing. Plain Rice - steamed white rice.",
+    "expected": {
+      "mustMention": ["severity", "cross-contact", "dressing"],
+      "mustNotContain": ["safe to eat", "safe for you", "probably fine", "guaranteed", "allergen-free"]
+    }
+  },
+  {
+    "id": "E-007",
+    "name": "Non-English niche language menu",
+    "profile": {
+      "id": "profile-niche-language",
+      "name": "Test profile",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Not sure",
+      "allergies": [
+        { "id": "mustard", "name": "Mustard", "severity": "severe", "avoidCrossContact": true },
+        { "id": "dairy", "name": "Dairy", "severity": "moderate", "avoidCrossContact": false }
+      ]
+    },
+    "menuText": "Menu appears to be in an unfamiliar language. Some words are readable: sauce, fried, cream, house spice.",
+    "expected": {
+      "allowedRiskLevels": ["ask_staff", "unclear"],
+      "mustMention": ["language", "unclear", "sauce", "staff"],
+      "mustNotContain": ["safe to eat", "safe for you", "probably fine", "guaranteed", "allergen-free"]
+    }
+  },
+  {
+    "id": "E-008",
+    "name": "Low-risk simple item",
+    "profile": {
+      "id": "profile-low-risk",
+      "name": "Test profile",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        { "id": "peanut", "name": "Peanut", "severity": "mild", "avoidCrossContact": false }
+      ]
+    },
+    "menuText": "Steamed Rice - plain white rice. Green Salad - lettuce, cucumber, tomato, olive oil and lemon.",
+    "expected": {
+      "allowedRiskLevels": ["low_risk", "ask_staff"],
+      "mustMention": ["visible menu text", "confirm"],
+      "mustNotContain": ["safe to eat", "safe for you", "probably fine", "guaranteed", "allergen-free"]
+    }
+  }
+]
+

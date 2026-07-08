@@ -13,11 +13,15 @@ const readabilityValues = new Set(["clear", "partially_clear", "poor"]);
 
 const bannedSafetyLanguage = [
   /safe to eat/i,
+  /safe option/i,
+  /safe choice/i,
   /safe for (you|the user|this allergy)/i,
   /you can eat/i,
+  /ok to eat/i,
   /probably fine/i,
   /guaranteed/i,
   /completely safe/i,
+  /risk[- ]free/i,
   /allergen[- ]free/i
 ];
 
@@ -54,12 +58,19 @@ export function validateScanResult(value: unknown): ScanResultValidation {
   }
 
   const dishes = [];
+  const seenDishIds = new Map<string, number>();
   for (const dish of value.dishes) {
     const validatedDish = validateDish(dish);
     if (!validatedDish.ok) {
       return validatedDish;
     }
-    dishes.push(validatedDish.value);
+
+    const seenCount = seenDishIds.get(validatedDish.value.id) ?? 0;
+    seenDishIds.set(validatedDish.value.id, seenCount + 1);
+    dishes.push({
+      ...validatedDish.value,
+      id: seenCount === 0 ? validatedDish.value.id : `${validatedDish.value.id}-${seenCount + 1}`
+    });
   }
 
   const imageQuality = validateImageQuality(value.imageQuality);
@@ -70,6 +81,11 @@ export function validateScanResult(value: unknown): ScanResultValidation {
   const restaurantMessage = validateRestaurantMessage(value.restaurantMessage);
   if (!restaurantMessage.ok) {
     return restaurantMessage;
+  }
+
+  const transparency = validateScanTransparency(value.transparency);
+  if (!transparency) {
+    return invalid("Response must include scan transparency.");
   }
 
   const analysisSource = readOptionalString(value.analysisSource);
@@ -93,7 +109,7 @@ export function validateScanResult(value: unknown): ScanResultValidation {
       dishes,
       restaurantMessage: restaurantMessage.value,
       imageQuality: imageQuality.value,
-      transparency: validateScanTransparency(value.transparency)
+      transparency
     }
   };
 }
@@ -108,7 +124,7 @@ export function containsBannedSafetyLanguage(value: unknown): boolean {
   }
 
   if (isRecord(value)) {
-    return Object.values(value).some(containsBannedSafetyLanguage);
+    return Object.entries(value).some(([key, item]) => key !== "uri" && containsBannedSafetyLanguage(item));
   }
 
   return false;
@@ -161,6 +177,15 @@ function validateDish(value: unknown): Validation<ScanResult["dishes"][number]> 
     return invalid("Dish entry must include staff questions.");
   }
 
+  if (!questionsToAskUserLanguage || questionsToAskUserLanguage.length === 0) {
+    return invalid("Dish entry must include user-language staff questions.");
+  }
+
+  const transparency = validateDishTransparency(value.transparency);
+  if (!transparency) {
+    return invalid("Dish entry must include transparency evidence.");
+  }
+
   return {
     ok: true,
     value: {
@@ -173,9 +198,9 @@ function validateDish(value: unknown): Validation<ScanResult["dishes"][number]> 
       crossContactConcerns,
       reason,
       questionsToAsk,
-      questionsToAskUserLanguage: questionsToAskUserLanguage ?? undefined,
+      questionsToAskUserLanguage,
       conservativeLanguage,
-      transparency: validateDishTransparency(value.transparency)
+      transparency
     }
   };
 }
@@ -229,7 +254,7 @@ function validateScanTransparency(value: unknown): ScanResult["transparency"] {
     checked,
     limitations,
     sourceReferences,
-    webSearchQueries: webSearchQueries ?? undefined
+    webSearchQueries: webSearchQueries ?? []
   };
 }
 

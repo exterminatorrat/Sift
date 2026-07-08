@@ -54,7 +54,14 @@ export async function analyzeMenuImage(request: AnalyzeMenuRequest): Promise<Sca
       throw new Error(`Menu analysis returned an invalid response: ${validation.error}`);
     }
 
-    return withImageUri(validation.value, request.image.uri, "ai", request.profile.preferredLanguage);
+    return withImageUri(
+      validation.value,
+      request.image.uri,
+      validation.value.analysisSource ?? "ai",
+      request.profile.preferredLanguage
+    );
+  } catch {
+    return createUnclearScanResult(request.profile, request.image.uri);
   } finally {
     clearTimeout(timeout);
   }
@@ -65,6 +72,7 @@ export function createUnclearScanResult(profile: UserProfile, imageUri?: string)
     id: `scan-error-${Date.now()}`,
     createdAt: new Date().toISOString(),
     imageUri,
+    restaurantName: null,
     profileId: profile.id,
     analysisLanguage: profile.preferredLanguage,
     analysisSource: "fallback",
@@ -108,7 +116,8 @@ export function createUnclearScanResult(profile: UserProfile, imageUri?: string)
     transparency: {
       checked: ["Menu photo", "Allergy profile"],
       limitations: ["Sift could not extract enough reliable menu detail from this scan."],
-      sourceReferences: []
+      sourceReferences: [],
+      webSearchQueries: []
     }
   };
 }

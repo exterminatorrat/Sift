@@ -47,7 +47,7 @@ type ScanResult = {
   imageUri?: string | null;
   restaurantName?: string | null;
   profileId: string;
-  analysisSource?: "ai";
+  analysisSource?: "ai" | "fallback";
   analysisModel?: string | null;
   scanSummary: {
     overallRisk: RiskLevel;
@@ -103,6 +103,10 @@ const riskLevels = new Set<RiskLevel>([
 const readabilityValues = new Set<ImageReadability>(["clear", "partially_clear", "poor"]);
 const defaultMaxImageBase64Length = 7_000_000;
 const defaultProviderTimeoutMs = 40_000;
+const maxProfileNameLength = 80;
+const maxAllergyNameLength = 80;
+const maxAllergyNotesLength = 500;
+const maxLanguageLength = 80;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -251,6 +255,10 @@ Deno.serve(async (request) => {
   }
 
   try {
+    if (!isAllowedRequestSize(request)) {
+      return jsonResponse({ error: "Invalid analysis request." }, 413);
+    }
+
     const body = await request.json() as Partial<AnalyzeMenuRequest>;
     if (!isValidRequest(body)) {
       return jsonResponse({ error: "Invalid analysis request." }, 400);
@@ -364,7 +372,7 @@ async function analyzeWithOpenAi(request: AnalyzeMenuRequest): Promise<AnalysisO
   });
 
   if (!response.ok) {
-    console.error("OpenAI analysis failed", response.status, await response.text());
+    console.error("OpenAI analysis failed", await readErrorPreview(response));
     throw new Error("OpenAI menu analysis failed.");
   }
 
@@ -419,7 +427,7 @@ async function analyzeWithNvidia(request: AnalyzeMenuRequest): Promise<AnalysisO
   });
 
   if (!response.ok) {
-    console.error("NVIDIA analysis failed", response.status, await response.text());
+    console.error("NVIDIA analysis failed", await readErrorPreview(response));
     throw new Error("NVIDIA menu analysis failed.");
   }
 
@@ -488,7 +496,7 @@ async function analyzeWithGemini(request: AnalyzeMenuRequest): Promise<AnalysisO
   );
 
   if (!response.ok) {
-    console.error("Gemini analysis failed", response.status, await response.text());
+    console.error("Gemini analysis failed", await readErrorPreview(response));
     throw new Error("Gemini menu analysis failed.");
   }
 
@@ -508,7 +516,7 @@ function buildSystemPrompt() {
     "Your job is to analyze visible menu text from an image and identify possible allergen risks for the provided user profile.",
     "You are not a doctor, restaurant, kitchen worker, or food safety certifier.",
     "You cannot verify ingredients, preparation, staff practices, suppliers, substitutions, or cross-contact.",
-    "Never write: safe to eat, safe for you, you can eat this, probably fine, guaranteed, completely safe, or allergen-free.",
+    "Never write: safe to eat, safe for you, you can eat this, probably fine, guaranteed, completely safe, allergen-free, safe option, safe choice, ok to eat, or risk-free.",
     "Use conservative wording such as: low risk based on visible menu text, ask staff before ordering, avoid unless staff can clearly confirm, or not enough information.",
     "For severe allergies, escalate any reasonable hidden ingredient or cross-contact concern.",
     "Treat sauces, broths, marinades, dressings, oils, spice mixes, garnishes, batters, coatings, desserts, shared fryers, shared woks, shared grills, and vague descriptions as risk signals.",
@@ -565,17 +573,46 @@ function buildUserPrompt(request: AnalyzeMenuRequest) {
 function isValidRequest(value: Partial<AnalyzeMenuRequest>): value is AnalyzeMenuRequest {
   const maxImageBase64Length = Number(Deno.env.get("MAX_IMAGE_BASE64_LENGTH") ?? defaultMaxImageBase64Length);
 
-  return Boolean(
-    value &&
-      isRecord(value.profile) &&
-      typeof value.profile.id === "string" &&
-      Array.isArray(value.profile.allergies) &&
-      value.profile.allergies.length > 0 &&
-      typeof value.imageBase64 === "string" &&
-      value.imageBase64.length > 100 &&
-      value.imageBase64.length <= maxImageBase64Length &&
-      isAllowedMimeType(value.mimeType)
-  );
+  if (!Number.isFinite(maxImageBase64Length) || maxImageBase64Length <= 100) {
+    return false;
+  }
+
+  if (
+    !value ||
+    !isValidProfile(value.profile) ||
+    !isAllowedMimeType(value.mimeType) ||
+    typeof value.imageBase64 !== "string" ||
+    value.imageBase64.length <= 100 ||
+    value.imageBase64.length > maxImageBase64Length ||
+    !isBase64ImagePayload(value.imageBase64)
+  ) {
+    return false;
+  }
+
+  if (
+    value.restaurantLanguage !== undefined &&
+    (!readString(value.restaurantLanguage) || readString(value.restaurantLanguage).length > maxLanguageLength)
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function isAllowedRequestSize(request: Request) {
+  const maxImageBase64Length = Number(Deno.env.get("MAX_IMAGE_BASE64_LENGTH") ?? defaultMaxImageBase64Length);
+  const contentLength = request.headers.get("content-length");
+
+  if (!Number.isFinite(maxImageBase64Length) || maxImageBase64Length <= 100) {
+    return false;
+  }
+
+  if (!contentLength) {
+    return true;
+  }
+
+  const parsedLength = Number(contentLength);
+  return Number.isFinite(parsedLength) && parsedLength <= maxImageBase64Length + 50_000;
 }
 
 function validateScanResult(value: ScanResult): string | null {
@@ -834,7 +871,7 @@ function normalizeScanResult(value: Record<string, unknown>, profileId: string):
         "Visible menu text and common ingredient patterns only."
     },
     dishes: Array.isArray(value.dishes)
-      ? value.dishes.map((dish, index) => normalizeDish(dish, index))
+      ? ensureUniqueDishIds(value.dishes.map((dish, index) => normalizeDish(dish, index)))
       : [createUnclearDish()],
     restaurantMessage: restaurantMessage
       ? {
@@ -918,6 +955,21 @@ function normalizeDish(value: unknown, index: number): ScanResult["dishes"][numb
   };
 }
 
+function ensureUniqueDishIds(dishes: ScanResult["dishes"]): ScanResult["dishes"] {
+  const seen = new Map<string, number>();
+
+  return dishes.map((dish, index) => {
+    const baseId = dish.id || `dish-${index + 1}`;
+    const seenCount = seen.get(baseId) ?? 0;
+    seen.set(baseId, seenCount + 1);
+
+    return {
+      ...dish,
+      id: seenCount === 0 ? baseId : `${baseId}-${seenCount + 1}`
+    };
+  });
+}
+
 function normalizeDishTransparency(dish: Record<string, unknown>): ScanResult["dishes"][number]["transparency"] {
   const transparency = readRecord(dish.transparency);
   return {
@@ -965,7 +1017,7 @@ function createFallbackScanResult(profileId: string, analysisModel: string | nul
     imageUri: null,
     restaurantName: null,
     profileId,
-    analysisSource: "ai",
+    analysisSource: "fallback",
     analysisModel,
     scanSummary: {
       overallRisk: "unclear",
@@ -1019,11 +1071,15 @@ function rewriteBannedSafetyLanguage(value: unknown): unknown {
   if (typeof value === "string") {
     return value
       .replace(/safe to eat/gi, "low risk based on visible menu text")
+      .replace(/safe option/gi, "lower concern option based on visible menu text")
+      .replace(/safe choice/gi, "lower concern choice based on visible menu text")
       .replace(/safe for (you|the user|this allergy)/gi, "low risk based on visible menu text")
       .replace(/you can eat/gi, "ask staff to confirm before ordering")
+      .replace(/ok to eat/gi, "ask staff to confirm before ordering")
       .replace(/probably fine/gi, "low risk based on visible menu text, but confirm with staff")
       .replace(/guaranteed/gi, "not confirmed")
       .replace(/completely safe/gi, "low risk based on visible menu text")
+      .replace(/risk[- ]free/gi, "lower risk based on visible menu text")
       .replace(/allergen[- ]free/gi, "without the listed allergen based on available information");
   }
 
@@ -1033,7 +1089,10 @@ function rewriteBannedSafetyLanguage(value: unknown): unknown {
 
   if (isRecord(value)) {
     return Object.fromEntries(
-      Object.entries(value).map(([key, item]) => [key, rewriteBannedSafetyLanguage(item)])
+      Object.entries(value).map(([key, item]) => [
+        key,
+        key === "uri" ? item : rewriteBannedSafetyLanguage(item)
+      ])
     );
   }
 
@@ -1043,11 +1102,15 @@ function rewriteBannedSafetyLanguage(value: unknown): unknown {
 function containsBannedSafetyLanguage(value: unknown): boolean {
   const bannedPatterns = [
     /safe to eat/i,
+    /safe option/i,
+    /safe choice/i,
     /safe for (you|the user|this allergy)/i,
     /you can eat/i,
+    /ok to eat/i,
     /probably fine/i,
     /guaranteed/i,
     /completely safe/i,
+    /risk[- ]free/i,
     /allergen[- ]free/i
   ];
 
@@ -1060,7 +1123,7 @@ function containsBannedSafetyLanguage(value: unknown): boolean {
   }
 
   if (isRecord(value)) {
-    return Object.values(value).some(containsBannedSafetyLanguage);
+    return Object.entries(value).some(([key, item]) => key !== "uri" && containsBannedSafetyLanguage(item));
   }
 
   return false;
@@ -1068,6 +1131,57 @@ function containsBannedSafetyLanguage(value: unknown): boolean {
 
 function isAllowedMimeType(value: unknown): value is AnalyzeMenuRequest["mimeType"] {
   return value === "image/jpeg" || value === "image/png" || value === "image/webp";
+}
+
+function isValidProfile(value: unknown): value is UserProfile {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  if (
+    !readString(value.id) ||
+    !readString(value.name) ||
+    readString(value.name).length > maxProfileNameLength ||
+    !readString(value.preferredLanguage) ||
+    readString(value.preferredLanguage).length > maxLanguageLength ||
+    !Array.isArray(value.allergies) ||
+    value.allergies.length === 0 ||
+    value.allergies.length > 25
+  ) {
+    return false;
+  }
+
+  if (
+    value.restaurantLanguage !== undefined &&
+    value.restaurantLanguage !== null &&
+    (typeof value.restaurantLanguage !== "string" || value.restaurantLanguage.trim().length > maxLanguageLength)
+  ) {
+    return false;
+  }
+
+  return value.allergies.every(isValidAllergy);
+}
+
+function isValidAllergy(value: unknown): value is Allergy {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const severity = value.severity;
+  const notes = value.notes;
+
+  return Boolean(
+    readString(value.id) &&
+      readString(value.name) &&
+      readString(value.name).length <= maxAllergyNameLength &&
+      (severity === "mild" || severity === "moderate" || severity === "severe") &&
+      typeof value.avoidCrossContact === "boolean" &&
+      (notes === undefined || notes === null || (typeof notes === "string" && notes.length <= maxAllergyNotesLength))
+  );
+}
+
+function isBase64ImagePayload(value: string) {
+  return /^[A-Za-z0-9+/]+={0,2}$/.test(value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -1114,6 +1228,23 @@ function trimTrailingSlash(value: string) {
 
 function getSafeErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unknown error";
+}
+
+async function readErrorPreview(response: Response) {
+  const text = await response.text();
+  return {
+    status: response.status,
+    statusText: response.statusText,
+    bodyPreview: redactSensitiveText(text).slice(0, 500)
+  };
+}
+
+function redactSensitiveText(value: string) {
+  return value
+    .replace(/Bearer\s+[A-Za-z0-9._~+/=-]+/gi, "Bearer [REDACTED]")
+    .replace(/key=([^&\s]+)/gi, "key=[REDACTED]")
+    .replace(/data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/=]+/gi, "data:image/[REDACTED];base64,[REDACTED]")
+    .replace(/[A-Za-z0-9+/]{200,}={0,2}/g, "[REDACTED_BASE64]");
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit) {

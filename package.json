@@ -8,7 +8,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "eval:ai": "node scripts/run-ai-evals.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
