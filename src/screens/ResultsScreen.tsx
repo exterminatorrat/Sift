@@ -649,11 +649,11 @@ const styles = StyleSheet.create({
     gap: 16,
     padding: 24,
     paddingBottom: 24,
-    paddingTop: 78
+    paddingTop: 90
   },
   headerBackdrop: {
     backgroundColor: colors.background,
-    height: 76,
+    height: 88,
     left: 0,
     position: "absolute",
     right: 0,
@@ -666,7 +666,7 @@ const styles = StyleSheet.create({
     left: 0,
     position: "absolute",
     right: 0,
-    top: 76,
+    top: 88,
     zIndex: 2
   },
   pageHeader: {
@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
     left: 24,
     position: "absolute",
     right: 24,
-    top: 12,
+    top: 24,
     zIndex: 3
   },
   backButton: {
