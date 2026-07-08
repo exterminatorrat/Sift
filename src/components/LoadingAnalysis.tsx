@@ -563,14 +563,13 @@ const styles = StyleSheet.create({
   copy: {
     alignItems: "center",
     gap: 12,
-    marginTop: 34,
+    marginTop: 28,
     width: "100%"
   },
   title: {
     color: colors.ink,
     ...typography.title,
     maxWidth: 314,
-    minHeight: 72,
     textAlign: "center"
   },
   subtitle: {

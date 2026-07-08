@@ -99,32 +99,35 @@ export function ResultsScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.pageHeader}>
+      <View style={styles.headerBackdrop} />
+      <View style={styles.pageHeader}>
+        <AnimatedPressable
+          accessibilityLabel={t("common.back")}
+          accessibilityRole="button"
+          onPress={handleBack}
+          scaleTo={0.92}
+          style={styles.backButton}
+        >
+          <ChevronLeft color={colors.ink} size={22} strokeWidth={2.2} />
+        </AnimatedPressable>
+        <Text style={styles.pageTitle}>{t("results.title")}</Text>
+        {onRenameScan || onDeleteScan ? (
           <AnimatedPressable
-            accessibilityLabel={t("common.back")}
+            accessibilityLabel="Open scan options"
             accessibilityRole="button"
-            onPress={handleBack}
+            onPress={() => setActionsOpen(true)}
             scaleTo={0.92}
-            style={styles.backButton}
+            style={styles.headerActionButton}
           >
-            <ChevronLeft color={colors.ink} size={22} strokeWidth={2.2} />
+            <MoreHorizontal color={colors.ink} size={21} strokeWidth={2.2} />
           </AnimatedPressable>
-          <Text style={styles.pageTitle}>{t("results.title")}</Text>
-          {onRenameScan || onDeleteScan ? (
-            <AnimatedPressable
-              accessibilityLabel="Open scan options"
-              accessibilityRole="button"
-              onPress={() => setActionsOpen(true)}
-              scaleTo={0.92}
-              style={styles.headerActionButton}
-            >
-              <MoreHorizontal color={colors.ink} size={21} strokeWidth={2.2} />
-            </AnimatedPressable>
-          ) : (
-            <View style={styles.headerSpacer} />
-          )}
-        </View>
+        ) : (
+          <View style={styles.headerSpacer} />
+        )}
+      </View>
+      <View pointerEvents="none" style={styles.headerFade} />
+
+      <ScrollView contentContainerStyle={styles.content}>
 
         <View style={styles.summary}>
           <View style={styles.summaryTop}>
@@ -645,13 +648,37 @@ const styles = StyleSheet.create({
   content: {
     gap: 16,
     padding: 24,
-    paddingTop: 12
+    paddingBottom: 24,
+    paddingTop: 78
+  },
+  headerBackdrop: {
+    backgroundColor: colors.background,
+    height: 76,
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: 2
+  },
+  headerFade: {
+    backgroundColor: "rgba(255, 248, 239, 0.88)",
+    height: 18,
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 76,
+    zIndex: 2
   },
   pageHeader: {
     alignItems: "center",
+    backgroundColor: colors.background,
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 2
+    left: 24,
+    position: "absolute",
+    right: 24,
+    top: 12,
+    zIndex: 3
   },
   backButton: {
     alignItems: "center",
