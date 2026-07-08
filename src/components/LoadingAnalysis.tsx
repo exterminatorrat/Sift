@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { FileSearch, ListChecks, MessageCircleQuestion, ScanSearch, ShieldAlert } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
 import { AppTopBar } from "./AppTopBar";
@@ -94,6 +95,7 @@ const loadingPhrases: Partial<Record<AppLanguageCode, LoadingPhrase[]>> = {
 };
 
 const MENU_SHEET_HEIGHT = 154;
+const loadingIcons = [FileSearch, ShieldAlert, ScanSearch, MessageCircleQuestion, ListChecks];
 
 export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }: LoadingAnalysisProps) {
   const { languageCode, t } = useI18n();
@@ -104,6 +106,7 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
   const sheetIn = useRef(new Animated.Value(0)).current;
 
   const phrase = phrases[phraseIndex % phrases.length];
+  const ActiveLoadingIcon = loadingIcons[phraseIndex % loadingIcons.length];
 
   useEffect(() => {
     Animated.timing(sheetIn, {
@@ -129,12 +132,12 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
           useNativeDriver: true
         }),
         Animated.timing(scanProgress, {
-          duration: 1800,
+          duration: 2600,
           easing: Easing.inOut(Easing.cubic),
           toValue: 1,
           useNativeDriver: true
         }),
-        Animated.delay(260)
+        Animated.delay(360)
       ])
     );
     scanLoop.start();
@@ -164,7 +167,7 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
           useNativeDriver: true
         }).start();
       });
-    }, 1750);
+    }, 2900);
 
     return () => clearInterval(interval);
   }, [copyIn, phrases.length]);
@@ -180,6 +183,18 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
   const sheetTranslateY = sheetIn.interpolate({
     inputRange: [0, 1],
     outputRange: [10, 0]
+  });
+  const iconTranslateY = scanProgress.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, -5, 0]
+  });
+  const iconRotate = scanProgress.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: ["-2deg", "2deg", "-2deg"]
+  });
+  const iconScale = copyIn.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.9, 1]
   });
   const copyTranslateY = copyIn.interpolate({
     inputRange: [0, 1],
@@ -210,6 +225,18 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
     outputRange: [0.86, 0.86, 1.05, 1.05, 1, 1],
     extrapolate: "clamp"
   });
+  const firstRowTranslateX = firstHighlightOpacity.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-4, 0]
+  });
+  const secondRowTranslateX = secondHighlightOpacity.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-4, 0]
+  });
+  const thirdRowTranslateX = thirdHighlightOpacity.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-4, 0]
+  });
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -225,6 +252,17 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
           ]}
         >
           <View style={styles.scanStage}>
+            <Animated.View
+              style={[
+                styles.iconBadge,
+                {
+                  opacity: copyIn,
+                  transform: [{ translateY: iconTranslateY }, { rotate: iconRotate }, { scale: iconScale }]
+                }
+              ]}
+            >
+              <ActiveLoadingIcon color={colors.primaryDark} size={28} strokeWidth={1.9} />
+            </Animated.View>
             <View style={styles.menuSheet}>
               <Animated.View
                 style={[
@@ -257,7 +295,7 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
                   style={[
                     styles.riskMark,
                     styles.riskMarkAsk,
-                    { opacity: firstHighlightOpacity, transform: [{ scale: markerScale }] }
+                    { opacity: firstHighlightOpacity, transform: [{ translateX: firstRowTranslateX }, { scale: markerScale }] }
                   ]}
                 />
               </View>
@@ -270,7 +308,7 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
                   style={[
                     styles.riskMark,
                     styles.riskMarkHigh,
-                    { opacity: secondHighlightOpacity, transform: [{ scale: markerScale }] }
+                    { opacity: secondHighlightOpacity, transform: [{ translateX: secondRowTranslateX }, { scale: markerScale }] }
                   ]}
                 />
               </View>
@@ -283,7 +321,7 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
                   style={[
                     styles.riskMark,
                     styles.riskMarkLow,
-                    { opacity: thirdHighlightOpacity, transform: [{ scale: markerScale }] }
+                    { opacity: thirdHighlightOpacity, transform: [{ translateX: thirdRowTranslateX }, { scale: markerScale }] }
                   ]}
                 />
               </View>
@@ -341,6 +379,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.07,
     shadowRadius: 28,
     width: 148
+  },
+  iconBadge: {
+    alignItems: "center",
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primaryMuted,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    height: 56,
+    justifyContent: "center",
+    position: "absolute",
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    top: -18,
+    width: 56,
+    zIndex: 2
   },
   menuSheet: {
     backgroundColor: colors.surface,
