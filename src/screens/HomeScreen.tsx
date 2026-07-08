@@ -46,7 +46,7 @@ export function HomeScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <View style={styles.fixedHeader}>
         <View style={styles.pageHeader}>
           <Text style={styles.pageTitle}>{t("home.title")}</Text>
           <AnimatedPressable
@@ -58,7 +58,14 @@ export function HomeScreen({
             <Menu color={colors.primaryDark} size={22} strokeWidth={2.1} />
           </AnimatedPressable>
         </View>
+      </View>
+      <View pointerEvents="none" style={styles.headerFade}>
+        <View style={[styles.headerFadeBand, styles.headerFadeStrong]} />
+        <View style={[styles.headerFadeBand, styles.headerFadeMedium]} />
+        <View style={[styles.headerFadeBand, styles.headerFadeSoft]} />
+      </View>
 
+      <ScrollView contentContainerStyle={styles.content}>
         {hasAllergies ? (
           <View style={styles.filtersSection}>
             <Text style={styles.sectionEyebrow}>{t("home.activeFilters")}</Text>
@@ -167,13 +174,49 @@ const styles = StyleSheet.create({
   content: {
     padding: 24,
     paddingBottom: 132,
-    paddingTop: 18
+    paddingTop: 0
+  },
+  fixedHeader: {
+    backgroundColor: colors.background,
+    paddingBottom: 14,
+    paddingHorizontal: 24,
+    paddingTop: 18,
+    shadowColor: colors.background,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.9,
+    shadowRadius: 14,
+    zIndex: 3
+  },
+  headerFade: {
+    height: 18,
+    overflow: "hidden",
+    zIndex: 2
+  },
+  headerFadeBand: {
+    backgroundColor: colors.background,
+    left: 0,
+    position: "absolute",
+    right: 0
+  },
+  headerFadeStrong: {
+    height: 6,
+    opacity: 0.82,
+    top: 0
+  },
+  headerFadeMedium: {
+    height: 7,
+    opacity: 0.42,
+    top: 5
+  },
+  headerFadeSoft: {
+    height: 8,
+    opacity: 0.16,
+    top: 10
   },
   pageHeader: {
     alignItems: "center",
     flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 24
+    justifyContent: "center"
   },
   pageTitle: {
     color: colors.primaryDark,
