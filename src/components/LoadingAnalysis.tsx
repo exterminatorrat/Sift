@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, Image, StyleSheet, Text, View } from "react-native";
 import { FileSearch, ListChecks, MessageCircleQuestion, ScanSearch, ShieldAlert } from "lucide-react-native";
 import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
@@ -9,6 +9,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { AppLanguageCode } from "../i18n/translations";
 
 type LoadingAnalysisProps = {
+  imageUri?: string | null;
   showTopBar?: boolean;
   showBack?: boolean;
   onBack?: () => void;
@@ -19,84 +20,18 @@ type LoadingPhrase = {
   subtitle: string;
 };
 
+const PHOTO_HEIGHT = 304;
+const SCAN_DURATION_MS = 3000;
+const LOOP_PAUSE_MS = 400;
+const PHRASE_INTERVAL_MS = SCAN_DURATION_MS + LOOP_PAUSE_MS;
+
 const loadingPhrases: Partial<Record<AppLanguageCode, LoadingPhrase[]>> = {
   en: [
-    {
-      title: "Reading the menu...",
-      subtitle: "Pulling out visible dishes and ingredients"
-    },
-    {
-      title: "Tracing hidden risks...",
-      subtitle: "Checking sauces, oils, broths, and garnishes"
-    },
-    {
-      title: "Cross-checking your profile...",
-      subtitle: "Adjusting risk for severity and cross-contact"
-    },
-    {
-      title: "Preparing staff questions...",
-      subtitle: "Turning uncertainty into what to ask next"
-    }
+    { title: "Reading the menu...", subtitle: "Pulling out visible dishes and ingredients" },
+    { title: "Tracing hidden risks...", subtitle: "Checking sauces, oils, broths, and garnishes" },
+    { title: "Cross-checking your profile...", subtitle: "Adjusting risk for severity and cross-contact" },
+    { title: "Preparing staff questions...", subtitle: "Turning uncertainty into what to ask next" }
   ],
-  es: [
-    {
-      title: "Leyendo el menú...",
-      subtitle: "Buscando platos e ingredientes visibles"
-    },
-    {
-      title: "Rastreando riesgos ocultos...",
-      subtitle: "Revisando salsas, aceites, caldos y guarniciones"
-    },
-    {
-      title: "Comparando con tu perfil...",
-      subtitle: "Ajustando el riesgo por gravedad y contacto cruzado"
-    },
-    {
-      title: "Preparando preguntas...",
-      subtitle: "Convirtiendo la duda en qué preguntar"
-    }
-  ],
-  fr: [
-    {
-      title: "Lecture du menu...",
-      subtitle: "Repérage des plats et ingrédients visibles"
-    },
-    {
-      title: "Recherche de risques cachés...",
-      subtitle: "Sauces, huiles, bouillons et garnitures"
-    },
-    {
-      title: "Vérification du profil...",
-      subtitle: "Ajustement selon la gravité et le contact croisé"
-    },
-    {
-      title: "Préparation des questions...",
-      subtitle: "Transformer l’incertitude en questions utiles"
-    }
-  ],
-  ja: [
-    {
-      title: "メニューを読んでいます...",
-      subtitle: "料理名と見える材料を確認しています"
-    },
-    {
-      title: "隠れたリスクを確認中...",
-      subtitle: "ソース、油、だし、付け合わせを見ています"
-    },
-    {
-      title: "プロフィールと照合中...",
-      subtitle: "重症度と交差接触を考慮しています"
-    },
-    {
-      title: "質問を準備中...",
-      subtitle: "スタッフに確認する内容を整理しています"
-    }
-  ]
-};
-
-const MENU_SHEET_HEIGHT = 154;
-const cleanLoadingPhrases: Partial<Record<AppLanguageCode, LoadingPhrase[]>> = {
-  en: loadingPhrases.en,
   es: [
     { title: "Leyendo el menú...", subtitle: "Buscando platos e ingredientes visibles" },
     { title: "Rastreando riesgos ocultos...", subtitle: "Revisando salsas, aceites, caldos y guarniciones" },
@@ -128,10 +63,10 @@ const cleanLoadingPhrases: Partial<Record<AppLanguageCode, LoadingPhrase[]>> = {
     { title: "Fragen werden vorbereitet...", subtitle: "Aus Unsicherheit werden konkrete Fragen" }
   ],
   ko: [
-    { title: "메뉴를 읽는 중...", subtitle: "보이는 음식과 재료를 확인하고 있어요" },
-    { title: "숨은 위험을 확인 중...", subtitle: "소스, 오일, 육수, 고명을 살펴보고 있어요" },
-    { title: "프로필과 대조 중...", subtitle: "중증도와 교차 접촉을 반영하고 있어요" },
-    { title: "직원에게 물어볼 질문 준비 중...", subtitle: "불확실한 부분을 질문으로 정리하고 있어요" }
+    { title: "메뉴를 읽는 중...", subtitle: "보이는 요리와 재료를 확인하고 있습니다" },
+    { title: "숨은 위험을 확인 중...", subtitle: "소스, 기름, 육수, 고명을 살펴보고 있습니다" },
+    { title: "프로필과 대조 중...", subtitle: "중증도와 교차 접촉을 반영하고 있습니다" },
+    { title: "직원에게 물어볼 질문 준비 중...", subtitle: "불확실한 부분을 질문으로 정리하고 있습니다" }
   ],
   "zh-Hans": [
     { title: "正在读取菜单...", subtitle: "提取可见菜品和配料" },
@@ -152,39 +87,74 @@ const cleanLoadingPhrases: Partial<Record<AppLanguageCode, LoadingPhrase[]>> = {
     { title: "Preparando perguntas...", subtitle: "Transformando incertezas em perguntas úteis" }
   ],
   th: [
-    { title: "กำลังอ่านเมนู...", subtitle: "ตรวจหาชื่ออาหารและส่วนผสมที่มองเห็นได้" },
-    { title: "กำลังตรวจหาความเสี่ยงแอบแฝง...", subtitle: "ตรวจสอบซอส น้ำมัน น้ำซุป และเครื่องเคียง" },
-    { title: "กำลังเทียบกับโปรไฟล์ของคุณ...", subtitle: "ปรับระดับความเสี่ยงตามความรุนแรงและการปนเปื้อนข้าม" },
-    { title: "กำลังเตรียมคำถามสำหรับพนักงาน...", subtitle: "แปลงความไม่แน่ใจเป็นคำถามที่ใช้ได้จริง" }
+    { title: "กำลังอ่านเมนู...", subtitle: "ดึงชื่อเมนูและส่วนผสมที่มองเห็น" },
+    { title: "กำลังตรวจหาความเสี่ยงที่ซ่อนอยู่...", subtitle: "ตรวจซอส น้ำมัน น้ำซุป และเครื่องเคียง" },
+    { title: "กำลังเทียบกับโปรไฟล์แพ้อาหาร...", subtitle: "ปรับความเสี่ยงตามความรุนแรงและการปนเปื้อนข้าม" },
+    { title: "กำลังเตรียมคำถามสำหรับพนักงาน...", subtitle: "เปลี่ยนจุดที่ไม่แน่ใจให้เป็นคำถาม" }
   ]
 };
+
+const processChipLabels: Partial<Record<AppLanguageCode, string[]>> = {
+  en: ["Visible text", "Hidden ingredients", "Cross-contact", "Staff questions"],
+  es: ["Texto visible", "Ingredientes ocultos", "Contacto cruzado", "Preguntas"],
+  fr: ["Texte visible", "Ingrédients cachés", "Contact croisé", "Questions"],
+  it: ["Testo visibile", "Ingredienti nascosti", "Contatto incrociato", "Domande"],
+  ja: ["見える文字", "隠れた材料", "交差接触", "質問"],
+  de: ["Sichtbarer Text", "Versteckte Zutaten", "Kreuzkontakt", "Fragen"],
+  ko: ["보이는 텍스트", "숨은 재료", "교차 접촉", "질문"],
+  "zh-Hans": ["可见文字", "隐藏配料", "交叉接触", "提问"],
+  "zh-Hant": ["可見文字", "隱藏配料", "交叉接觸", "提問"],
+  pt: ["Texto visível", "Ingredientes ocultos", "Contato cruzado", "Perguntas"],
+  th: ["ข้อความที่เห็น", "ส่วนผสมแอบแฝง", "การปนเปื้อนข้าม", "คำถาม"]
+};
+
 const loadingIcons = [FileSearch, ShieldAlert, ScanSearch, MessageCircleQuestion, ListChecks];
 
-export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }: LoadingAnalysisProps) {
-  const { languageCode, t } = useI18n();
-  const phrases = cleanLoadingPhrases[languageCode] ?? cleanLoadingPhrases.en!;
+function chipOpacity(progress: Animated.Value, index: number) {
+  const start = 0.2 + index * 0.16;
+  return progress.interpolate({
+    inputRange: [0, start, start + 0.08, 1],
+    outputRange: [0, 0, 1, 1],
+    extrapolate: "clamp"
+  });
+}
+
+function stripOpacity(progress: Animated.Value, index: number) {
+  const start = 0.12 + index * 0.2;
+  return progress.interpolate({
+    inputRange: [0, start, start + 0.1, 0.94, 1],
+    outputRange: [0, 0, 1, 1, 0],
+    extrapolate: "clamp"
+  });
+}
+
+export function LoadingAnalysis({ imageUri, showTopBar = false, showBack = false, onBack }: LoadingAnalysisProps) {
+  const { languageCode } = useI18n();
+  const phrases = loadingPhrases[languageCode] ?? loadingPhrases.en!;
+  const chips = processChipLabels[languageCode] ?? processChipLabels.en!;
   const [phraseIndex, setPhraseIndex] = useState(0);
   const copyIn = useRef(new Animated.Value(0)).current;
+  const stageIn = useRef(new Animated.Value(0)).current;
   const scanProgress = useRef(new Animated.Value(0)).current;
-  const sheetIn = useRef(new Animated.Value(0)).current;
 
   const phrase = phrases[phraseIndex % phrases.length];
   const ActiveLoadingIcon = loadingIcons[phraseIndex % loadingIcons.length];
 
   useEffect(() => {
-    Animated.timing(sheetIn, {
-      duration: 260,
-      easing: Easing.out(Easing.cubic),
-      toValue: 1,
-      useNativeDriver: true
-    }).start();
-
-    Animated.timing(copyIn, {
-      duration: 320,
-      easing: Easing.out(Easing.cubic),
-      toValue: 1,
-      useNativeDriver: true
-    }).start();
+    Animated.parallel([
+      Animated.timing(stageIn, {
+        duration: 320,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true
+      }),
+      Animated.timing(copyIn, {
+        duration: 320,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true
+      })
+    ]).start();
 
     const scanLoop = Animated.loop(
       Animated.sequence([
@@ -195,20 +165,21 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
           useNativeDriver: true
         }),
         Animated.timing(scanProgress, {
-          duration: 2600,
+          duration: SCAN_DURATION_MS,
           easing: Easing.inOut(Easing.cubic),
           toValue: 1,
           useNativeDriver: true
         }),
-        Animated.delay(360)
+        Animated.delay(LOOP_PAUSE_MS)
       ])
     );
+
     scanLoop.start();
 
     return () => {
       scanLoop.stop();
     };
-  }, [copyIn, scanProgress, sheetIn]);
+  }, [copyIn, scanProgress, stageIn]);
 
   useEffect(() => {
     if (phrases.length <= 1) {
@@ -230,75 +201,48 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
           useNativeDriver: true
         }).start();
       });
-    }, 2900);
+    }, PHRASE_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, [copyIn, phrases.length]);
 
   const scanTranslateY = scanProgress.interpolate({
     inputRange: [0, 1],
-    outputRange: [-18, MENU_SHEET_HEIGHT + 18]
+    outputRange: [-72, PHOTO_HEIGHT + 38]
   });
-  const sheetScale = sheetIn.interpolate({
+  const stageScale = stageIn.interpolate({
     inputRange: [0, 1],
     outputRange: [0.96, 1]
   });
-  const sheetTranslateY = sheetIn.interpolate({
+  const stageTranslateY = stageIn.interpolate({
     inputRange: [0, 1],
-    outputRange: [10, 0]
-  });
-  const iconTranslateY = scanProgress.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0, -5, 0]
-  });
-  const iconRotate = scanProgress.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: ["-2deg", "2deg", "-2deg"]
-  });
-  const iconScale = copyIn.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.9, 1]
+    outputRange: [12, 0]
   });
   const copyTranslateY = copyIn.interpolate({
     inputRange: [0, 1],
     outputRange: [12, 0]
   });
   const beamOpacity = scanProgress.interpolate({
-    inputRange: [0, 0.08, 0.92, 1],
+    inputRange: [0, 0.06, 0.94, 1],
     outputRange: [0, 1, 1, 0],
     extrapolate: "clamp"
   });
-  const firstHighlightOpacity = scanProgress.interpolate({
-    inputRange: [0, 0.18, 0.28, 1],
-    outputRange: [0, 0, 1, 1],
-    extrapolate: "clamp"
+  const iconTranslateY = scanProgress.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, -4, 0]
   });
-  const secondHighlightOpacity = scanProgress.interpolate({
-    inputRange: [0, 0.44, 0.54, 1],
-    outputRange: [0, 0, 1, 1],
-    extrapolate: "clamp"
+  const iconRotate = scanProgress.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: ["-2deg", "2deg", "-2deg"]
   });
-  const thirdHighlightOpacity = scanProgress.interpolate({
-    inputRange: [0, 0.66, 0.76, 1],
-    outputRange: [0, 0, 1, 1],
-    extrapolate: "clamp"
-  });
-  const markerScale = scanProgress.interpolate({
-    inputRange: [0, 0.2, 0.34, 0.56, 0.7, 1],
-    outputRange: [0.86, 0.86, 1.05, 1.05, 1, 1],
-    extrapolate: "clamp"
-  });
-  const firstRowTranslateX = firstHighlightOpacity.interpolate({
+
+  const firstStripOpacity = stripOpacity(scanProgress, 0);
+  const secondStripOpacity = stripOpacity(scanProgress, 1);
+  const thirdStripOpacity = stripOpacity(scanProgress, 2);
+  const stripTranslateY = scanProgress.interpolate({
     inputRange: [0, 1],
-    outputRange: [-4, 0]
-  });
-  const secondRowTranslateX = secondHighlightOpacity.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-4, 0]
-  });
-  const thirdRowTranslateX = thirdHighlightOpacity.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-4, 0]
+    outputRange: [10, -12],
+    extrapolate: "clamp"
   });
 
   return (
@@ -309,86 +253,118 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
           style={[
             styles.loaderWrap,
             {
-              opacity: sheetIn,
-              transform: [{ translateY: sheetTranslateY }, { scale: sheetScale }]
+              opacity: stageIn,
+              transform: [{ translateY: stageTranslateY }, { scale: stageScale }]
             }
           ]}
         >
-          <View style={styles.scanStage}>
+          <View style={styles.photoFrame}>
+            {imageUri ? (
+              <Image source={{ uri: imageUri }} style={styles.menuPhoto} resizeMode="cover" />
+            ) : (
+              <View style={styles.photoFallback}>
+                <View style={styles.fallbackLinePrimary} />
+                <View style={styles.fallbackLine} />
+                <View style={[styles.fallbackLine, styles.fallbackLineShort]} />
+                <View style={styles.fallbackDivider} />
+                <View style={styles.fallbackLine} />
+                <View style={[styles.fallbackLine, styles.fallbackLineMedium]} />
+              </View>
+            )}
+            <View style={styles.photoDim} />
+
+            <Animated.View
+              style={[
+                styles.scanWindow,
+                {
+                  opacity: beamOpacity,
+                  transform: [{ translateY: scanTranslateY }]
+                }
+              ]}
+            >
+              <View style={styles.scanWindowEdge} />
+              <View style={styles.scanWindowFill} />
+              <View style={styles.scanWindowEdge} />
+            </Animated.View>
+
+            <Animated.View
+              style={[
+                styles.textStrip,
+                styles.textStripOne,
+                {
+                  opacity: firstStripOpacity,
+                  transform: [{ translateY: stripTranslateY }]
+                }
+              ]}
+            >
+              <View style={styles.textStripLine} />
+              <View style={[styles.textStripLine, styles.textStripLineShort]} />
+            </Animated.View>
+            <Animated.View
+              style={[
+                styles.textStrip,
+                styles.textStripTwo,
+                {
+                  opacity: secondStripOpacity,
+                  transform: [{ translateY: stripTranslateY }]
+                }
+              ]}
+            >
+              <View style={styles.textStripLine} />
+              <View style={[styles.textStripLine, styles.textStripLineTiny]} />
+            </Animated.View>
+            <Animated.View
+              style={[
+                styles.textStrip,
+                styles.textStripThree,
+                {
+                  opacity: thirdStripOpacity,
+                  transform: [{ translateY: stripTranslateY }]
+                }
+              ]}
+            >
+              <View style={styles.textStripLine} />
+              <View style={[styles.textStripLine, styles.textStripLineShort]} />
+            </Animated.View>
+
             <Animated.View
               style={[
                 styles.iconBadge,
                 {
                   opacity: copyIn,
-                  transform: [{ translateY: iconTranslateY }, { rotate: iconRotate }, { scale: iconScale }]
+                  transform: [{ translateY: iconTranslateY }, { rotate: iconRotate }]
                 }
               ]}
             >
-              <ActiveLoadingIcon color={colors.primaryDark} size={28} strokeWidth={1.9} />
+              <ActiveLoadingIcon color={colors.primaryDark} size={22} strokeWidth={1.9} />
             </Animated.View>
-            <View style={styles.menuSheet}>
-              <Animated.View
-                style={[
-                  styles.scanWash,
-                  {
-                    opacity: beamOpacity,
-                    transform: [{ translateY: scanTranslateY }]
-                  }
-                ]}
-              />
-              <Animated.View
-                style={[
-                  styles.scanBeam,
-                  {
-                    opacity: beamOpacity,
-                    transform: [{ translateY: scanTranslateY }]
-                  }
-                ]}
-              />
-              <View style={styles.menuHeaderLine} />
-              <View style={styles.menuLine} />
-              <View style={[styles.menuLine, styles.menuLineMedium]} />
-              <View style={styles.menuDivider} />
-              <View style={styles.menuRow}>
-                <View style={styles.menuTextGroup}>
-                  <View style={styles.menuLineSmall} />
-                  <View style={[styles.menuLineTiny, styles.menuLineMuted]} />
-                </View>
+          </View>
+
+          <View style={styles.chipGrid}>
+            {chips.map((label, index) => {
+              const opacity = chipOpacity(scanProgress, index);
+              const translateY = opacity.interpolate({
+                inputRange: [0, 1],
+                outputRange: [7, 0]
+              });
+
+              return (
                 <Animated.View
+                  key={label}
                   style={[
-                    styles.riskMark,
-                    styles.riskMarkAsk,
-                    { opacity: firstHighlightOpacity, transform: [{ translateX: firstRowTranslateX }, { scale: markerScale }] }
+                    styles.processChip,
+                    {
+                      opacity,
+                      transform: [{ translateY }]
+                    }
                   ]}
-                />
-              </View>
-              <View style={styles.menuRow}>
-                <View style={styles.menuTextGroup}>
-                  <View style={[styles.menuLineSmall, styles.menuLineWide]} />
-                  <View style={[styles.menuLineTiny, styles.menuLineMuted]} />
-                </View>
-                <Animated.View
-                  style={[
-                    styles.riskMark,
-                    styles.riskMarkHigh,
-                    { opacity: secondHighlightOpacity, transform: [{ translateX: secondRowTranslateX }, { scale: markerScale }] }
-                  ]}
-                />
-              </View>
-              <View style={styles.menuRow}>
-                <View style={styles.menuTextGroup}>
-                  <View style={[styles.menuLineSmall, styles.menuLineShort]} />
-                  <View style={[styles.menuLineTiny, styles.menuLineMuted]} />
-                </View>
-                <Animated.View
-                  style={[
-                    styles.riskMark,
-                    styles.riskMarkLow,
-                    { opacity: thirdHighlightOpacity, transform: [{ translateX: thirdRowTranslateX }, { scale: markerScale }] }
-                  ]}
-                />
-              </View>
-            </View>
+                >
+                  <Text numberOfLines={1} style={styles.processChipText}>
+                    {label}
+                  </Text>
+                </Animated.View>
+              );
+            })}
           </View>
         </Animated.View>
 
@@ -401,8 +377,8 @@ export function LoadingAnalysis({ showTopBar = false, showBack = false, onBack }
             }
           ]}
         >
-          <Text style={styles.title}>{phrase.title || t("analysis.title")}</Text>
-          <Text style={styles.subtitle}>{phrase.subtitle || t("analysis.subtitle")}</Text>
+          <Text style={styles.title}>{phrase.title}</Text>
+          <Text style={styles.subtitle}>{phrase.subtitle}</Text>
         </Animated.View>
       </View>
     </SafeAreaView>
@@ -417,31 +393,130 @@ const styles = StyleSheet.create({
   content: {
     alignItems: "center",
     flex: 1,
+    justifyContent: "flex-start",
     paddingHorizontal: 24,
-    paddingTop: 56,
-    justifyContent: "flex-start"
+    paddingTop: 32
   },
   loaderWrap: {
     alignItems: "center",
-    height: 228,
     justifyContent: "center",
-    width: 228
+    width: "100%"
   },
-  scanStage: {
-    alignItems: "center",
-    backgroundColor: "#FFF4E6",
+  photoFrame: {
+    backgroundColor: colors.surfaceWarm,
     borderColor: colors.borderSoft,
-    borderRadius: 32,
+    borderRadius: 30,
     borderWidth: StyleSheet.hairlineWidth,
     elevation: 2,
-    height: 196,
-    justifyContent: "center",
+    height: PHOTO_HEIGHT,
+    overflow: "hidden",
     position: "relative",
     shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 18 },
-    shadowOpacity: 0.07,
-    shadowRadius: 28,
-    width: 148
+    shadowOpacity: 0.09,
+    shadowRadius: 30,
+    width: 216
+  },
+  menuPhoto: {
+    height: "100%",
+    width: "100%"
+  },
+  photoFallback: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "#FFF4E6",
+    gap: 12,
+    paddingHorizontal: 24,
+    paddingTop: 44
+  },
+  fallbackLinePrimary: {
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    height: 7,
+    marginBottom: 10,
+    width: 72
+  },
+  fallbackLine: {
+    backgroundColor: colors.borderStrong,
+    borderRadius: 999,
+    height: 6,
+    opacity: 0.65,
+    width: 136
+  },
+  fallbackLineMedium: {
+    width: 108
+  },
+  fallbackLineShort: {
+    width: 92
+  },
+  fallbackDivider: {
+    backgroundColor: colors.borderSoft,
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 10,
+    width: "100%"
+  },
+  photoDim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(24, 35, 33, 0.2)"
+  },
+  scanWindow: {
+    height: 76,
+    left: 0,
+    position: "absolute",
+    right: 0
+  },
+  scanWindowEdge: {
+    backgroundColor: colors.primary,
+    height: 2,
+    opacity: 0.92,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8
+  },
+  scanWindowFill: {
+    backgroundColor: "rgba(221, 244, 241, 0.28)",
+    flex: 1
+  },
+  textStrip: {
+    backgroundColor: "rgba(255, 252, 247, 0.93)",
+    borderColor: "rgba(31, 138, 131, 0.22)",
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    position: "absolute",
+    shadowColor: colors.ink,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    width: 118
+  },
+  textStripOne: {
+    left: -20,
+    top: 74
+  },
+  textStripTwo: {
+    right: -22,
+    top: 142
+  },
+  textStripThree: {
+    left: -10,
+    top: 214
+  },
+  textStripLine: {
+    backgroundColor: colors.primaryMuted,
+    borderRadius: 999,
+    height: 4,
+    width: 88
+  },
+  textStripLineShort: {
+    opacity: 0.78,
+    width: 62
+  },
+  textStripLineTiny: {
+    opacity: 0.78,
+    width: 46
   },
   iconBadge: {
     alignItems: "center",
@@ -449,134 +524,60 @@ const styles = StyleSheet.create({
     borderColor: colors.primaryMuted,
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
-    height: 56,
+    height: 48,
     justifyContent: "center",
     position: "absolute",
+    right: 14,
     shadowColor: colors.primaryDark,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    top: -18,
-    width: 56,
-    zIndex: 2
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 14,
+    top: 14,
+    width: 48
   },
-  menuSheet: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: 18,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: MENU_SHEET_HEIGHT,
-    overflow: "hidden",
-    paddingHorizontal: 16,
-    paddingTop: 18,
-    width: 104
-  },
-  scanWash: {
-    backgroundColor: "rgba(31, 138, 131, 0.11)",
-    height: 34,
-    left: 0,
-    position: "absolute",
-    right: 0
-  },
-  scanBeam: {
-    backgroundColor: colors.primary,
-    borderRadius: 999,
-    height: 2,
-    left: 10,
-    position: "absolute",
-    right: 10,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.28,
-    shadowRadius: 6
-  },
-  menuHeaderLine: {
-    backgroundColor: colors.primary,
-    borderRadius: 999,
-    height: 5,
-    marginBottom: 13,
-    width: 42
-  },
-  menuLine: {
-    backgroundColor: colors.border,
-    borderRadius: 999,
-    height: 4,
-    marginBottom: 8,
-    width: 66
-  },
-  menuLineMedium: {
-    width: 52
-  },
-  menuDivider: {
-    backgroundColor: colors.border,
-    height: StyleSheet.hairlineWidth,
-    marginBottom: 12,
-    marginTop: 7,
-    width: "100%"
-  },
-  menuRow: {
+  chipGrid: {
     alignItems: "center",
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12
+    flexWrap: "wrap",
+    gap: 8,
+    justifyContent: "center",
+    marginTop: 18,
+    maxWidth: 306
   },
-  menuTextGroup: {
-    gap: 5
-  },
-  menuLineSmall: {
-    backgroundColor: colors.borderStrong,
+  processChip: {
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
     borderRadius: 999,
-    height: 4,
-    opacity: 0.55,
-    width: 42
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    shadowColor: colors.ink,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12
   },
-  menuLineTiny: {
-    backgroundColor: colors.border,
-    borderRadius: 999,
-    height: 3,
-    width: 30
-  },
-  menuLineWide: {
-    width: 50
-  },
-  menuLineShort: {
-    width: 34
-  },
-  menuLineMuted: {
-    opacity: 0.85
-  },
-  riskMark: {
-    borderRadius: 999,
-    height: 9,
-    width: 9
-  },
-  riskMarkAsk: {
-    backgroundColor: colors.ask
-  },
-  riskMarkHigh: {
-    backgroundColor: colors.high
-  },
-  riskMarkLow: {
-    backgroundColor: colors.low
+  processChipText: {
+    color: colors.inkMuted,
+    ...typography.caption
   },
   copy: {
     alignItems: "center",
     gap: 12,
-    marginTop: 56,
+    marginTop: 34,
     width: "100%"
   },
   title: {
     color: colors.ink,
     ...typography.title,
+    maxWidth: 314,
     minHeight: 72,
-    maxWidth: 300,
     textAlign: "center"
   },
   subtitle: {
     color: colors.inkMuted,
     ...typography.bodyLarge,
+    maxWidth: 314,
     minHeight: 52,
-    maxWidth: 300,
     textAlign: "center"
   }
 });

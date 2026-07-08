@@ -2,11 +2,13 @@ import React, { useEffect, useRef } from "react";
 import { LoadingAnalysis } from "../components/LoadingAnalysis";
 
 type AnalysisLoadingScreenProps = {
+  imageUri?: string | null;
   onAnalyze: () => void;
 };
 
-export function AnalysisLoadingScreen({ onAnalyze }: AnalysisLoadingScreenProps) {
+export function AnalysisLoadingScreen({ imageUri, onAnalyze }: AnalysisLoadingScreenProps) {
   const didStart = useRef(false);
+  const stableImageUri = useRef(imageUri ?? null).current;
 
   useEffect(() => {
     if (didStart.current) {
@@ -17,5 +19,5 @@ export function AnalysisLoadingScreen({ onAnalyze }: AnalysisLoadingScreenProps)
     onAnalyze();
   }, [onAnalyze]);
 
-  return <LoadingAnalysis showTopBar />;
+  return <LoadingAnalysis imageUri={stableImageUri} showTopBar />;
 }

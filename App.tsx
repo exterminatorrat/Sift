@@ -383,6 +383,7 @@ export default function App() {
           <Stack.Screen name="AnalysisLoading">
             {({ navigation }) => (
               <AnalysisLoadingScreen
+                imageUri={pendingImage?.uri}
                 onAnalyze={async () => {
                   const scanResult = await analyzePendingImage();
                   const nextHistory = addScanToHistory(scanHistory, scanResult, subscriptionPlan.historyLimit);
