@@ -77,6 +77,13 @@ export type TranslationKey =
   | "login.appleUnavailableTitle"
   | "login.appleUnavailableBody"
   | "login.terms"
+  | "permission.cameraDeniedTitle"
+  | "permission.cameraDeniedBody"
+  | "permission.photoDeniedTitle"
+  | "permission.photoDeniedBody"
+  | "permission.imagePickerFailedTitle"
+  | "permission.imagePickerFailedBody"
+  | "permission.openSettings"
   | "nav.home"
   | "nav.history"
   | "nav.profile"
@@ -452,6 +459,13 @@ const en = {
     "Sign in with Apple is available on supported iPhone devices. Test this flow on an iPhone build or Expo Go where Apple authentication is supported.",
   "login.terms":
     "By continuing, you agree to Sift's Terms of Service and Privacy Policy.",
+  "permission.cameraDeniedTitle": "Camera access is off",
+  "permission.cameraDeniedBody": "Enable camera access in Settings to scan a menu photo.",
+  "permission.photoDeniedTitle": "Photo access is off",
+  "permission.photoDeniedBody": "Enable photo access in Settings or take a new menu photo instead.",
+  "permission.imagePickerFailedTitle": "Could not open photos",
+  "permission.imagePickerFailedBody": "Please try again or choose a different menu photo.",
+  "permission.openSettings": "Open Settings",
   "nav.home": "Home",
   "nav.history": "History",
   "nav.profile": "Profile",

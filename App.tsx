@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Animated, Easing, StyleSheet } from "react-native";
+import { Alert, Animated, Easing, Linking, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -34,7 +34,7 @@ import {
 import { createDefaultProfile } from "./src/services/mockAnalysisService";
 import { analyzeMenuImage, createUnclearScanResult } from "./src/services/aiAnalysisService";
 import { loadAuthSession, signInWithApple, signOut } from "./src/services/authService";
-import { captureMenuImage, pickMenuImage } from "./src/services/imageService";
+import { captureMenuImage, ImageAccessError, pickMenuImage } from "./src/services/imageService";
 import {
   clearScanHistory,
   loadStoredAppState,
@@ -569,7 +569,7 @@ export default function App() {
         navigate("ImagePreview");
       }
     } catch (error) {
-      handleImageError(error, navigate);
+      handleImageError(error);
     }
   }
 
@@ -593,20 +593,37 @@ export default function App() {
         navigate("ImagePreview");
       }
     } catch (error) {
-      handleImageError(error, navigate);
+      handleImageError(error);
     }
   }
 
-  function handleImageError(
-    error: unknown,
-    navigate: <RouteName extends keyof RootStackParamList>(
-      screen: RouteName,
-      params?: RootStackParamList[RouteName]
-    ) => void
-  ) {
-    const message = error instanceof Error ? error.message : "Could not open the image picker.";
-    setScanError(message);
-    navigate("ScanCapture");
+  function handleImageError(error: unknown) {
+    if (error instanceof ImageAccessError) {
+      if (error.code === "camera_denied") {
+        showPermissionAlert(
+          "Camera access is off",
+          "Enable camera access in Settings to scan a menu photo."
+        );
+        return;
+      }
+
+      if (error.code === "photo_library_denied") {
+        showPermissionAlert(
+          "Photo access is off",
+          "Enable photo access in Settings or take a new menu photo instead."
+        );
+        return;
+      }
+    }
+
+    Alert.alert("Could not open photos", "Please try again or choose a different menu photo.");
+  }
+
+  function showPermissionAlert(title: string, body: string) {
+    Alert.alert(title, body, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Open Settings", onPress: () => void Linking.openSettings().catch(() => undefined) }
+    ]);
   }
 
   async function analyzePendingImage() {

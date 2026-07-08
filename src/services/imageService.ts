@@ -5,42 +5,70 @@ import { PreparedMenuImage } from "../types/image";
 
 const MAX_LONG_EDGE = 1600;
 
+export type ImageAccessErrorCode = "camera_denied" | "photo_library_denied" | "image_picker_failed";
+
+export class ImageAccessError extends Error {
+  code: ImageAccessErrorCode;
+
+  constructor(code: ImageAccessErrorCode, message: string) {
+    super(message);
+    this.name = "ImageAccessError";
+    this.code = code;
+  }
+}
+
 export async function pickMenuImage(): Promise<PreparedMenuImage | null> {
   const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permission.granted) {
-    throw new Error("Photo library permission was not granted.");
+    throw new ImageAccessError("photo_library_denied", "Photo library permission was not granted.");
   }
 
-  const result = await ImagePicker.launchImageLibraryAsync({
-    allowsEditing: false,
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    quality: 1
-  });
+  try {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: false,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1
+    });
 
-  if (result.canceled || result.assets.length === 0) {
-    return null;
+    if (result.canceled || result.assets.length === 0) {
+      return null;
+    }
+
+    return prepareMenuImage(result.assets[0]);
+  } catch (error) {
+    if (error instanceof ImageAccessError) {
+      throw error;
+    }
+
+    throw new ImageAccessError("image_picker_failed", "Could not open the image picker.");
   }
-
-  return prepareMenuImage(result.assets[0]);
 }
 
 export async function captureMenuImage(): Promise<PreparedMenuImage | null> {
   const permission = await ImagePicker.requestCameraPermissionsAsync();
   if (!permission.granted) {
-    throw new Error("Camera permission was not granted.");
+    throw new ImageAccessError("camera_denied", "Camera permission was not granted.");
   }
 
-  const result = await ImagePicker.launchCameraAsync({
-    allowsEditing: false,
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    quality: 1
-  });
+  try {
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: false,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1
+    });
 
-  if (result.canceled || result.assets.length === 0) {
-    return null;
+    if (result.canceled || result.assets.length === 0) {
+      return null;
+    }
+
+    return prepareMenuImage(result.assets[0]);
+  } catch (error) {
+    if (error instanceof ImageAccessError) {
+      throw error;
+    }
+
+    throw new ImageAccessError("image_picker_failed", "Could not open the image picker.");
   }
-
-  return prepareMenuImage(result.assets[0]);
 }
 
 async function prepareMenuImage(asset: ImagePicker.ImagePickerAsset): Promise<PreparedMenuImage> {

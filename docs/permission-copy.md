@@ -2,27 +2,41 @@
 
 Last updated: Draft
 
-Use these strings as the source of truth for permission prompts, App Store review notes, and support copy.
+Use these strings as the source of truth for native permission prompts, App Store review notes, privacy-policy drafting, and support copy.
+
+This is product copy, not final legal advice.
 
 ## Camera
 
 **iOS permission string**
 
-Sift uses the camera only when you choose to scan a menu, so it can read visible menu text and flag possible allergen risks.
+Sift uses your camera when you scan a menu photo to read visible menu text and identify possible allergen risks.
 
 **Plain-language explanation**
 
-Camera access is used only after you tap Scan menu. Sift does not record continuously. The photo is used to analyze visible restaurant menu text against your allergy profile.
+Camera access is used only after you tap Scan Menu. Sift does not record continuously. The photo is used to analyze visible restaurant menu text against your allergy profile.
+
+**Denied-permission state**
+
+- Title: Camera access is off
+- Body: Enable camera access in Settings to scan a menu photo.
+- Actions: Cancel, Open Settings
 
 ## Photo Library
 
 **iOS permission string**
 
-Sift uses photo library access only when you choose a menu photo to analyze for possible allergen risks.
+Sift lets you choose menu photos from your library to analyze visible menu text for possible allergen risks.
 
 **Plain-language explanation**
 
 Photo library access is used only when you tap Upload Photo. Sift reads the selected menu image so it can analyze possible allergen risks. Sift does not need broad photo access for normal use.
+
+**Denied-permission state**
+
+- Title: Photo access is off
+- Body: Enable photo access in Settings or take a new menu photo instead.
+- Actions: Cancel, Open Settings
 
 ## Apple Sign In
 
@@ -36,3 +50,12 @@ Apple Sign In lets you create or access a Sift account using your Apple ID. If e
 
 When AI analysis is enabled, Sift sends your allergy profile and selected menu image to Sift's analysis service so it can return structured risk cards, explanations, and staff questions. Sift does not use AI analysis to guarantee food safety.
 
+## App Store Privacy Notes
+
+- Sift accesses the camera only after the user chooses to scan a menu.
+- Sift accesses selected photos only after the user chooses to upload a menu photo.
+- Menu photos and allergy profile data may be sent to Sift's AI analysis service to generate scan results.
+- Sift does not guarantee food safety, confirm ingredients, or verify kitchen preparation.
+- Sift does not sell personal data.
+- Sift does not use menu photos for advertising tracking.
+- Local scan history remains on-device for the MVP unless cloud sync is added later.
