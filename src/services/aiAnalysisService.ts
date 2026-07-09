@@ -1,19 +1,29 @@
 import { UserProfile } from "../types/allergy";
 import { PreparedMenuImage } from "../types/image";
 import { ScanResult } from "../types/scan";
+import { SubscriptionPlanId } from "../types/subscription";
 import { validateScanResult } from "../utils/scanResultValidation";
+import { getSupabaseAccessToken, refreshSupabaseAccessToken } from "./authService";
 import { getMockScanResult } from "./mockAnalysisService";
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 const ANALYSIS_MODE = process.env.EXPO_PUBLIC_ANALYSIS_MODE ?? "mock";
 const ANALYSIS_TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_ANALYSIS_TIMEOUT_MS ?? 45000);
+const ENABLE_TEST_ENTITLEMENT_SYNC = process.env.EXPO_PUBLIC_ENABLE_TEST_ENTITLEMENT_SYNC === "true";
 
 export type AnalyzeMenuRequest = {
   profile: UserProfile;
   image: PreparedMenuImage;
   restaurantLanguage?: string;
+  subscriptionPlanId?: SubscriptionPlanId;
 };
+
+export class ScanQuotaExceededError extends Error {
+  constructor() {
+    super("Monthly scan limit reached.");
+  }
+}
 
 export async function analyzeMenuImage(request: AnalyzeMenuRequest): Promise<ScanResult> {
   if (ANALYSIS_MODE !== "supabase" || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -29,20 +39,23 @@ export async function analyzeMenuImage(request: AnalyzeMenuRequest): Promise<Sca
   const timeout = setTimeout(() => controller.abort(), ANALYSIS_TIMEOUT_MS);
 
   try {
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/analyze-menu`, {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        profile: request.profile,
-        imageBase64: request.image.base64,
-        mimeType: request.image.mimeType,
-        restaurantLanguage: request.restaurantLanguage
-      })
-    });
+    const accessToken = await getSupabaseAccessToken();
+    if (!accessToken) {
+      throw new Error("Supabase auth is unavailable.");
+    }
+
+    let response = await fetchAnalysis(request, accessToken, controller.signal);
+    if (response.status === 401) {
+      const refreshedToken = await refreshSupabaseAccessToken();
+      if (!refreshedToken) {
+        throw new Error("Supabase auth retry failed.");
+      }
+      response = await fetchAnalysis(request, refreshedToken, controller.signal);
+    }
+
+    if (response.status === 429) {
+      throw new ScanQuotaExceededError();
+    }
 
     if (!response.ok) {
       throw new Error("Menu analysis failed.");
@@ -60,11 +73,38 @@ export async function analyzeMenuImage(request: AnalyzeMenuRequest): Promise<Sca
       validation.value.analysisSource ?? "ai",
       request.profile.preferredLanguage
     );
-  } catch {
+  } catch (error) {
+    if (error instanceof ScanQuotaExceededError) {
+      throw error;
+    }
+
     return createUnclearScanResult(request.profile, request.image.uri);
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function fetchAnalysis(
+  request: AnalyzeMenuRequest,
+  accessToken: string,
+  signal: AbortSignal
+) {
+  return fetch(`${SUPABASE_URL}/functions/v1/analyze-menu`, {
+    method: "POST",
+    signal,
+    headers: {
+      "apikey": SUPABASE_ANON_KEY!,
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      profile: request.profile,
+      imageBase64: request.image.base64,
+      mimeType: request.image.mimeType,
+      restaurantLanguage: request.restaurantLanguage,
+      testPlanId: ENABLE_TEST_ENTITLEMENT_SYNC ? request.subscriptionPlanId : undefined
+    })
+  });
 }
 
 export function createUnclearScanResult(profile: UserProfile, imageUri?: string): ScanResult {

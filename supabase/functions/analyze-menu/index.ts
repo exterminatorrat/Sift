@@ -1,6 +1,7 @@
 type AllergySeverity = "mild" | "moderate" | "severe";
 type RiskLevel = "low_risk" | "ask_staff" | "high_risk" | "avoid_unless_confirmed" | "unclear";
 type ImageReadability = "clear" | "partially_clear" | "poor";
+type SubscriptionPlanId = "free" | "plus" | "pro" | "family";
 
 type Allergy = {
   id: string;
@@ -23,6 +24,7 @@ type AnalyzeMenuRequest = {
   imageBase64: string;
   mimeType: "image/jpeg" | "image/png" | "image/webp";
   restaurantLanguage?: string;
+  testPlanId?: SubscriptionPlanId;
 };
 
 type AnalysisProvider = "openai" | "nvidia" | "gemini";
@@ -107,6 +109,12 @@ const maxProfileNameLength = 80;
 const maxAllergyNameLength = 80;
 const maxAllergyNotesLength = 500;
 const maxLanguageLength = 80;
+const planScanLimits: Record<SubscriptionPlanId, number> = {
+  free: 3,
+  plus: 50,
+  pro: 200,
+  family: 500
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -255,6 +263,11 @@ Deno.serve(async (request) => {
   }
 
   try {
+    const auth = await authenticateRequest(request);
+    if (!auth.ok) {
+      return jsonResponse({ error: "Authentication required." }, 401);
+    }
+
     const parsedBody = await readBoundedJsonBody<Partial<AnalyzeMenuRequest>>(request);
     if (!parsedBody.ok) {
       return jsonResponse({ error: "Invalid analysis request." }, parsedBody.status);
@@ -263,6 +276,20 @@ Deno.serve(async (request) => {
     const body = parsedBody.value;
     if (!isValidRequest(body)) {
       return jsonResponse({ error: "Invalid analysis request." }, 400);
+    }
+
+    const entitlement = await resolveEntitlement(auth.userId, body.testPlanId);
+    const quota = await claimMenuScanQuota(auth.userId, entitlement.planId, entitlement.scanLimit);
+    if (!quota.allowed) {
+      return jsonResponse(
+        {
+          error: "Monthly scan limit reached.",
+          scanCount: quota.scanCount,
+          scanLimit: quota.scanLimit,
+          monthStart: quota.monthStart
+        },
+        429
+      );
     }
 
     try {
@@ -295,6 +322,134 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: "We could not analyze this menu clearly." }, 500);
   }
 });
+
+type AuthResult =
+  | { ok: true; userId: string }
+  | { ok: false };
+
+type EntitlementResult = {
+  planId: SubscriptionPlanId;
+  scanLimit: number;
+};
+
+type QuotaResult = {
+  allowed: boolean;
+  scanCount: number;
+  scanLimit: number;
+  monthStart: string;
+};
+
+async function authenticateRequest(request: Request): Promise<AuthResult> {
+  const accessToken = readBearerToken(request);
+  if (!accessToken) {
+    return { ok: false };
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!supabaseUrl || !anonKey) {
+    console.error("Supabase auth environment is not configured.");
+    return { ok: false };
+  }
+
+  const response = await fetch(`${trimTrailingSlash(supabaseUrl)}/auth/v1/user`, {
+    headers: {
+      "apikey": anonKey,
+      "Authorization": `Bearer ${accessToken}`
+    }
+  });
+
+  if (!response.ok) {
+    return { ok: false };
+  }
+
+  const user = await response.json();
+  const userId = readString(user?.id);
+  return userId ? { ok: true, userId } : { ok: false };
+}
+
+async function resolveEntitlement(
+  userId: string,
+  testPlanId?: SubscriptionPlanId
+): Promise<EntitlementResult> {
+  const requestedTestPlan = isTestEntitlementSyncEnabled() && isPlanId(testPlanId) ? testPlanId : null;
+  const rpcName = requestedTestPlan ? "sift_set_test_entitlement" : "sift_get_or_create_entitlement";
+  const params = requestedTestPlan
+    ? { p_user_id: userId, p_plan_id: requestedTestPlan }
+    : { p_user_id: userId };
+  const entitlement = await callSupabaseRpc<{ plan_id?: string }>(rpcName, params);
+  const planId = isPlanId(entitlement?.plan_id) ? entitlement.plan_id : "free";
+
+  return {
+    planId,
+    scanLimit: planScanLimits[planId]
+  };
+}
+
+async function claimMenuScanQuota(
+  userId: string,
+  planId: SubscriptionPlanId,
+  scanLimit: number
+): Promise<QuotaResult> {
+  const quota = await callSupabaseRpc<{
+    allowed?: boolean;
+    scan_count?: number;
+    scan_limit?: number;
+    month_start?: string;
+  }>("sift_claim_menu_scan", {
+    p_user_id: userId,
+    p_plan_id: planId,
+    p_scan_limit: scanLimit
+  });
+
+  return {
+    allowed: quota?.allowed === true,
+    scanCount: Number(quota?.scan_count ?? 0),
+    scanLimit: Number(quota?.scan_limit ?? scanLimit),
+    monthStart: readString(quota?.month_start)
+  };
+}
+
+async function callSupabaseRpc<T>(functionName: string, params: Record<string, unknown>): Promise<T | null> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Supabase service role environment is not configured.");
+  }
+
+  const response = await fetch(`${trimTrailingSlash(supabaseUrl)}/rest/v1/rpc/${functionName}`, {
+    method: "POST",
+    headers: {
+      "apikey": serviceRoleKey,
+      "Authorization": `Bearer ${serviceRoleKey}`,
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    body: JSON.stringify(params)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Supabase RPC failed: ${JSON.stringify(await readErrorPreview(response))}`);
+  }
+
+  const data = await response.json();
+  return (Array.isArray(data) ? data[0] : data) as T | null;
+}
+
+function readBearerToken(request: Request) {
+  const authorization = request.headers.get("authorization") ?? "";
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
+  return match?.[1]?.trim() ?? "";
+}
+
+function isPlanId(value: unknown): value is SubscriptionPlanId {
+  return value === "free" || value === "plus" || value === "pro" || value === "family";
+}
+
+function isTestEntitlementSyncEnabled() {
+  return Deno.env.get("ALLOW_TEST_ENTITLEMENT_SYNC") === "true";
+}
 
 async function analyzeMenu(request: AnalyzeMenuRequest): Promise<AnalysisOutput> {
   const provider = getAnalysisProvider();
@@ -594,6 +749,10 @@ function isValidRequest(value: Partial<AnalyzeMenuRequest>): value is AnalyzeMen
     value.restaurantLanguage !== undefined &&
     (!readString(value.restaurantLanguage) || readString(value.restaurantLanguage).length > maxLanguageLength)
   ) {
+    return false;
+  }
+
+  if (value.testPlanId !== undefined && !isPlanId(value.testPlanId)) {
     return false;
   }
 

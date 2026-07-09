@@ -2,7 +2,7 @@ export type AuthSession = {
   email?: string | null;
   fullName?: string | null;
   id: string;
-  mode: "supabase" | "local_apple";
-  provider: "apple";
+  mode: "supabase" | "supabase_anonymous" | "local_apple";
+  provider: "apple" | "anonymous";
   signedInAt: string;
 };

@@ -32,7 +32,11 @@ import {
   getSubscriptionPlan
 } from "./src/constants/subscriptionPlans";
 import { createDefaultProfile } from "./src/services/mockAnalysisService";
-import { analyzeMenuImage, createUnclearScanResult } from "./src/services/aiAnalysisService";
+import {
+  analyzeMenuImage,
+  createUnclearScanResult,
+  ScanQuotaExceededError
+} from "./src/services/aiAnalysisService";
 import { loadAuthSession, signInWithApple, signOut } from "./src/services/authService";
 import { captureMenuImage, ImageAccessError, pickMenuImage } from "./src/services/imageService";
 import {
@@ -386,6 +390,12 @@ export default function App() {
                 imageUri={pendingImage?.uri}
                 onAnalyze={async () => {
                   const scanResult = await analyzePendingImage();
+                  if (!scanResult) {
+                    showScanLimitAlert(navigation.navigate);
+                    setMainTab("home");
+                    navigation.replace("Home");
+                    return;
+                  }
                   const nextHistory = addScanToHistory(scanHistory, scanResult, subscriptionPlan.historyLimit);
                   await persistScanHistory(nextHistory);
                   navigation.replace("Results", { scanId: scanResult.id });
@@ -651,9 +661,14 @@ export default function App() {
       return await analyzeMenuImage({
         profile,
         image: pendingImage,
-        restaurantLanguage: profile.restaurantLanguage
+        restaurantLanguage: profile.restaurantLanguage,
+        subscriptionPlanId
       });
-    } catch {
+    } catch (error) {
+      if (error instanceof ScanQuotaExceededError) {
+        return null;
+      }
+
       return createUnclearScanResult(profile, pendingImage.uri);
     } finally {
       setPendingImage(null);
