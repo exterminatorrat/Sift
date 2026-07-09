@@ -255,11 +255,12 @@ Deno.serve(async (request) => {
   }
 
   try {
-    if (!isAllowedRequestSize(request)) {
-      return jsonResponse({ error: "Invalid analysis request." }, 413);
+    const parsedBody = await readBoundedJsonBody<Partial<AnalyzeMenuRequest>>(request);
+    if (!parsedBody.ok) {
+      return jsonResponse({ error: "Invalid analysis request." }, parsedBody.status);
     }
 
-    const body = await request.json() as Partial<AnalyzeMenuRequest>;
+    const body = parsedBody.value;
     if (!isValidRequest(body)) {
       return jsonResponse({ error: "Invalid analysis request." }, 400);
     }
@@ -516,7 +517,7 @@ function buildSystemPrompt() {
     "Your job is to analyze visible menu text from an image and identify possible allergen risks for the provided user profile.",
     "You are not a doctor, restaurant, kitchen worker, or food safety certifier.",
     "You cannot verify ingredients, preparation, staff practices, suppliers, substitutions, or cross-contact.",
-    "Never write: safe to eat, safe for you, you can eat this, probably fine, guaranteed, completely safe, allergen-free, safe option, safe choice, ok to eat, or risk-free.",
+    "Never write: safe to eat, safe for you, you can eat this, probably fine, guaranteed, completely safe, allergen-free, safe option, safe choice, safe meal, safe dish, ok to eat, no risk, zero risk, riskless, nothing to worry about, definitely safe, or risk-free.",
     "Use conservative wording such as: low risk based on visible menu text, ask staff before ordering, avoid unless staff can clearly confirm, or not enough information.",
     "For severe allergies, escalate any reasonable hidden ingredient or cross-contact concern.",
     "Treat sauces, broths, marinades, dressings, oils, spice mixes, garnishes, batters, coatings, desserts, shared fryers, shared woks, shared grills, and vague descriptions as risk signals.",
@@ -599,20 +600,70 @@ function isValidRequest(value: Partial<AnalyzeMenuRequest>): value is AnalyzeMen
   return true;
 }
 
-function isAllowedRequestSize(request: Request) {
+type BoundedJsonBody<T> =
+  | { ok: true; value: T }
+  | { ok: false; status: 400 | 413 };
+
+async function readBoundedJsonBody<T>(request: Request): Promise<BoundedJsonBody<T>> {
   const maxImageBase64Length = Number(Deno.env.get("MAX_IMAGE_BASE64_LENGTH") ?? defaultMaxImageBase64Length);
+  const maxRequestBytes = maxImageBase64Length + 50_000;
   const contentLength = request.headers.get("content-length");
 
   if (!Number.isFinite(maxImageBase64Length) || maxImageBase64Length <= 100) {
-    return false;
+    return { ok: false, status: 413 };
   }
 
-  if (!contentLength) {
-    return true;
+  if (contentLength) {
+    const parsedLength = Number(contentLength);
+    if (!Number.isFinite(parsedLength) || parsedLength < 0 || parsedLength > maxRequestBytes) {
+      return { ok: false, status: 413 };
+    }
   }
 
-  const parsedLength = Number(contentLength);
-  return Number.isFinite(parsedLength) && parsedLength <= maxImageBase64Length + 50_000;
+  const reader = request.body?.getReader();
+  if (!reader) {
+    return { ok: false, status: 400 };
+  }
+
+  const chunks: Uint8Array[] = [];
+  let receivedBytes = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    receivedBytes += value.byteLength;
+    if (receivedBytes > maxRequestBytes) {
+      try {
+        await reader.cancel();
+      } catch {
+        // Ignore cancellation errors; the request is already rejected.
+      }
+      return { ok: false, status: 413 };
+    }
+    chunks.push(value);
+  }
+
+  try {
+    const bodyText = new TextDecoder().decode(concatUint8Arrays(chunks, receivedBytes));
+    return { ok: true, value: JSON.parse(bodyText) as T };
+  } catch {
+    return { ok: false, status: 400 };
+  }
+}
+
+function concatUint8Arrays(chunks: Uint8Array[], totalLength: number) {
+  const output = new Uint8Array(totalLength);
+  let offset = 0;
+
+  for (const chunk of chunks) {
+    output.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  return output;
 }
 
 function validateScanResult(value: ScanResult): string | null {
@@ -624,7 +675,7 @@ function validateScanResult(value: ScanResult): string | null {
     return "banned_safety_language";
   }
 
-  if (!readString(value.id) || !readString(value.createdAt) || !readString(value.profileId)) {
+  if (!readString(value.id) || !isValidDateString(value.createdAt) || !readString(value.profileId)) {
     return "missing_result_identity";
   }
 
@@ -634,6 +685,10 @@ function validateScanResult(value: ScanResult): string | null {
 
   if (!readString(value.scanSummary.summary) || !readString(value.scanSummary.limitations)) {
     return "incomplete_summary";
+  }
+
+  if (!hasConservativeUncertaintyText(value.scanSummary.limitations)) {
+    return "summary_missing_uncertainty";
   }
 
   if (!Array.isArray(value.dishes) || value.dishes.length === 0) {
@@ -663,6 +718,10 @@ function validateScanResult(value: ScanResult): string | null {
     return "invalid_transparency_sources";
   }
 
+  if (value.transparency.sourceReferences.some((source) => !isRecord(source) || !isHttpsUrl(source.uri))) {
+    return "invalid_transparency_source_uri";
+  }
+
   if (value.restaurantMessage && !readString(value.restaurantMessage.english)) {
     return "invalid_restaurant_message";
   }
@@ -689,6 +748,13 @@ function validateDish(dish: unknown): string | null {
 
   if (!readString(dish.reason) || !readString(dish.conservativeLanguage)) {
     return "dish_missing_reason";
+  }
+
+  if (
+    dish.riskLevel === "low_risk" &&
+    !hasConservativeUncertaintyText(`${readString(dish.reason)} ${readString(dish.conservativeLanguage)}`)
+  ) {
+    return "low_risk_missing_confirmation_language";
   }
 
   if (
@@ -1073,13 +1139,20 @@ function rewriteBannedSafetyLanguage(value: unknown): unknown {
       .replace(/safe to eat/gi, "low risk based on visible menu text")
       .replace(/safe option/gi, "lower concern option based on visible menu text")
       .replace(/safe choice/gi, "lower concern choice based on visible menu text")
+      .replace(/safe meal/gi, "lower concern meal based on visible menu text")
+      .replace(/safe dish/gi, "lower concern dish based on visible menu text")
       .replace(/safe for (you|the user|this allergy)/gi, "low risk based on visible menu text")
       .replace(/you can eat/gi, "ask staff to confirm before ordering")
       .replace(/ok to eat/gi, "ask staff to confirm before ordering")
       .replace(/probably fine/gi, "low risk based on visible menu text, but confirm with staff")
       .replace(/guaranteed/gi, "not confirmed")
       .replace(/completely safe/gi, "low risk based on visible menu text")
+      .replace(/definitely safe/gi, "low risk based on visible menu text")
+      .replace(/no risk/gi, "no obvious risk based on visible menu text")
+      .replace(/zero risk/gi, "no obvious risk based on visible menu text")
+      .replace(/riskless/gi, "lower risk based on visible menu text")
       .replace(/risk[- ]free/gi, "lower risk based on visible menu text")
+      .replace(/nothing to worry about/gi, "confirm details with staff before ordering")
       .replace(/allergen[- ]free/gi, "without the listed allergen based on available information");
   }
 
@@ -1104,12 +1177,19 @@ function containsBannedSafetyLanguage(value: unknown): boolean {
     /safe to eat/i,
     /safe option/i,
     /safe choice/i,
+    /safe meal/i,
+    /safe dish/i,
     /safe for (you|the user|this allergy)/i,
     /you can eat/i,
     /ok to eat/i,
     /probably fine/i,
     /guaranteed/i,
     /completely safe/i,
+    /definitely safe/i,
+    /no risk/i,
+    /zero risk/i,
+    /riskless/i,
+    /nothing to worry about/i,
     /risk[- ]free/i,
     /allergen[- ]free/i
   ];
@@ -1127,6 +1207,45 @@ function containsBannedSafetyLanguage(value: unknown): boolean {
   }
 
   return false;
+}
+
+function hasConservativeUncertaintyText(value: unknown): boolean {
+  const text = readString(value).toLowerCase();
+  return [
+    "visible menu",
+    "visible text",
+    "confirm",
+    "ask staff",
+    "cannot verify",
+    "cannot confirm",
+    "not confirmed",
+    "unclear",
+    "uncertain",
+    "cross-contact",
+    "kitchen"
+  ].some((phrase) => text.includes(phrase));
+}
+
+function isValidDateString(value: unknown): boolean {
+  const text = readString(value);
+  if (!text) {
+    return false;
+  }
+
+  return Number.isFinite(Date.parse(text));
+}
+
+function isHttpsUrl(value: unknown): boolean {
+  const text = readString(value);
+  if (!text) {
+    return false;
+  }
+
+  try {
+    return new URL(text).protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 function isAllowedMimeType(value: unknown): value is AnalyzeMenuRequest["mimeType"] {
@@ -1218,7 +1337,7 @@ function readSourceReferences(value: unknown): SourceReference[] {
       uri: readString(source.uri),
       source: readString(source.source) || null
     }))
-    .filter((source) => source.title && source.uri)
+    .filter((source) => source.title && isHttpsUrl(source.uri))
     .slice(0, 6);
 }
 

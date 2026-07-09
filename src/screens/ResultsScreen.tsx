@@ -36,6 +36,7 @@ import { formatDateTime } from "../utils/formatters";
 import { useI18n } from "../i18n/I18nProvider";
 import { getLanguageCode } from "../i18n/translations";
 import { stopSpeech } from "../services/speechService";
+import { isSafeSourceReferenceUrl } from "../utils/scanResultValidation";
 
 type ResultsScreenProps = {
   scanResult: ScanResult;
@@ -67,6 +68,12 @@ export function ResultsScreen({
     limitations: ["Sift cannot verify full ingredients, kitchen preparation, or cross-contact."],
     sourceReferences: [],
     webSearchQueries: []
+  };
+
+  const openSourceReference = (uri: string) => {
+    if (isSafeSourceReferenceUrl(uri)) {
+      void Linking.openURL(uri);
+    }
   };
   const restaurantMessageText =
     scanResult.restaurantMessage?.translated ?? scanResult.restaurantMessage?.english ?? "";
@@ -186,11 +193,11 @@ export function ResultsScreen({
             <Text style={styles.userLanguageLabel}>{t("results.referencesReturned")}</Text>
             {scanTransparency.sourceReferences.length > 0 ? (
               <View style={styles.sourceList}>
-                {scanTransparency.sourceReferences.map((source) => (
+                {scanTransparency.sourceReferences.map((source, index) => (
                   <Text
-                    key={source.uri}
+                    key={`${source.uri}-${index}`}
                     onPress={() => {
-                      void Linking.openURL(source.uri);
+                      openSourceReference(source.uri);
                     }}
                     style={styles.sourceLink}
                   >

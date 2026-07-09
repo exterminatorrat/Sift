@@ -1,0 +1,52 @@
+{
+  "id": "sample-low-risk",
+  "createdAt": "2026-07-09T12:00:00.000Z",
+  "profileId": "profile-sample",
+  "scanSummary": {
+    "overallRisk": "low_risk",
+    "summary": "Plain rice has no obvious listed peanut ingredient in the visible menu text.",
+    "limitations": "Visible menu text only; Sift cannot verify kitchen preparation, hidden ingredients, or cross-contact."
+  },
+  "dishes": [
+    {
+      "id": "plain-rice",
+      "dishName": "Plain Rice",
+      "menuDescription": "Steamed white rice",
+      "riskLevel": "low_risk",
+      "possibleAllergens": [],
+      "hiddenRiskIngredients": [],
+      "crossContactConcerns": ["shared serving utensils"],
+      "reason": "No obvious peanut ingredient is listed in the visible menu text.",
+      "questionsToAsk": ["Can you confirm the rice is not cooked with broth, oil, or shared utensils that touch peanuts?"],
+      "questionsToAskUserLanguage": ["Can you confirm the rice is not cooked with broth, oil, or shared utensils that touch peanuts?"],
+      "conservativeLanguage": "Low risk based on visible menu text, but confirm ingredients and cross-contact with staff.",
+      "transparency": {
+        "visibleMenuText": ["Steamed white rice"],
+        "profileFactors": ["Peanut allergy"],
+        "commonRiskPatterns": ["shared serving utensils"],
+        "uncertainty": ["Kitchen preparation cannot be verified."]
+      }
+    }
+  ],
+  "restaurantMessage": {
+    "english": "I have a peanut allergy. Please confirm whether this dish contains peanuts, peanut oil, or shared-equipment contact.",
+    "translated": null,
+    "language": "English"
+  },
+  "imageQuality": {
+    "readability": "clear",
+    "issues": []
+  },
+  "transparency": {
+    "checked": ["Visible menu text", "Allergy profile", "Common kitchen preparation patterns"],
+    "limitations": ["Sift cannot verify full ingredients, kitchen preparation, or cross-contact."],
+    "sourceReferences": [
+      {
+        "title": "Sift local reliability fixture",
+        "uri": "https://siftallergy.app",
+        "source": "fixture"
+      }
+    ],
+    "webSearchQueries": []
+  }
+}

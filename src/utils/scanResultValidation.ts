@@ -15,12 +15,19 @@ const bannedSafetyLanguage = [
   /safe to eat/i,
   /safe option/i,
   /safe choice/i,
+  /safe meal/i,
+  /safe dish/i,
   /safe for (you|the user|this allergy)/i,
   /you can eat/i,
   /ok to eat/i,
   /probably fine/i,
   /guaranteed/i,
   /completely safe/i,
+  /definitely safe/i,
+  /no risk/i,
+  /zero risk/i,
+  /riskless/i,
+  /nothing to worry about/i,
   /risk[- ]free/i,
   /allergen[- ]free/i
 ];
@@ -41,7 +48,7 @@ export function validateScanResult(value: unknown): ScanResultValidation {
   }
 
   const id = readString(value.id);
-  const createdAt = readString(value.createdAt);
+  const createdAt = normalizeCreatedAt(value.createdAt);
   const profileId = readString(value.profileId);
 
   if (!id || !createdAt || !profileId) {
@@ -143,6 +150,10 @@ function validateScanSummary(value: unknown): Validation<ScanResult["scanSummary
     return invalid("scanSummary is incomplete.");
   }
 
+  if (!hasConservativeUncertaintyText(limitations)) {
+    return invalid("scanSummary limitations must describe uncertainty.");
+  }
+
   return {
     ok: true,
     value: { overallRisk, summary, limitations }
@@ -167,6 +178,10 @@ function validateDish(value: unknown): Validation<ScanResult["dishes"][number]> 
 
   if (!id || !dishName || !riskLevel || !reason || !conservativeLanguage) {
     return invalid("Dish entry is missing required text fields.");
+  }
+
+  if (riskLevel === "low_risk" && !hasConservativeUncertaintyText(`${reason} ${conservativeLanguage}`)) {
+    return invalid("Low-risk dish wording must include confirmation or uncertainty language.");
   }
 
   if (!possibleAllergens || !hiddenRiskIngredients || !crossContactConcerns || !questionsToAsk) {
@@ -243,7 +258,7 @@ function validateScanTransparency(value: unknown): ScanResult["transparency"] {
           uri: readString(source.uri),
           source: readOptionalString(source.source)
         }))
-        .filter((source) => source.title && source.uri)
+        .filter((source) => source.title && isSafeSourceReferenceUrl(source.uri))
     : null;
 
   if (!checked || !limitations || !sourceReferences) {
@@ -344,4 +359,41 @@ function readStringArray(value: unknown): string[] | null {
     .filter((item): item is string => typeof item === "string")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+export function isSafeSourceReferenceUrl(value: string) {
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function normalizeCreatedAt(value: unknown): string {
+  const text = readString(value);
+  const parsedTime = Date.parse(text);
+  const oneDayMs = 24 * 60 * 60 * 1000;
+
+  if (!text || !Number.isFinite(parsedTime) || parsedTime > Date.now() + oneDayMs) {
+    return new Date().toISOString();
+  }
+
+  return text;
+}
+
+function hasConservativeUncertaintyText(value: string) {
+  const text = value.toLowerCase();
+  return [
+    "visible menu",
+    "visible text",
+    "confirm",
+    "ask staff",
+    "cannot verify",
+    "cannot confirm",
+    "not confirmed",
+    "unclear",
+    "uncertain",
+    "cross-contact",
+    "kitchen"
+  ].some((phrase) => text.includes(phrase));
 }

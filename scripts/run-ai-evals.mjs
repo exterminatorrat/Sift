@@ -7,12 +7,19 @@ const bannedPatterns = [
   /safe to eat/i,
   /safe option/i,
   /safe choice/i,
+  /safe meal/i,
+  /safe dish/i,
   /safe for (you|the user|this allergy)/i,
   /you can eat/i,
   /ok to eat/i,
   /probably fine/i,
   /guaranteed/i,
   /completely safe/i,
+  /definitely safe/i,
+  /no risk/i,
+  /zero risk/i,
+  /riskless/i,
+  /nothing to worry about/i,
   /risk[- ]free/i,
   /allergen[- ]free/i
 ];
@@ -68,6 +75,23 @@ function validateSampleOutput(output, sourcePath) {
     failures.push(`${sourcePath} is missing scanSummary.summary.`);
   }
 
+  if (!output.createdAt || !Number.isFinite(Date.parse(output.createdAt))) {
+    failures.push(`${sourcePath} must include a finite createdAt timestamp.`);
+  }
+
+  if (!hasConservativeUncertaintyText(output.scanSummary?.limitations ?? "")) {
+    failures.push(`${sourcePath} scanSummary.limitations must describe visible-text or kitchen uncertainty.`);
+  }
+
+  const sourceReferences = output.transparency?.sourceReferences ?? [];
+  if (Array.isArray(sourceReferences)) {
+    for (const reference of sourceReferences) {
+      if (!isHttpsUrl(reference?.uri)) {
+        failures.push(`${sourcePath} contains a non-HTTPS source reference: ${reference?.uri ?? "missing uri"}`);
+      }
+    }
+  }
+
   if (!Array.isArray(output.dishes) || output.dishes.length === 0) {
     failures.push(`${sourcePath} must include at least one dish.`);
     return;
@@ -83,5 +107,33 @@ function validateSampleOutput(output, sourcePath) {
     if (!dish.riskLevel || typeof dish.riskLevel !== "string") {
       failures.push(`${dish.dishName ?? "dish"} is missing a risk level.`);
     }
+    if (dish.riskLevel === "low_risk" && !hasConservativeUncertaintyText(`${dish.reason ?? ""} ${dish.conservativeLanguage ?? ""}`)) {
+      failures.push(`${dish.dishName ?? "dish"} low-risk wording must include confirmation or uncertainty language.`);
+    }
+  }
+}
+
+function hasConservativeUncertaintyText(value) {
+  const text = String(value).toLowerCase();
+  return [
+    "visible menu",
+    "visible text",
+    "confirm",
+    "ask staff",
+    "cannot verify",
+    "cannot confirm",
+    "not confirmed",
+    "unclear",
+    "uncertain",
+    "cross-contact",
+    "kitchen"
+  ].some((phrase) => text.includes(phrase));
+}
+
+function isHttpsUrl(value) {
+  try {
+    return new URL(String(value)).protocol === "https:";
+  } catch {
+    return false;
   }
 }
