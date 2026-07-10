@@ -117,7 +117,7 @@ begin
 
   insert into public.sift_scan_usage_monthly (user_id, month_start, scan_count)
   values (p_user_id, v_month_start, 0)
-  on conflict (user_id, month_start) do nothing;
+  on conflict on constraint sift_scan_usage_monthly_pkey do nothing;
 
   update public.sift_scan_usage_monthly u
   set scan_count = u.scan_count + 1,

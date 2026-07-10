@@ -139,7 +139,8 @@ export function getMockScanResult(profile: UserProfile): ScanResult {
     },
     imageQuality: {
       readability: "clear",
-      issues: []
+      issues: [],
+      needsRetake: false
     },
     restaurantMessage: buildRestaurantMessage(profile),
     dishes,
@@ -176,6 +177,13 @@ function buildDishRisk(template: MockDishTemplate, profile: UserProfile): DishRi
   const hiddenRiskIngredients =
     hiddenMatches.length > 0 || hasSevereVaguePrepConcern ? template.hiddenRiskIngredients : [];
   const crossContactConcerns = crossContactMatches.length > 0 ? template.crossContactConcerns : [];
+  const evidenceConfidence = riskLevel === "low_risk" ? "medium" : "high";
+  const riskBasis = unique([
+    directMatches.length > 0 ? "visible_text" : "",
+    hiddenMatches.length > 0 || hasSevereVaguePrepConcern ? "common_pattern" : "",
+    crossContactMatches.length > 0 ? "cross_contact" : "",
+    riskLevel === "low_risk" ? "visible_text" : ""
+  ]) as DishRisk["riskBasis"];
 
   return {
     id: template.id,
@@ -185,6 +193,8 @@ function buildDishRisk(template: MockDishTemplate, profile: UserProfile): DishRi
     possibleAllergens: matchedNames,
     hiddenRiskIngredients,
     crossContactConcerns,
+    evidenceConfidence,
+    riskBasis,
     reason: buildReason(template, riskLevel, directMatches, hiddenMatches, crossContactMatches, hasSevereVaguePrepConcern),
     questionsToAsk: buildQuestions(template, profile, directMatches, hiddenMatches, crossContactMatches),
     questionsToAskUserLanguage: buildQuestions(template, profile, directMatches, hiddenMatches, crossContactMatches),

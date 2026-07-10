@@ -13,7 +13,7 @@ const bannedPatterns = [
   /you can eat/i,
   /ok to eat/i,
   /probably fine/i,
-  /guaranteed/i,
+  /\bguarantee(?:d|s|ing)?\b/i,
   /completely safe/i,
   /definitely safe/i,
   /no risk/i,
@@ -23,6 +23,33 @@ const bannedPatterns = [
   /risk[- ]free/i,
   /allergen[- ]free/i
 ];
+const riskLevels = new Set(["low_risk", "ask_staff", "high_risk", "avoid_unless_confirmed", "unclear"]);
+const evidenceConfidenceValues = new Set(["high", "medium", "low"]);
+const riskBasisValues = new Set([
+  "visible_text",
+  "common_pattern",
+  "unknown_ingredient",
+  "cross_contact",
+  "translation_uncertain",
+  "image_uncertain"
+]);
+const riskRank = {
+  low_risk: 0,
+  ask_staff: 1,
+  unclear: 1,
+  high_risk: 2,
+  avoid_unless_confirmed: 3
+};
+const allergenRiskPatterns = {
+  sesame: ["sesame", "sesame oil", "tahini", "goma", "furikake", "za'atar", "benne"],
+  peanut: ["peanut", "groundnut", "satay", "mole", "arachide", "peanut oil"],
+  dairy: ["dairy", "milk", "cream", "butter", "ghee", "whey", "casein", "cheese", "queso", "paneer"],
+  egg: ["egg", "mayo", "mayonnaise", "aioli", "custard"],
+  soy: ["soy", "soy sauce", "tofu", "miso", "tamari", "edamame"],
+  "wheat/gluten": ["wheat", "gluten", "flour", "batter", "breadcrumbs", "soy sauce", "noodles", "seitan"],
+  shellfish: ["shellfish", "shrimp", "prawn", "crab", "lobster", "clam", "mussel", "oyster", "scallop"],
+  "tree nuts": ["tree nut", "tree nuts", "almond", "walnut", "cashew", "pistachio", "hazelnut", "pecan", "macadamia"]
+};
 
 const cases = JSON.parse(fs.readFileSync(casesPath, "utf8"));
 const failures = [];
@@ -38,6 +65,22 @@ for (const item of cases) {
 
   if (!Array.isArray(item.expected.mustNotContain) || item.expected.mustNotContain.length === 0) {
     failures.push(`${item.id} must include banned phrase expectations.`);
+  }
+
+  if (item.expected.allowedRiskLevels && !item.expected.allowedRiskLevels.every((level) => riskLevels.has(level))) {
+    failures.push(`${item.id} contains an invalid allowed risk level.`);
+  }
+
+  if (item.expected.requiredRiskForFlagged && !item.expected.requiredRiskForFlagged.every((level) => riskLevels.has(level))) {
+    failures.push(`${item.id} contains an invalid required flagged risk level.`);
+  }
+
+  if (item.expected.mustFlagDishes && !Array.isArray(item.expected.mustFlagDishes)) {
+    failures.push(`${item.id} expected.mustFlagDishes must be an array when present.`);
+  }
+
+  if (item.expected.mustMention && !Array.isArray(item.expected.mustMention)) {
+    failures.push(`${item.id} expected.mustMention must be an array when present.`);
   }
 }
 
@@ -98,6 +141,12 @@ function validateSampleOutput(output, sourcePath) {
   }
 
   for (const dish of output.dishes) {
+    if (!evidenceConfidenceValues.has(dish.evidenceConfidence)) {
+      failures.push(`${dish.dishName ?? "dish"} is missing valid evidenceConfidence.`);
+    }
+    if (!Array.isArray(dish.riskBasis) || dish.riskBasis.length === 0 || !dish.riskBasis.every((value) => riskBasisValues.has(value))) {
+      failures.push(`${dish.dishName ?? "dish"} is missing valid riskBasis.`);
+    }
     if (!Array.isArray(dish.questionsToAsk) || dish.questionsToAsk.length === 0) {
       failures.push(`${dish.dishName ?? "dish"} is missing staff questions.`);
     }
@@ -111,6 +160,89 @@ function validateSampleOutput(output, sourcePath) {
       failures.push(`${dish.dishName ?? "dish"} low-risk wording must include confirmation or uncertainty language.`);
     }
   }
+
+  if (output.imageQuality?.readability === "poor") {
+    if (output.imageQuality?.needsRetake !== true) {
+      failures.push(`${sourcePath} poor image output must set imageQuality.needsRetake.`);
+    }
+    if (output.scanSummary?.overallRisk !== "unclear") {
+      failures.push(`${sourcePath} poor image output must set scanSummary.overallRisk to unclear.`);
+    }
+  }
+
+  const caseId = output.caseId ?? output.id;
+  const matchedCase = cases.find((item) => item.id === caseId);
+  if (matchedCase) {
+    validateOutputAgainstCase(output, matchedCase, sourcePath);
+  }
+}
+
+function validateOutputAgainstCase(output, item, sourcePath) {
+  const text = JSON.stringify(output).toLowerCase();
+  for (const phrase of item.expected.mustMention ?? []) {
+    if (!text.includes(String(phrase).toLowerCase())) {
+      failures.push(`${sourcePath} for ${item.id} must mention ${phrase}.`);
+    }
+  }
+
+  for (const dishName of item.expected.mustFlagDishes ?? []) {
+    const dish = output.dishes.find((candidate) =>
+      normalize(candidate.dishName ?? "").includes(normalize(dishName))
+    );
+    if (!dish) {
+      failures.push(`${sourcePath} for ${item.id} must include flagged dish ${dishName}.`);
+      continue;
+    }
+
+    const requiredRiskLevels = item.expected.requiredRiskForFlagged ?? item.expected.allowedRiskLevels;
+    if (requiredRiskLevels && !requiredRiskLevels.includes(dish.riskLevel)) {
+      failures.push(`${dishName} risk ${dish.riskLevel} is not in required levels for ${item.id}.`);
+    }
+  }
+
+  const requiredEscalation = deterministicRequiredRisk(item);
+  if (requiredEscalation && output.dishes.some((dish) => riskRank[dish.riskLevel] < riskRank[requiredEscalation])) {
+    failures.push(`${sourcePath} for ${item.id} has a dish below deterministic required risk ${requiredEscalation}.`);
+  }
+}
+
+function deterministicRequiredRisk(item) {
+  if (item.expected.imageReadability === "poor") {
+    return "unclear";
+  }
+
+  const text = normalize(item.menuText);
+  const severeOrCrossContact = item.profile.allergies.some((allergy) => allergy.severity === "severe" || allergy.avoidCrossContact);
+  if (!severeOrCrossContact) {
+    return null;
+  }
+
+  for (const allergy of item.profile.allergies) {
+    if (allergy.severity !== "severe" && !allergy.avoidCrossContact) {
+      continue;
+    }
+    for (const pattern of patternsForAllergy(allergy)) {
+      if (text.includes(normalize(pattern))) {
+        return "ask_staff";
+      }
+    }
+  }
+
+  return null;
+}
+
+function patternsForAllergy(allergy) {
+  const allergyText = normalize(`${allergy.name} ${allergy.notes ?? ""}`);
+  return Object.entries(allergenRiskPatterns)
+    .filter(([key, values]) => {
+      const normalizedKey = normalize(key);
+      return (
+        allergyText.includes(normalizedKey) ||
+        normalizedKey.includes(allergyText) ||
+        values.some((pattern) => allergyText.includes(normalize(pattern)))
+      );
+    })
+    .flatMap(([, values]) => values);
 }
 
 function hasConservativeUncertaintyText(value) {
@@ -136,4 +268,8 @@ function isHttpsUrl(value) {
   } catch {
     return false;
   }
+}
+
+function normalize(value) {
+  return String(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }

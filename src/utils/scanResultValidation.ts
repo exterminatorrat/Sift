@@ -1,4 +1,4 @@
-import { ScanResult } from "../types/scan";
+import { EvidenceConfidence, RiskBasis, ScanResult } from "../types/scan";
 import { RiskLevel } from "../types/risk";
 
 const riskLevels = new Set<RiskLevel>([
@@ -10,6 +10,15 @@ const riskLevels = new Set<RiskLevel>([
 ]);
 
 const readabilityValues = new Set(["clear", "partially_clear", "poor"]);
+const evidenceConfidenceValues = new Set<EvidenceConfidence>(["high", "medium", "low"]);
+const riskBasisValues = new Set<RiskBasis>([
+  "visible_text",
+  "common_pattern",
+  "unknown_ingredient",
+  "cross_contact",
+  "translation_uncertain",
+  "image_uncertain"
+]);
 
 const bannedSafetyLanguage = [
   /safe to eat/i,
@@ -21,7 +30,7 @@ const bannedSafetyLanguage = [
   /you can eat/i,
   /ok to eat/i,
   /probably fine/i,
-  /guaranteed/i,
+  /\bguarantee(?:d|s|ing)?\b/i,
   /completely safe/i,
   /definitely safe/i,
   /no risk/i,
@@ -112,6 +121,7 @@ export function validateScanResult(value: unknown): ScanResultValidation {
       analysisLanguage: readOptionalString(value.analysisLanguage),
       analysisSource: normalizedSource,
       analysisModel: readOptionalString(value.analysisModel),
+      analysisRequestId: readOptionalString(value.analysisRequestId),
       scanSummary: scanSummary.value,
       dishes,
       restaurantMessage: restaurantMessage.value,
@@ -173,6 +183,8 @@ function validateDish(value: unknown): Validation<ScanResult["dishes"][number]> 
   const possibleAllergens = readStringArray(value.possibleAllergens);
   const hiddenRiskIngredients = readStringArray(value.hiddenRiskIngredients);
   const crossContactConcerns = readStringArray(value.crossContactConcerns);
+  const evidenceConfidence = readEvidenceConfidence(value.evidenceConfidence);
+  const riskBasis = readRiskBasisArray(value.riskBasis);
   const questionsToAsk = readStringArray(value.questionsToAsk);
   const questionsToAskUserLanguage = readStringArray(value.questionsToAskUserLanguage);
 
@@ -211,6 +223,8 @@ function validateDish(value: unknown): Validation<ScanResult["dishes"][number]> 
       possibleAllergens,
       hiddenRiskIngredients,
       crossContactConcerns,
+      evidenceConfidence,
+      riskBasis,
       reason,
       questionsToAsk,
       questionsToAskUserLanguage,
@@ -289,7 +303,11 @@ function validateImageQuality(value: unknown): Validation<ScanResult["imageQuali
     ok: true,
     value: {
       readability: readability as ScanResult["imageQuality"]["readability"],
-      issues
+      issues,
+      needsRetake:
+        typeof value.needsRetake === "boolean"
+          ? value.needsRetake
+          : readability === "poor"
     }
   };
 }
@@ -348,6 +366,24 @@ function readOptionalString(value: unknown): string | null | undefined {
 function readRiskLevel(value: unknown): RiskLevel | null {
   const text = readString(value);
   return riskLevels.has(text as RiskLevel) ? (text as RiskLevel) : null;
+}
+
+function readEvidenceConfidence(value: unknown): EvidenceConfidence {
+  const text = readString(value);
+  return evidenceConfidenceValues.has(text as EvidenceConfidence) ? (text as EvidenceConfidence) : "low";
+}
+
+function readRiskBasisArray(value: unknown): RiskBasis[] {
+  if (!Array.isArray(value)) {
+    return ["unknown_ingredient"];
+  }
+
+  const riskBasis = value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter((item): item is RiskBasis => riskBasisValues.has(item as RiskBasis));
+
+  return riskBasis.length > 0 ? Array.from(new Set(riskBasis)) : ["unknown_ingredient"];
 }
 
 function readStringArray(value: unknown): string[] | null {

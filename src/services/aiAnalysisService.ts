@@ -129,6 +129,8 @@ export function createUnclearScanResult(profile: UserProfile, imageUri?: string)
         possibleAllergens: [],
         hiddenRiskIngredients: [],
         crossContactConcerns: [],
+        evidenceConfidence: "low",
+        riskBasis: ["image_uncertain", "unknown_ingredient"],
         reason: "The image or model response did not provide enough reliable menu detail.",
         questionsToAsk: [
           "Can you confirm whether this dish contains any of my listed allergens?",
@@ -151,7 +153,8 @@ export function createUnclearScanResult(profile: UserProfile, imageUri?: string)
     ],
     imageQuality: {
       readability: "poor",
-      issues: ["analysis_failed"]
+      issues: ["analysis_failed"],
+      needsRetake: true
     },
     transparency: {
       checked: ["Menu photo", "Allergy profile"],

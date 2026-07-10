@@ -16,6 +16,8 @@
       "possibleAllergens": [],
       "hiddenRiskIngredients": [],
       "crossContactConcerns": ["shared serving utensils"],
+      "evidenceConfidence": "medium",
+      "riskBasis": ["visible_text", "cross_contact"],
       "reason": "No obvious peanut ingredient is listed in the visible menu text.",
       "questionsToAsk": ["Can you confirm the rice is not cooked with broth, oil, or shared utensils that touch peanuts?"],
       "questionsToAskUserLanguage": ["Can you confirm the rice is not cooked with broth, oil, or shared utensils that touch peanuts?"],
@@ -35,7 +37,8 @@
   },
   "imageQuality": {
     "readability": "clear",
-    "issues": []
+    "issues": [],
+    "needsRetake": false
   },
   "transparency": {
     "checked": ["Visible menu text", "Allergy profile", "Common kitchen preparation patterns"],

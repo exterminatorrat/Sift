@@ -1,0 +1,2744 @@
+[
+  {
+    "id": "I-001",
+    "name": "Garden Mezze - clear",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-001.jpg",
+    "language": "English",
+    "qualityVariant": "clear",
+    "profile": {
+      "id": "profile-i-001",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        {
+          "id": "i-001-primary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Mezze Plate",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Lentil Soup",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Plain Rice"
+      ]
+    }
+  },
+  {
+    "id": "I-002",
+    "name": "Garden Mezze - small text",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-002.jpg",
+    "language": "English",
+    "qualityVariant": "small_text",
+    "profile": {
+      "id": "profile-i-002",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        {
+          "id": "i-002-primary",
+          "name": "Sesame",
+          "severity": "mild",
+          "avoidCrossContact": false
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Mezze Plate",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Lentil Soup",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Plain Rice"
+      ]
+    }
+  },
+  {
+    "id": "I-003",
+    "name": "Garden Mezze - skewed",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-003.jpg",
+    "language": "English",
+    "qualityVariant": "skewed",
+    "profile": {
+      "id": "profile-i-003",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        {
+          "id": "i-003-primary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Mezze Plate",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Lentil Soup",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Plain Rice"
+      ]
+    }
+  },
+  {
+    "id": "I-004",
+    "name": "Garden Mezze - blurred",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-004.jpg",
+    "language": "English",
+    "qualityVariant": "blurred",
+    "profile": {
+      "id": "profile-i-004",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        {
+          "id": "i-004-primary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "poor",
+      "needsRetake": true,
+      "overallRisk": "unclear",
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "I-005",
+    "name": "Cocina del Sol - clear",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-005.jpg",
+    "language": "Spanish",
+    "qualityVariant": "clear",
+    "profile": {
+      "id": "profile-i-005",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Spanish",
+      "allergies": [
+        {
+          "id": "i-005-primary",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-005-secondary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Pollo con Mole",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Tacos de Papa",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Arroz Blanco"
+      ]
+    }
+  },
+  {
+    "id": "I-006",
+    "name": "Cocina del Sol - small text",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-006.jpg",
+    "language": "Spanish",
+    "qualityVariant": "small_text",
+    "profile": {
+      "id": "profile-i-006",
+      "name": "Reliability test",
+      "preferredLanguage": "Spanish",
+      "restaurantLanguage": "Spanish",
+      "allergies": [
+        {
+          "id": "i-006-primary",
+          "name": "Peanut",
+          "severity": "mild",
+          "avoidCrossContact": false
+        },
+        {
+          "id": "i-006-secondary",
+          "name": "Sesame",
+          "severity": "moderate",
+          "avoidCrossContact": false
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Pollo con Mole",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Tacos de Papa",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Arroz Blanco"
+      ]
+    }
+  },
+  {
+    "id": "I-007",
+    "name": "Cocina del Sol - skewed",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-007.jpg",
+    "language": "Spanish",
+    "qualityVariant": "skewed",
+    "profile": {
+      "id": "profile-i-007",
+      "name": "Reliability test",
+      "preferredLanguage": "Spanish",
+      "restaurantLanguage": "Spanish",
+      "allergies": [
+        {
+          "id": "i-007-primary",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-007-secondary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Pollo con Mole",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Tacos de Papa",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Arroz Blanco"
+      ]
+    }
+  },
+  {
+    "id": "I-008",
+    "name": "Cocina del Sol - glare",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-008.jpg",
+    "language": "Spanish",
+    "qualityVariant": "glare",
+    "profile": {
+      "id": "profile-i-008",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Spanish",
+      "allergies": [
+        {
+          "id": "i-008-primary",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-008-secondary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Pollo con Mole",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Tacos de Papa",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Arroz Blanco"
+      ]
+    }
+  },
+  {
+    "id": "I-009",
+    "name": "Le Petit Jardin - clear",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-009.jpg",
+    "language": "French",
+    "qualityVariant": "clear",
+    "profile": {
+      "id": "profile-i-009",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "French",
+      "allergies": [
+        {
+          "id": "i-009-primary",
+          "name": "Dairy",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Poulet au Beurre",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Soupe de Legumes",
+          "minimumRisk": "high_risk",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Salade Verte"
+      ]
+    }
+  },
+  {
+    "id": "I-010",
+    "name": "Le Petit Jardin - small text",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-010.jpg",
+    "language": "French",
+    "qualityVariant": "small_text",
+    "profile": {
+      "id": "profile-i-010",
+      "name": "Reliability test",
+      "preferredLanguage": "French",
+      "restaurantLanguage": "French",
+      "allergies": [
+        {
+          "id": "i-010-primary",
+          "name": "Dairy",
+          "severity": "mild",
+          "avoidCrossContact": false
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Poulet au Beurre",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Soupe de Legumes",
+          "minimumRisk": "high_risk",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Salade Verte"
+      ]
+    }
+  },
+  {
+    "id": "I-011",
+    "name": "Le Petit Jardin - skewed",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-011.jpg",
+    "language": "French",
+    "qualityVariant": "skewed",
+    "profile": {
+      "id": "profile-i-011",
+      "name": "Reliability test",
+      "preferredLanguage": "French",
+      "restaurantLanguage": "French",
+      "allergies": [
+        {
+          "id": "i-011-primary",
+          "name": "Dairy",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Poulet au Beurre",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Soupe de Legumes",
+          "minimumRisk": "high_risk",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Salade Verte"
+      ]
+    }
+  },
+  {
+    "id": "I-012",
+    "name": "Le Petit Jardin - cropped",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-012.jpg",
+    "language": "French",
+    "qualityVariant": "cropped",
+    "profile": {
+      "id": "profile-i-012",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "French",
+      "allergies": [
+        {
+          "id": "i-012-primary",
+          "name": "Dairy",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "poor",
+      "needsRetake": true,
+      "overallRisk": "unclear",
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "I-013",
+    "name": "Waldhaus Karte - clear",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-013.jpg",
+    "language": "German",
+    "qualityVariant": "clear",
+    "profile": {
+      "id": "profile-i-013",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "German",
+      "allergies": [
+        {
+          "id": "i-013-primary",
+          "name": "Mustard",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-013-secondary",
+          "name": "Sulfites",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Bratwurst mit Senfsauce",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Hahnchen in Weinsauce",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Gedampfter Reis"
+      ]
+    }
+  },
+  {
+    "id": "I-014",
+    "name": "Waldhaus Karte - small text",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-014.jpg",
+    "language": "German",
+    "qualityVariant": "small_text",
+    "profile": {
+      "id": "profile-i-014",
+      "name": "Reliability test",
+      "preferredLanguage": "German",
+      "restaurantLanguage": "German",
+      "allergies": [
+        {
+          "id": "i-014-primary",
+          "name": "Mustard",
+          "severity": "mild",
+          "avoidCrossContact": false
+        },
+        {
+          "id": "i-014-secondary",
+          "name": "Sulfites",
+          "severity": "moderate",
+          "avoidCrossContact": false
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Bratwurst mit Senfsauce",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Hahnchen in Weinsauce",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Gedampfter Reis"
+      ]
+    }
+  },
+  {
+    "id": "I-015",
+    "name": "Waldhaus Karte - skewed",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-015.jpg",
+    "language": "German",
+    "qualityVariant": "skewed",
+    "profile": {
+      "id": "profile-i-015",
+      "name": "Reliability test",
+      "preferredLanguage": "German",
+      "restaurantLanguage": "German",
+      "allergies": [
+        {
+          "id": "i-015-primary",
+          "name": "Mustard",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-015-secondary",
+          "name": "Sulfites",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Bratwurst mit Senfsauce",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Hahnchen in Weinsauce",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Gedampfter Reis"
+      ]
+    }
+  },
+  {
+    "id": "I-016",
+    "name": "Waldhaus Karte - partial",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-016.jpg",
+    "language": "German",
+    "qualityVariant": "partial",
+    "profile": {
+      "id": "profile-i-016",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "German",
+      "allergies": [
+        {
+          "id": "i-016-primary",
+          "name": "Mustard",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-016-secondary",
+          "name": "Sulfites",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Bratwurst mit Senfsauce",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Hahnchen in Weinsauce",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Gedampfter Reis"
+      ]
+    }
+  },
+  {
+    "id": "I-017",
+    "name": "Trattoria Marina - clear",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-017.jpg",
+    "language": "Italian",
+    "qualityVariant": "clear",
+    "profile": {
+      "id": "profile-i-017",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Italian",
+      "allergies": [
+        {
+          "id": "i-017-primary",
+          "name": "Shellfish",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-017-secondary",
+          "name": "Dairy",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Risotto ai Gamberi",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Polenta Cremosa",
+          "minimumRisk": "high_risk",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Verdure Grigliate"
+      ]
+    }
+  },
+  {
+    "id": "I-018",
+    "name": "Trattoria Marina - small text",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-018.jpg",
+    "language": "Italian",
+    "qualityVariant": "small_text",
+    "profile": {
+      "id": "profile-i-018",
+      "name": "Reliability test",
+      "preferredLanguage": "Italian",
+      "restaurantLanguage": "Italian",
+      "allergies": [
+        {
+          "id": "i-018-primary",
+          "name": "Shellfish",
+          "severity": "mild",
+          "avoidCrossContact": false
+        },
+        {
+          "id": "i-018-secondary",
+          "name": "Dairy",
+          "severity": "moderate",
+          "avoidCrossContact": false
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Risotto ai Gamberi",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Polenta Cremosa",
+          "minimumRisk": "high_risk",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Verdure Grigliate"
+      ]
+    }
+  },
+  {
+    "id": "I-019",
+    "name": "Trattoria Marina - skewed",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-019.jpg",
+    "language": "Italian",
+    "qualityVariant": "skewed",
+    "profile": {
+      "id": "profile-i-019",
+      "name": "Reliability test",
+      "preferredLanguage": "Italian",
+      "restaurantLanguage": "Italian",
+      "allergies": [
+        {
+          "id": "i-019-primary",
+          "name": "Shellfish",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-019-secondary",
+          "name": "Dairy",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Risotto ai Gamberi",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Polenta Cremosa",
+          "minimumRisk": "high_risk",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Verdure Grigliate"
+      ]
+    }
+  },
+  {
+    "id": "I-020",
+    "name": "Trattoria Marina - blurred",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-020.jpg",
+    "language": "Italian",
+    "qualityVariant": "blurred",
+    "profile": {
+      "id": "profile-i-020",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Italian",
+      "allergies": [
+        {
+          "id": "i-020-primary",
+          "name": "Shellfish",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-020-secondary",
+          "name": "Dairy",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "poor",
+      "needsRetake": true,
+      "overallRisk": "unclear",
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "I-021",
+    "name": "Mesa Atlantica - clear",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-021.jpg",
+    "language": "Portuguese",
+    "qualityVariant": "clear",
+    "profile": {
+      "id": "profile-i-021",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Portuguese",
+      "allergies": [
+        {
+          "id": "i-021-primary",
+          "name": "Fish",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-021-secondary",
+          "name": "Egg",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Bacalhau com Ovo",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Pasteis da Casa",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Arroz Simples"
+      ]
+    }
+  },
+  {
+    "id": "I-022",
+    "name": "Mesa Atlantica - small text",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-022.jpg",
+    "language": "Portuguese",
+    "qualityVariant": "small_text",
+    "profile": {
+      "id": "profile-i-022",
+      "name": "Reliability test",
+      "preferredLanguage": "Portuguese",
+      "restaurantLanguage": "Portuguese",
+      "allergies": [
+        {
+          "id": "i-022-primary",
+          "name": "Fish",
+          "severity": "mild",
+          "avoidCrossContact": false
+        },
+        {
+          "id": "i-022-secondary",
+          "name": "Egg",
+          "severity": "moderate",
+          "avoidCrossContact": false
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Bacalhau com Ovo",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Pasteis da Casa",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Arroz Simples"
+      ]
+    }
+  },
+  {
+    "id": "I-023",
+    "name": "Mesa Atlantica - skewed",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-023.jpg",
+    "language": "Portuguese",
+    "qualityVariant": "skewed",
+    "profile": {
+      "id": "profile-i-023",
+      "name": "Reliability test",
+      "preferredLanguage": "Portuguese",
+      "restaurantLanguage": "Portuguese",
+      "allergies": [
+        {
+          "id": "i-023-primary",
+          "name": "Fish",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-023-secondary",
+          "name": "Egg",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Bacalhau com Ovo",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Pasteis da Casa",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Arroz Simples"
+      ]
+    }
+  },
+  {
+    "id": "I-024",
+    "name": "Mesa Atlantica - glare",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-024.jpg",
+    "language": "Portuguese",
+    "qualityVariant": "glare",
+    "profile": {
+      "id": "profile-i-024",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Portuguese",
+      "allergies": [
+        {
+          "id": "i-024-primary",
+          "name": "Fish",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-024-secondary",
+          "name": "Egg",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Bacalhau com Ovo",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Pasteis da Casa",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Arroz Simples"
+      ]
+    }
+  },
+  {
+    "id": "I-025",
+    "name": "食事処 みどり - clear",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-025.jpg",
+    "language": "Japanese",
+    "qualityVariant": "clear",
+    "profile": {
+      "id": "profile-i-025",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Japanese",
+      "allergies": [
+        {
+          "id": "i-025-primary",
+          "name": "Soy",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-025-secondary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "しょうゆラーメン",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "ほうれん草のごま和え",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        }
+      ],
+      "benignDishes": [
+        "白ごはん"
+      ]
+    }
+  },
+  {
+    "id": "I-026",
+    "name": "食事処 みどり - small text",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-026.jpg",
+    "language": "Japanese",
+    "qualityVariant": "small_text",
+    "profile": {
+      "id": "profile-i-026",
+      "name": "Reliability test",
+      "preferredLanguage": "Japanese",
+      "restaurantLanguage": "Japanese",
+      "allergies": [
+        {
+          "id": "i-026-primary",
+          "name": "Soy",
+          "severity": "mild",
+          "avoidCrossContact": false
+        },
+        {
+          "id": "i-026-secondary",
+          "name": "Sesame",
+          "severity": "moderate",
+          "avoidCrossContact": false
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "しょうゆラーメン",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "ほうれん草のごま和え",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        }
+      ],
+      "benignDishes": [
+        "白ごはん"
+      ]
+    }
+  },
+  {
+    "id": "I-027",
+    "name": "食事処 みどり - skewed",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-027.jpg",
+    "language": "Japanese",
+    "qualityVariant": "skewed",
+    "profile": {
+      "id": "profile-i-027",
+      "name": "Reliability test",
+      "preferredLanguage": "Japanese",
+      "restaurantLanguage": "Japanese",
+      "allergies": [
+        {
+          "id": "i-027-primary",
+          "name": "Soy",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-027-secondary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "しょうゆラーメン",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "ほうれん草のごま和え",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        }
+      ],
+      "benignDishes": [
+        "白ごはん"
+      ]
+    }
+  },
+  {
+    "id": "I-028",
+    "name": "食事処 みどり - cropped",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-028.jpg",
+    "language": "Japanese",
+    "qualityVariant": "cropped",
+    "profile": {
+      "id": "profile-i-028",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Japanese",
+      "allergies": [
+        {
+          "id": "i-028-primary",
+          "name": "Soy",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-028-secondary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "poor",
+      "needsRetake": true,
+      "overallRisk": "unclear",
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "I-029",
+    "name": "한상 식당 - clear",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-029.jpg",
+    "language": "Korean",
+    "qualityVariant": "clear",
+    "profile": {
+      "id": "profile-i-029",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Korean",
+      "allergies": [
+        {
+          "id": "i-029-primary",
+          "name": "Shellfish",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-029-secondary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "새우볶음밥",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "비빔국수",
+          "minimumRisk": "high_risk",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "흰쌀밥"
+      ]
+    }
+  },
+  {
+    "id": "I-030",
+    "name": "한상 식당 - small text",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-030.jpg",
+    "language": "Korean",
+    "qualityVariant": "small_text",
+    "profile": {
+      "id": "profile-i-030",
+      "name": "Reliability test",
+      "preferredLanguage": "Korean",
+      "restaurantLanguage": "Korean",
+      "allergies": [
+        {
+          "id": "i-030-primary",
+          "name": "Shellfish",
+          "severity": "mild",
+          "avoidCrossContact": false
+        },
+        {
+          "id": "i-030-secondary",
+          "name": "Sesame",
+          "severity": "moderate",
+          "avoidCrossContact": false
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "새우볶음밥",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "비빔국수",
+          "minimumRisk": "high_risk",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "흰쌀밥"
+      ]
+    }
+  },
+  {
+    "id": "I-031",
+    "name": "한상 식당 - skewed",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-031.jpg",
+    "language": "Korean",
+    "qualityVariant": "skewed",
+    "profile": {
+      "id": "profile-i-031",
+      "name": "Reliability test",
+      "preferredLanguage": "Korean",
+      "restaurantLanguage": "Korean",
+      "allergies": [
+        {
+          "id": "i-031-primary",
+          "name": "Shellfish",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-031-secondary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "새우볶음밥",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "비빔국수",
+          "minimumRisk": "high_risk",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "흰쌀밥"
+      ]
+    }
+  },
+  {
+    "id": "I-032",
+    "name": "한상 식당 - partial",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-032.jpg",
+    "language": "Korean",
+    "qualityVariant": "partial",
+    "profile": {
+      "id": "profile-i-032",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Korean",
+      "allergies": [
+        {
+          "id": "i-032-primary",
+          "name": "Shellfish",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-032-secondary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "새우볶음밥",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "비빔국수",
+          "minimumRisk": "high_risk",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "흰쌀밥"
+      ]
+    }
+  },
+  {
+    "id": "I-033",
+    "name": "家常小馆 - clear",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-033.jpg",
+    "language": "Simplified Chinese",
+    "qualityVariant": "clear",
+    "profile": {
+      "id": "profile-i-033",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Simplified Chinese",
+      "allergies": [
+        {
+          "id": "i-033-primary",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-033-secondary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "宫保鸡丁",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "芝麻凉面",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        }
+      ],
+      "benignDishes": [
+        "白米饭"
+      ]
+    }
+  },
+  {
+    "id": "I-034",
+    "name": "家常小馆 - small text",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-034.jpg",
+    "language": "Simplified Chinese",
+    "qualityVariant": "small_text",
+    "profile": {
+      "id": "profile-i-034",
+      "name": "Reliability test",
+      "preferredLanguage": "Simplified Chinese",
+      "restaurantLanguage": "Simplified Chinese",
+      "allergies": [
+        {
+          "id": "i-034-primary",
+          "name": "Peanut",
+          "severity": "mild",
+          "avoidCrossContact": false
+        },
+        {
+          "id": "i-034-secondary",
+          "name": "Sesame",
+          "severity": "moderate",
+          "avoidCrossContact": false
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "宫保鸡丁",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "芝麻凉面",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        }
+      ],
+      "benignDishes": [
+        "白米饭"
+      ]
+    }
+  },
+  {
+    "id": "I-035",
+    "name": "家常小馆 - skewed",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-035.jpg",
+    "language": "Simplified Chinese",
+    "qualityVariant": "skewed",
+    "profile": {
+      "id": "profile-i-035",
+      "name": "Reliability test",
+      "preferredLanguage": "Simplified Chinese",
+      "restaurantLanguage": "Simplified Chinese",
+      "allergies": [
+        {
+          "id": "i-035-primary",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-035-secondary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "宫保鸡丁",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "芝麻凉面",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        }
+      ],
+      "benignDishes": [
+        "白米饭"
+      ]
+    }
+  },
+  {
+    "id": "I-036",
+    "name": "家常小馆 - blurred",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-036.jpg",
+    "language": "Simplified Chinese",
+    "qualityVariant": "blurred",
+    "profile": {
+      "id": "profile-i-036",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Simplified Chinese",
+      "allergies": [
+        {
+          "id": "i-036-primary",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-036-secondary",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "poor",
+      "needsRetake": true,
+      "overallRisk": "unclear",
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "I-037",
+    "name": "ครัวริมทาง - clear",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-037.jpg",
+    "language": "Thai",
+    "qualityVariant": "clear",
+    "profile": {
+      "id": "profile-i-037",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Thai",
+      "allergies": [
+        {
+          "id": "i-037-primary",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-037-secondary",
+          "name": "Shellfish",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "ผัดไทยกุ้ง",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "ไก่ทอดซอสบ้าน",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "ข้าวสวย"
+      ]
+    }
+  },
+  {
+    "id": "I-038",
+    "name": "ครัวริมทาง - small text",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-038.jpg",
+    "language": "Thai",
+    "qualityVariant": "small_text",
+    "profile": {
+      "id": "profile-i-038",
+      "name": "Reliability test",
+      "preferredLanguage": "Thai",
+      "restaurantLanguage": "Thai",
+      "allergies": [
+        {
+          "id": "i-038-primary",
+          "name": "Peanut",
+          "severity": "mild",
+          "avoidCrossContact": false
+        },
+        {
+          "id": "i-038-secondary",
+          "name": "Shellfish",
+          "severity": "moderate",
+          "avoidCrossContact": false
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "ผัดไทยกุ้ง",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "ไก่ทอดซอสบ้าน",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "ข้าวสวย"
+      ]
+    }
+  },
+  {
+    "id": "I-039",
+    "name": "ครัวริมทาง - skewed",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-039.jpg",
+    "language": "Thai",
+    "qualityVariant": "skewed",
+    "profile": {
+      "id": "profile-i-039",
+      "name": "Reliability test",
+      "preferredLanguage": "Thai",
+      "restaurantLanguage": "Thai",
+      "allergies": [
+        {
+          "id": "i-039-primary",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-039-secondary",
+          "name": "Shellfish",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "ผัดไทยกุ้ง",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "ไก่ทอดซอสบ้าน",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "ข้าวสวย"
+      ]
+    }
+  },
+  {
+    "id": "I-040",
+    "name": "ครัวริมทาง - glare",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-040.jpg",
+    "language": "Thai",
+    "qualityVariant": "glare",
+    "profile": {
+      "id": "profile-i-040",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Thai",
+      "allergies": [
+        {
+          "id": "i-040-primary",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-040-secondary",
+          "name": "Shellfish",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "ผัดไทยกุ้ง",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "ไก่ทอดซอสบ้าน",
+          "minimumRisk": "ask_staff",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "ข้าวสวย"
+      ]
+    }
+  },
+  {
+    "id": "I-041",
+    "name": "Orchard Desserts - clear",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-041.jpg",
+    "language": "English",
+    "qualityVariant": "clear",
+    "profile": {
+      "id": "profile-i-041",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        {
+          "id": "i-041-primary",
+          "name": "Tree nuts",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-041-secondary",
+          "name": "Mango",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Pistachio Mango Tart",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Chocolate Sundae",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        }
+      ],
+      "benignDishes": [
+        "Berry Cup"
+      ]
+    }
+  },
+  {
+    "id": "I-042",
+    "name": "Orchard Desserts - small text",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-042.jpg",
+    "language": "English",
+    "qualityVariant": "small_text",
+    "profile": {
+      "id": "profile-i-042",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        {
+          "id": "i-042-primary",
+          "name": "Tree nuts",
+          "severity": "mild",
+          "avoidCrossContact": false
+        },
+        {
+          "id": "i-042-secondary",
+          "name": "Mango",
+          "severity": "moderate",
+          "avoidCrossContact": false
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Pistachio Mango Tart",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Chocolate Sundae",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        }
+      ],
+      "benignDishes": [
+        "Berry Cup"
+      ]
+    }
+  },
+  {
+    "id": "I-043",
+    "name": "Orchard Desserts - skewed",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-043.jpg",
+    "language": "English",
+    "qualityVariant": "skewed",
+    "profile": {
+      "id": "profile-i-043",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        {
+          "id": "i-043-primary",
+          "name": "Tree nuts",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-043-secondary",
+          "name": "Mango",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Pistachio Mango Tart",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Chocolate Sundae",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        }
+      ],
+      "benignDishes": [
+        "Berry Cup"
+      ]
+    }
+  },
+  {
+    "id": "I-044",
+    "name": "Orchard Desserts - cropped",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-044.jpg",
+    "language": "English",
+    "qualityVariant": "cropped",
+    "profile": {
+      "id": "profile-i-044",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        {
+          "id": "i-044-primary",
+          "name": "Tree nuts",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-044-secondary",
+          "name": "Mango",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "poor",
+      "needsRetake": true,
+      "overallRisk": "unclear",
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "I-045",
+    "name": "Station Cafe - clear",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-045.jpg",
+    "language": "English",
+    "qualityVariant": "clear",
+    "profile": {
+      "id": "profile-i-045",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        {
+          "id": "i-045-primary",
+          "name": "Wheat/gluten",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-045-secondary",
+          "name": "Egg",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Crispy Chicken",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Tofu Noodle Bowl",
+          "minimumRisk": "high_risk",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Fruit Plate"
+      ]
+    }
+  },
+  {
+    "id": "I-046",
+    "name": "Station Cafe - small text",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-046.jpg",
+    "language": "English",
+    "qualityVariant": "small_text",
+    "profile": {
+      "id": "profile-i-046",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        {
+          "id": "i-046-primary",
+          "name": "Wheat/gluten",
+          "severity": "mild",
+          "avoidCrossContact": false
+        },
+        {
+          "id": "i-046-secondary",
+          "name": "Egg",
+          "severity": "moderate",
+          "avoidCrossContact": false
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Crispy Chicken",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Tofu Noodle Bowl",
+          "minimumRisk": "high_risk",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Fruit Plate"
+      ]
+    }
+  },
+  {
+    "id": "I-047",
+    "name": "Station Cafe - skewed",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-047.jpg",
+    "language": "English",
+    "qualityVariant": "skewed",
+    "profile": {
+      "id": "profile-i-047",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        {
+          "id": "i-047-primary",
+          "name": "Wheat/gluten",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-047-secondary",
+          "name": "Egg",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Crispy Chicken",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Tofu Noodle Bowl",
+          "minimumRisk": "high_risk",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Fruit Plate"
+      ]
+    }
+  },
+  {
+    "id": "I-048",
+    "name": "Station Cafe - partial",
+    "sourceType": "controlled",
+    "imagePath": "docs/ai-evals/images/controlled/I-048.jpg",
+    "language": "English",
+    "qualityVariant": "partial",
+    "profile": {
+      "id": "profile-i-048",
+      "name": "Reliability test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        {
+          "id": "i-048-primary",
+          "name": "Wheat/gluten",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "i-048-secondary",
+          "name": "Egg",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [
+        {
+          "dishName": "Crispy Chicken",
+          "minimumRisk": "avoid_unless_confirmed",
+          "directListed": true
+        },
+        {
+          "dishName": "Tofu Noodle Bowl",
+          "minimumRisk": "high_risk",
+          "directListed": false
+        }
+      ],
+      "benignDishes": [
+        "Fruit Plate"
+      ]
+    }
+  },
+  {
+    "id": "L-001",
+    "name": "Portuguese coffee menu",
+    "imagePath": "docs/ai-evals/images/licensed/L-001.jpg",
+    "language": "Portuguese",
+    "quality": "clear",
+    "source": {
+      "title": "Expresso coffee menu Portugal",
+      "creator": "DanielMichaelPerry",
+      "license": "CC0",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:%E2%80%9CExpresso%E2%80%9D_coffee_menu_Portugal.jpg"
+    },
+    "sourceType": "licensed",
+    "qualityVariant": "real_world",
+    "profile": {
+      "id": "profile-l-001",
+      "name": "Licensed image test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Portuguese",
+      "allergies": [
+        {
+          "id": "peanut",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "sesame",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "L-002",
+    "name": "Hong Kong sidewalk menu board",
+    "imagePath": "docs/ai-evals/images/licensed/L-002.jpg",
+    "language": "Traditional Chinese",
+    "quality": "partially_clear",
+    "source": {
+      "title": "A black menu board from Kau Yee Hong Kong style restaurant",
+      "creator": "Peachyeung316",
+      "license": "CC BY-SA 4.0",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:A_black_menu_board_from_Kau_Yee_Hong_Kong_style_restaurant.jpg"
+    },
+    "sourceType": "licensed",
+    "qualityVariant": "real_world",
+    "profile": {
+      "id": "profile-l-002",
+      "name": "Licensed image test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Traditional Chinese",
+      "allergies": [
+        {
+          "id": "peanut",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "sesame",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "L-003",
+    "name": "Distant cafe chalkboard",
+    "imagePath": "docs/ai-evals/images/licensed/L-003.jpg",
+    "language": "English",
+    "quality": "poor",
+    "source": {
+      "title": "Breakfast menu of Tivoli Cafe 2025-09-17",
+      "creator": "Andy Li",
+      "license": "CC0",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Breakfast_menu_of_Tivoli_Cafe_2025-09-17.jpg"
+    },
+    "sourceType": "licensed",
+    "qualityVariant": "real_world",
+    "profile": {
+      "id": "profile-l-003",
+      "name": "Licensed image test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        {
+          "id": "peanut",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "sesame",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": true,
+    "expected": {
+      "readability": "poor",
+      "needsRetake": true,
+      "overallRisk": "unclear",
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "L-004",
+    "name": "Barcelona breakfast chalkboard",
+    "imagePath": "docs/ai-evals/images/licensed/L-004.jpg",
+    "language": "Spanish",
+    "quality": "clear",
+    "source": {
+      "title": "Breakfast menu sign in front of bar in Barcelona, Spain",
+      "creator": "Pittigrilli",
+      "license": "CC BY-SA 4.0",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Breakfast_menu_sign_in_front_of_bar_in_Barcelona,_Spain.jpg"
+    },
+    "sourceType": "licensed",
+    "qualityVariant": "real_world",
+    "profile": {
+      "id": "profile-l-004",
+      "name": "Licensed image test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Spanish",
+      "allergies": [
+        {
+          "id": "peanut",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "sesame",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "L-005",
+    "name": "German restaurant chalkboard",
+    "imagePath": "docs/ai-evals/images/licensed/L-005.jpg",
+    "language": "German",
+    "quality": "partially_clear",
+    "source": {
+      "title": "Kulmbach Zunftstube Speisekarte Jan 2015",
+      "creator": "Benreis",
+      "license": "CC BY 3.0",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Kulmbach_Zunftstube_Speisekarte_Jan_2015.JPG"
+    },
+    "sourceType": "licensed",
+    "qualityVariant": "real_world",
+    "profile": {
+      "id": "profile-l-005",
+      "name": "Licensed image test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "German",
+      "allergies": [
+        {
+          "id": "peanut",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "sesame",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "L-006",
+    "name": "French Asian restaurant chalkboard",
+    "imagePath": "docs/ai-evals/images/licensed/L-006.jpg",
+    "language": "French",
+    "quality": "clear",
+    "source": {
+      "title": "Menu du jour d'un restaurant asiatique lyonnais en 2017",
+      "creator": "Benoit Prieur",
+      "license": "CC0",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Menu_du_jour_d%27un_restaurant_asiatique_lyonnais_en_2017.jpg"
+    },
+    "sourceType": "licensed",
+    "qualityVariant": "real_world",
+    "profile": {
+      "id": "profile-l-006",
+      "name": "Licensed image test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "French",
+      "allergies": [
+        {
+          "id": "peanut",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "sesame",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "L-007",
+    "name": "French sidewalk menu",
+    "imagePath": "docs/ai-evals/images/licensed/L-007.jpg",
+    "language": "French",
+    "quality": "partially_clear",
+    "source": {
+      "title": "Menu of Le Triple V, Caen 2025-03-28",
+      "creator": "Andy Li",
+      "license": "CC0",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Menu_of_Le_Triple_V,_Caen_2025-03-28.jpg"
+    },
+    "sourceType": "licensed",
+    "qualityVariant": "real_world",
+    "profile": {
+      "id": "profile-l-007",
+      "name": "Licensed image test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "French",
+      "allergies": [
+        {
+          "id": "peanut",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "sesame",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "L-008",
+    "name": "French creperie wall menus",
+    "imagePath": "docs/ai-evals/images/licensed/L-008.jpg",
+    "language": "French",
+    "quality": "partially_clear",
+    "source": {
+      "title": "Menu of Oui Creperie 2023-06-04",
+      "creator": "Andy Li",
+      "license": "CC0",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Menu_of_Oui_Cr%C3%AAperie_2023-06-04.jpg"
+    },
+    "sourceType": "licensed",
+    "qualityVariant": "real_world",
+    "profile": {
+      "id": "profile-l-008",
+      "name": "Licensed image test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "French",
+      "allergies": [
+        {
+          "id": "peanut",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "sesame",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "L-009",
+    "name": "Thai restaurant sharing menu",
+    "imagePath": "docs/ai-evals/images/licensed/L-009.jpg",
+    "language": "Thai",
+    "quality": "clear",
+    "source": {
+      "title": "Menu of Sawadee Thai Restaurant (p1) 2024-10-05",
+      "creator": "Andy Li",
+      "license": "CC0",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Menu_of_Sawadee_Thai_Restaurant_(p1)_2024-10-05.jpg"
+    },
+    "sourceType": "licensed",
+    "qualityVariant": "real_world",
+    "profile": {
+      "id": "profile-l-009",
+      "name": "Licensed image test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Thai",
+      "allergies": [
+        {
+          "id": "peanut",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "sesame",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "L-010",
+    "name": "Thai restaurant open menu",
+    "imagePath": "docs/ai-evals/images/licensed/L-010.jpg",
+    "language": "Thai",
+    "quality": "partially_clear",
+    "source": {
+      "title": "Menu of Sawadee Thai Restaurant (p2-3) 2024-10-05",
+      "creator": "Andy Li",
+      "license": "CC0",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Menu_of_Sawadee_Thai_Restaurant_(p2-3)_2024-10-05.jpg"
+    },
+    "sourceType": "licensed",
+    "qualityVariant": "real_world",
+    "profile": {
+      "id": "profile-l-010",
+      "name": "Licensed image test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Thai",
+      "allergies": [
+        {
+          "id": "peanut",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "sesame",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "partially_clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "L-011",
+    "name": "Mexipino printed menu",
+    "imagePath": "docs/ai-evals/images/licensed/L-011.jpg",
+    "language": "English",
+    "quality": "clear",
+    "source": {
+      "title": "Mexipino Craft menu - 2",
+      "creator": "RightCowLeftCoast",
+      "license": "CC BY 4.0",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Mexipino_Craft_menu_-_2.jpg"
+    },
+    "sourceType": "licensed",
+    "qualityVariant": "real_world",
+    "profile": {
+      "id": "profile-l-011",
+      "name": "Licensed image test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "English",
+      "allergies": [
+        {
+          "id": "peanut",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "sesame",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  },
+  {
+    "id": "L-012",
+    "name": "Italian pasta visual menu",
+    "imagePath": "docs/ai-evals/images/licensed/L-012.jpg",
+    "language": "Italian",
+    "quality": "clear",
+    "source": {
+      "title": "Spoleto Menu - 03",
+      "creator": "Warley Felipe C.S.",
+      "license": "CC BY-SA 4.0",
+      "pageUrl": "https://commons.wikimedia.org/wiki/File:Spoleto_Menu_-_03.jpg"
+    },
+    "sourceType": "licensed",
+    "qualityVariant": "real_world",
+    "profile": {
+      "id": "profile-l-012",
+      "name": "Licensed image test",
+      "preferredLanguage": "English",
+      "restaurantLanguage": "Italian",
+      "allergies": [
+        {
+          "id": "peanut",
+          "name": "Peanut",
+          "severity": "severe",
+          "avoidCrossContact": true
+        },
+        {
+          "id": "sesame",
+          "name": "Sesame",
+          "severity": "severe",
+          "avoidCrossContact": true
+        }
+      ]
+    },
+    "critical": false,
+    "expected": {
+      "readability": "clear",
+      "needsRetake": false,
+      "overallRisk": null,
+      "minimumRisks": [],
+      "benignDishes": []
+    }
+  }
+]

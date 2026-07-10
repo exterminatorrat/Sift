@@ -17,7 +17,18 @@ export type RestaurantMessage = {
 export type ImageQuality = {
   readability: "clear" | "partially_clear" | "poor";
   issues: string[];
+  needsRetake?: boolean;
 };
+
+export type EvidenceConfidence = "high" | "medium" | "low";
+
+export type RiskBasis =
+  | "visible_text"
+  | "common_pattern"
+  | "unknown_ingredient"
+  | "cross_contact"
+  | "translation_uncertain"
+  | "image_uncertain";
 
 export type DishTransparency = {
   visibleMenuText: string[];
@@ -47,6 +58,8 @@ export type DishRisk = {
   possibleAllergens: string[];
   hiddenRiskIngredients: string[];
   crossContactConcerns: string[];
+  evidenceConfidence: EvidenceConfidence;
+  riskBasis: RiskBasis[];
   reason: string;
   questionsToAsk: string[];
   questionsToAskUserLanguage?: string[];
@@ -63,6 +76,7 @@ export type ScanResult = {
   analysisLanguage?: string | null;
   analysisSource?: "mock" | "ai" | "fallback";
   analysisModel?: string | null;
+  analysisRequestId?: string | null;
   scanSummary: ScanSummary;
   dishes: DishRisk[];
   restaurantMessage?: RestaurantMessage;
