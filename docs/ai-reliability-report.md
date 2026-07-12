@@ -69,7 +69,7 @@ Security advisors show no application-owned warning. Remaining advisor notices a
 Local checks:
 
 - `npm.cmd run typecheck`: pass.
-- `npm.cmd run eval:ai`: fixture integrity and generic sample-output checks pass for 25 fixtures. This is not a claim that 25 model responses passed.
+- `npm.cmd run eval:ai`: fixture integrity, generic sample-output checks, and multilingual prohibited/conservative-language tests against the real client validator pass for 25 fixtures. This is not a claim that 25 model responses passed.
 - Live harness syntax and 60-case manifest integrity: pass.
 - `npm.cmd run test:backend:smoke`: pass for anonymous sign-in, unauthenticated `401`, and authenticated malformed-request `400` without a provider call.
 

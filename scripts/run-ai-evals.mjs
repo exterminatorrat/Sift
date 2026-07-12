@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import ts from "typescript";
 
 const casesPath = path.resolve("docs/ai-evals/cases.json");
 const samplePath = path.resolve(process.argv[2] ?? "docs/ai-evals/sample-output.json");
@@ -173,6 +174,7 @@ for (const item of cases) {
 if (fs.existsSync(samplePath)) {
   const output = JSON.parse(fs.readFileSync(samplePath, "utf8"));
   validateSampleOutput(output, samplePath);
+  await validateWithClientValidator(output);
 } else {
   console.log(`No sample output found at ${samplePath}. Fixture integrity only.`);
 }
@@ -185,7 +187,35 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(`Fixture integrity and generic sample-output checks passed for ${cases.length} cases.`);
+console.log(`Fixture integrity, sample-output, and multilingual client-validator checks passed for ${cases.length} cases.`);
+
+async function validateWithClientValidator(sampleOutput) {
+  const validatorPath = path.resolve("src/utils/scanResultValidation.ts");
+  const compiled = ts.transpileModule(fs.readFileSync(validatorPath, "utf8"), {
+    compilerOptions: {
+      module: ts.ModuleKind.ESNext,
+      target: ts.ScriptTarget.ES2022
+    }
+  }).outputText;
+  const validator = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`);
+
+  for (const example of bannedSafetyExamples) {
+    const candidate = structuredClone(sampleOutput);
+    candidate.scanSummary.summary = example;
+    if (validator.validateScanResult(candidate).ok) {
+      failures.push(`Client validator accepted multilingual banned safety language: ${example}`);
+    }
+  }
+
+  for (const example of conservativeUncertaintyExamples) {
+    const candidate = structuredClone(sampleOutput);
+    candidate.scanSummary.limitations = example;
+    const result = validator.validateScanResult(candidate);
+    if (!result.ok) {
+      failures.push(`Client validator rejected multilingual conservative uncertainty: ${example} (${result.error})`);
+    }
+  }
+}
 
 function validateSampleOutput(output, sourcePath) {
   const text = JSON.stringify(output);
