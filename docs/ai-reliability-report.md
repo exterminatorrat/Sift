@@ -1,7 +1,7 @@
 # Sift AI Reliability Report
 
 Status: **Checkpoint - private-beta gate not yet passed**  
-Measured: July 10, 2026
+Measured: July 12, 2026
 
 Sift now has a deployed, authenticated, quota-protected AI path and a repeatable image-eval harness. The remaining blocker is completion of the paced 60-image live gate after the Gemini free-tier quota resets. This report records measured evidence only; it does not claim that Sift can guarantee food safety.
 
@@ -9,7 +9,7 @@ Sift now has a deployed, authenticated, quota-protected AI path and a repeatable
 
 - Provider/model: `gemini-3.5-flash`
 - Thinking level: `low`
-- Prompt version: `2026-07-10.4`
+- Prompt version: `2026-07-12.2`
 - Provider schema version: `5`
 - Structured output: enabled with a compact Gemini response schema
 - Full server validation: enabled after normalization
@@ -17,8 +17,8 @@ Sift now has a deployed, authenticated, quota-protected AI path and a repeatable
 - Provider timeout: `22000ms`
 - Google Search grounding: disabled
 - Provider fallback: none; unresolved failures become a calm `unclear` result
-- Edge Function: `analyze-menu` version 46, JWT verification enabled
-- Deployment SHA-256: `a8a6df0087ae0521a04bf2cf84f3ce486f0d173d4e4baa9b32e80f42ae1933bf`
+- Edge Function: `analyze-menu` version 49, JWT verification enabled
+- Deployment SHA-256: `f34e4cad8bdc905219eb841fdee281a3a21936c8e4f79381235b07735b12de4f`
 
 Low was retained because the medium test exceeded the latency target and produced a malformed or truncated model response on its second case. Low is still provisional until the full gate passes.
 
@@ -27,6 +27,8 @@ Low was retained because the medium test exceeded the latency target and produce
 - Strict server-side request validation and bounded body reading.
 - Anonymous Supabase JWT authentication before analysis.
 - Atomic server-side monthly quota claims before provider calls.
+- Client-supplied test entitlement synchronization removed; evaluation entitlements are assigned only through the server-side admin path.
+- Auth and internal RPC calls use bounded timeouts, and request-body streaming has an overall deadline.
 - Privacy-minimized analysis telemetry with 30-day retention.
 - One retry only for immediate provider `429`, `500`, `502`, `503`, or `504` responses.
 - No retry for timeouts, invalid model output, safety-validation failures, or bad requests.
@@ -34,7 +36,9 @@ Low was retained because the medium test exceeded the latency target and produce
 - Deterministic severe-allergen safety floors, including multilingual direct-ingredient aliases.
 - Conservative fallback results and request IDs for support correlation.
 - HTTPS-only source references and grounding disabled for the beta gate.
+- Model-supplied references are discarded; only provider-grounded references may be merged later.
 - Live eval pacing and a hard 120-call ledger.
+- Live gate enforcement now checks exact case completeness, published error/rate/latency thresholds, full client-facing shape, and configuration provenance.
 
 ## Supabase Evidence
 
@@ -61,11 +65,21 @@ Security advisors show no application-owned warning. Remaining advisor notices a
 
 ## Measured Results
 
-Local gates:
+Local checks:
 
 - `npm.cmd run typecheck`: pass.
-- `npm.cmd run eval:ai`: pass for all 25 static fixtures.
+- `npm.cmd run eval:ai`: fixture integrity and generic sample-output checks pass for 25 fixtures. This is not a claim that 25 model responses passed.
 - Live harness syntax and 60-case manifest integrity: pass.
+- `npm.cmd run test:backend:smoke`: pass for anonymous sign-in, unauthenticated `401`, and authenticated malformed-request `400` without a provider call.
+
+July 12 candidate evidence:
+
+- Version 47 canary (`I-001`) passed all per-case safety gates in 11.5s after deterministic severe/cross-contact uncertainty escalation was added.
+- Version 48 added privacy and auth hardening plus response configuration provenance. Its canary returned the correct calm fallback after a provider timeout.
+- The paced version-48 gate ran 17 of 60 cases before Gemini returned `provider_rate_limited` and the harness stopped automatically.
+- Of those 17 responses, eight were AI-produced and nine were fallbacks: five provider timeouts, two malformed-output fallbacks, one provider-unavailable fallback, and one provider-rate-limit fallback.
+- Six of eight AI-produced responses passed their case expectations. The two failures were a direct-listed mild allergen one tier below Sift's policy and a blurred/low-resolution image not marked for retake.
+- Version 49 deterministically fixes those two findings, removes the duplicated textual JSON schema to reduce prompt overhead, and is deployed. It has not received a post-deployment live model call because the free-tier quota was exhausted.
 
 Initial low calibration (`2026-07-10.3`, schema 5, 12 cases):
 
@@ -98,10 +112,10 @@ Telemetry across all diagnostics recorded 18 successful analyses, eight provider
 
 | Gate | Result |
 | --- | --- |
-| Unauthenticated invocation returns `401` | Pass |
-| Malformed authenticated request returns `400` | Pass |
+| Unauthenticated invocation returns `401` | Pass, reproduced July 12 |
+| Malformed authenticated request returns `400` | Pass, reproduced July 12 |
 | Fourth Free-plan scan returns `429` before Gemini | Pass |
-| Quota telemetry has no provider/model | Pass |
+| Quota telemetry has no provider/model | Pass, reproduced July 12 with `quota_rejected` telemetry |
 | Oversized declared body returns `413` remotely | Unresolved: Supabase gateway buffered the upload before function execution |
 | Function requires JWT | Pass |
 | Test entitlement sync disabled remotely | Pass |
@@ -110,7 +124,7 @@ The function performs a pre-auth declared-length check and bounded stream read, 
 
 ## Private-Beta Gate Status
 
-The private-beta AI gate is **not passed**. The 60-image gate and three-run critical repeat set were not completed after the free-tier project returned persistent `RESOURCE_EXHAUSTED` responses. No paid inference was enabled.
+The private-beta AI gate is **not passed**. The current version-49 candidate still needs the complete 60-image gate and the curated 18-case set repeated three times. The July 12 run stopped after 17 cases when the free-tier project returned a provider rate limit. No paid inference was enabled.
 
 The next live run must demonstrate:
 
@@ -128,11 +142,11 @@ The next live run must demonstrate:
 ## Resume Procedure
 
 1. Wait for the Gemini free-tier quota window to reset; do not enable billing.
-2. Run `npm.cmd run eval:ai:live -- prepare`.
-3. Assign the printed disposable user a Family/admin entitlement through the server-side database path.
+2. Archive and reset the diagnostic ledger with `npm.cmd run eval:ai:live -- reset-ledger --confirm` because version 49 is a new candidate.
+3. Reuse the current disposable evaluation user if its session remains valid, otherwise run `npm.cmd run eval:ai:live -- prepare` and assign the printed user a Family/admin entitlement through the server-side database path.
 4. Run the 60-case gate with the default 15-second pacing. Increase `--min-call-interval-ms` if the active AI Studio RPM limit is lower.
 5. Stop immediately on `provider_rate_limited` or any billing-required response.
-6. Run the remaining critical repeats only if the 60-case gate passes.
+6. Only if the gate passes, run `npm.cmd run eval:ai:live -- run --phase repeat-critical --cases critical --repeat 3`.
 7. Run `npm.cmd run eval:ai:live -- cleanup`, then delete the disposable auth user server-side.
 8. Update this report and `Sift Launch Tracker.xlsx` only from the new evidence.
 
@@ -144,5 +158,6 @@ Raw live outputs remain under ignored `output/ai-evals`; only aggregate evidence
 - Deterministic word matching reduces under-escalation but is not a cuisine or allergen ontology.
 - Human allergen-domain review is still required for the highest-risk labels.
 - Human review is still required for non-English restaurant messages.
+- Anonymous identities can be rotated by clearing app storage, so per-user quota is not sufficient abuse protection for public launch. Require Apple or another durable identity and add platform-level abuse controls before paid production inference.
+- Free-tier provider availability is currently too variable for a production SLA; the measured partial gate had nine fallbacks in 17 calls.
 - Google states that Gemini free-tier content may be used to improve its products. Use the free tier only with synthetic, licensed, or expressly consented testing data; do not treat it as the final production privacy posture.
-

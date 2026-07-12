@@ -1,7 +1,6 @@
 import { UserProfile } from "../types/allergy";
 import { PreparedMenuImage } from "../types/image";
 import { ScanResult } from "../types/scan";
-import { SubscriptionPlanId } from "../types/subscription";
 import { validateScanResult } from "../utils/scanResultValidation";
 import { getSupabaseAccessToken, refreshSupabaseAccessToken } from "./authService";
 import { getMockScanResult } from "./mockAnalysisService";
@@ -10,13 +9,11 @@ const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 const ANALYSIS_MODE = process.env.EXPO_PUBLIC_ANALYSIS_MODE ?? "mock";
 const ANALYSIS_TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_ANALYSIS_TIMEOUT_MS ?? 45000);
-const ENABLE_TEST_ENTITLEMENT_SYNC = process.env.EXPO_PUBLIC_ENABLE_TEST_ENTITLEMENT_SYNC === "true";
 
 export type AnalyzeMenuRequest = {
   profile: UserProfile;
   image: PreparedMenuImage;
   restaurantLanguage?: string;
-  subscriptionPlanId?: SubscriptionPlanId;
 };
 
 export class ScanQuotaExceededError extends Error {
@@ -101,8 +98,7 @@ async function fetchAnalysis(
       profile: request.profile,
       imageBase64: request.image.base64,
       mimeType: request.image.mimeType,
-      restaurantLanguage: request.restaurantLanguage,
-      testPlanId: ENABLE_TEST_ENTITLEMENT_SYNC ? request.subscriptionPlanId : undefined
+      restaurantLanguage: request.restaurantLanguage
     })
   });
 }

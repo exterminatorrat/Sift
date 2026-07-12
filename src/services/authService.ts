@@ -8,36 +8,39 @@ import { AuthSession } from "../types/auth";
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-const LOCAL_AUTH_KEY = "sift:authSession";
-const SUPABASE_AUTH_STORAGE_KEY = "sift:supabaseAuth";
+const LOCAL_AUTH_KEY = "sift.authSession";
+const LEGACY_LOCAL_AUTH_KEY = "sift:authSession";
+const SUPABASE_AUTH_STORAGE_KEY = "sift.supabaseAuth";
+const LEGACY_SUPABASE_AUTH_STORAGE_KEY = "sift:supabaseAuth";
 const SECURE_STORE_CHUNK_SIZE = 1800;
+const webSecureMemory = new Map<string, string>();
 
 const secureAuthStorage = {
   getItem: async (key: string) => {
-    const chunkCountValue = await SecureStore.getItemAsync(chunkCountKey(key));
+    const chunkCountValue = await getSecureItem(chunkCountKey(key));
     const chunkCount = chunkCountValue ? Number(chunkCountValue) : 0;
 
     if (Number.isFinite(chunkCount) && chunkCount > 0) {
       const chunks = await Promise.all(
-        Array.from({ length: chunkCount }, (_, index) => SecureStore.getItemAsync(chunkKey(key, index)))
+        Array.from({ length: chunkCount }, (_, index) => getSecureItem(chunkKey(key, index)))
       );
       return chunks.every((chunk): chunk is string => typeof chunk === "string") ? chunks.join("") : null;
     }
 
-    return SecureStore.getItemAsync(key);
+    return getSecureItem(key);
   },
   setItem: async (key: string, value: string) => {
     await removeSecureStoreValue(key);
 
     if (value.length <= SECURE_STORE_CHUNK_SIZE) {
-      await SecureStore.setItemAsync(key, value);
+      await setSecureItem(key, value);
       return;
     }
 
     const chunks = value.match(new RegExp(`.{1,${SECURE_STORE_CHUNK_SIZE}}`, "g")) ?? [];
-    await SecureStore.setItemAsync(chunkCountKey(key), String(chunks.length));
+    await setSecureItem(chunkCountKey(key), String(chunks.length));
     await Promise.all(
-      chunks.map((chunk, index) => SecureStore.setItemAsync(chunkKey(key, index), chunk))
+      chunks.map((chunk, index) => setSecureItem(chunkKey(key, index), chunk))
     );
   },
   removeItem: async (key: string) => {
@@ -94,14 +97,16 @@ export async function refreshSupabaseAccessToken(): Promise<string | null> {
     return null;
   }
 
-  const { data } = await supabase.auth.refreshSession();
+  const { data, error } = await supabase.auth.refreshSession();
+  if (error) {
+    return null;
+  }
+
   if (data.session?.access_token) {
     return data.session.access_token;
   }
 
-  await supabase.auth.signOut();
-  const session = await ensureSupabaseSession();
-  return session?.access_token ?? null;
+  return null;
 }
 
 export async function signInWithApple(): Promise<AuthSession> {
@@ -157,12 +162,17 @@ export async function signInWithApple(): Promise<AuthSession> {
 }
 
 export async function signOut() {
-  if (supabase) {
-    await supabase.auth.signOut();
+  try {
+    if (supabase) {
+      await supabase.auth.signOut({ scope: "local" });
+    }
+  } finally {
+    await Promise.all([
+      removeSecureStoreValue(LOCAL_AUTH_KEY),
+      removeSecureStoreValue(SUPABASE_AUTH_STORAGE_KEY),
+      AsyncStorage.multiRemove([LOCAL_AUTH_KEY, LEGACY_LOCAL_AUTH_KEY])
+    ]);
   }
-
-  await removeSecureStoreValue(LOCAL_AUTH_KEY);
-  await AsyncStorage.removeItem(LOCAL_AUTH_KEY);
 }
 
 async function ensureSupabaseSession() {
@@ -180,35 +190,35 @@ async function ensureSupabaseSession() {
 }
 
 async function loadLocalAuthSession(): Promise<AuthSession | null> {
-  const secureValue = await SecureStore.getItemAsync(LOCAL_AUTH_KEY);
+  const secureValue = await getSecureItem(LOCAL_AUTH_KEY);
   if (secureValue) {
     return parseStoredAuthSession(secureValue);
   }
 
-  const legacyValue = await AsyncStorage.getItem(LOCAL_AUTH_KEY);
+  const legacyValue = await AsyncStorage.getItem(LEGACY_LOCAL_AUTH_KEY);
   if (!legacyValue) {
     return null;
   }
 
-  await AsyncStorage.removeItem(LOCAL_AUTH_KEY);
+  await AsyncStorage.removeItem(LEGACY_LOCAL_AUTH_KEY);
   const session = parseStoredAuthSession(legacyValue);
   if (session) {
-    await SecureStore.setItemAsync(LOCAL_AUTH_KEY, legacyValue);
+    await setSecureItem(LOCAL_AUTH_KEY, legacyValue);
   }
 
   return session;
 }
 
 async function saveLocalAuthSession(session: AuthSession) {
-  await SecureStore.setItemAsync(LOCAL_AUTH_KEY, JSON.stringify(session));
-  await AsyncStorage.removeItem(LOCAL_AUTH_KEY);
+  await setSecureItem(LOCAL_AUTH_KEY, JSON.stringify(session));
+  await AsyncStorage.multiRemove([LOCAL_AUTH_KEY, LEGACY_LOCAL_AUTH_KEY]);
 }
 
 async function removeLegacySupabaseAuthStorage() {
   await AsyncStorage.multiRemove([
-    SUPABASE_AUTH_STORAGE_KEY,
-    `${SUPABASE_AUTH_STORAGE_KEY}-code-verifier`,
-    `${SUPABASE_AUTH_STORAGE_KEY}-user`,
+    LEGACY_SUPABASE_AUTH_STORAGE_KEY,
+    `${LEGACY_SUPABASE_AUTH_STORAGE_KEY}-code-verifier`,
+    `${LEGACY_SUPABASE_AUTH_STORAGE_KEY}-user`,
     getDefaultSupabaseAuthStorageKey(SUPABASE_URL),
     `${getDefaultSupabaseAuthStorageKey(SUPABASE_URL)}-code-verifier`,
     `${getDefaultSupabaseAuthStorageKey(SUPABASE_URL)}-user`
@@ -216,7 +226,7 @@ async function removeLegacySupabaseAuthStorage() {
 }
 
 async function removeSecureStoreValue(key: string) {
-  const chunkCountValue = await SecureStore.getItemAsync(chunkCountKey(key));
+  const chunkCountValue = await getSecureItem(chunkCountKey(key));
   const chunkCount = chunkCountValue ? Number(chunkCountValue) : 0;
   const keysToRemove = [key, chunkCountKey(key)];
 
@@ -226,7 +236,31 @@ async function removeSecureStoreValue(key: string) {
     }
   }
 
-  await Promise.all(keysToRemove.map((item) => SecureStore.deleteItemAsync(item)));
+  await Promise.all(keysToRemove.map((item) => deleteSecureItem(item)));
+}
+
+function getSecureItem(key: string) {
+  return Platform.OS === "web"
+    ? Promise.resolve(webSecureMemory.get(key) ?? null)
+    : SecureStore.getItemAsync(key);
+}
+
+function setSecureItem(key: string, value: string) {
+  if (Platform.OS === "web") {
+    webSecureMemory.set(key, value);
+    return Promise.resolve();
+  }
+
+  return SecureStore.setItemAsync(key, value);
+}
+
+function deleteSecureItem(key: string) {
+  if (Platform.OS === "web") {
+    webSecureMemory.delete(key);
+    return Promise.resolve();
+  }
+
+  return SecureStore.deleteItemAsync(key);
 }
 
 function createSupabaseSession(
@@ -246,7 +280,23 @@ function createSupabaseSession(
 
 function parseStoredAuthSession(value: string) {
   try {
-    return JSON.parse(value) as AuthSession;
+    const parsed = JSON.parse(value) as Partial<AuthSession> | null;
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      typeof parsed.id !== "string" ||
+      parsed.id.length === 0 ||
+      (parsed.mode !== "supabase" && parsed.mode !== "supabase_anonymous" && parsed.mode !== "local_apple") ||
+      (parsed.provider !== "apple" && parsed.provider !== "anonymous") ||
+      typeof parsed.signedInAt !== "string" ||
+      !Number.isFinite(Date.parse(parsed.signedInAt)) ||
+      (parsed.email !== undefined && parsed.email !== null && typeof parsed.email !== "string") ||
+      (parsed.fullName !== undefined && parsed.fullName !== null && typeof parsed.fullName !== "string")
+    ) {
+      return null;
+    }
+
+    return parsed as AuthSession;
   } catch {
     return null;
   }
@@ -295,9 +345,9 @@ function getDefaultSupabaseAuthStorageKey(value?: string) {
 }
 
 function chunkCountKey(key: string) {
-  return `${key}:chunkCount`;
+  return `${key}.chunkCount`;
 }
 
 function chunkKey(key: string, index: number) {
-  return `${key}:chunk:${index}`;
+  return `${key}.chunk.${index}`;
 }

@@ -99,7 +99,7 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(`AI eval checks passed for ${cases.length} fixture cases.`);
+console.log(`Fixture integrity and generic sample-output checks passed for ${cases.length} cases.`);
 
 function validateSampleOutput(output, sourcePath) {
   const text = JSON.stringify(output);

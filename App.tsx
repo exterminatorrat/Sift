@@ -661,8 +661,7 @@ export default function App() {
       return await analyzeMenuImage({
         profile,
         image: pendingImage,
-        restaurantLanguage: profile.restaurantLanguage,
-        subscriptionPlanId
+        restaurantLanguage: profile.restaurantLanguage
       });
     } catch (error) {
       if (error instanceof ScanQuotaExceededError) {

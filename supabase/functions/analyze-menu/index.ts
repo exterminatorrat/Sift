@@ -32,7 +32,6 @@ type AnalyzeMenuRequest = {
   imageBase64: string;
   mimeType: "image/jpeg" | "image/png" | "image/webp";
   restaurantLanguage?: string;
-  testPlanId?: SubscriptionPlanId;
 };
 
 type AnalysisProvider = "openai" | "nvidia" | "gemini";
@@ -146,8 +145,10 @@ const riskBasisValues = new Set<RiskBasis>([
   "image_uncertain"
 ]);
 const defaultMaxImageBase64Length = 3_000_000;
+const defaultBodyReadTimeoutMs = 8_000;
+const defaultInternalRequestTimeoutMs = 5_000;
 const defaultProviderTimeoutMs = 22_000;
-const promptVersion = "2026-07-10.4";
+const promptVersion = "2026-07-12.2";
 const schemaVersion = "5";
 const retryableProviderStatuses = new Set([429, 500, 502, 503, 504]);
 const maxImmediateRetryElapsedMs = 5_000;
@@ -219,7 +220,7 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Expose-Headers": "X-Sift-Analysis-Failure"
+  "Access-Control-Expose-Headers": "X-Sift-Analysis-Failure, X-Sift-Analysis-Provider, X-Sift-Analysis-Model, X-Sift-Analysis-Configuration"
 };
 
 const scanResultSchema = {
@@ -505,7 +506,7 @@ Deno.serve(async (request) => {
       return jsonResponse({ error: "Invalid analysis request." }, 400);
     }
 
-    const entitlement = await resolveEntitlement(auth.userId, body.testPlanId);
+    const entitlement = await resolveEntitlement(auth.userId);
     const quota = await claimMenuScanQuota(auth.userId, entitlement.planId, entitlement.scanLimit);
     if (!quota.allowed) {
       await recordAnalysisEvent({
@@ -564,6 +565,7 @@ Deno.serve(async (request) => {
           planId: entitlement.planId
         });
         return jsonResponse(fallback, 200, {
+          ...analysisResponseHeaders(analysis.provider, analysis.model),
           "X-Sift-Analysis-Failure": "model_output_invalid"
         });
       }
@@ -588,7 +590,7 @@ Deno.serve(async (request) => {
         imageReadability: responseResult.imageQuality.readability,
         planId: entitlement.planId
       });
-      return jsonResponse(responseResult);
+      return jsonResponse(responseResult, 200, analysisResponseHeaders(analysis.provider, analysis.model));
     } catch (error) {
       const failureCode = getProviderFailureCode(error);
       console.error("Menu analysis provider failure", requestId, failureCode);
@@ -609,6 +611,7 @@ Deno.serve(async (request) => {
         planId: entitlement.planId
       });
       return jsonResponse(fallback, 200, {
+        ...analysisResponseHeaders(provider, configuredModel),
         "X-Sift-Analysis-Failure": publicAnalysisFailureCategory(failureCode)
       });
     }
@@ -647,12 +650,16 @@ async function authenticateRequest(request: Request): Promise<AuthResult> {
     return { ok: false };
   }
 
-  const response = await fetch(`${trimTrailingSlash(supabaseUrl)}/auth/v1/user`, {
-    headers: {
-      "apikey": anonKey,
-      "Authorization": `Bearer ${accessToken}`
-    }
-  });
+  const response = await fetchWithTimeout(
+    `${trimTrailingSlash(supabaseUrl)}/auth/v1/user`,
+    {
+      headers: {
+        "apikey": anonKey,
+        "Authorization": `Bearer ${accessToken}`
+      }
+    },
+    defaultInternalRequestTimeoutMs
+  );
 
   if (!response.ok) {
     return { ok: false };
@@ -663,16 +670,11 @@ async function authenticateRequest(request: Request): Promise<AuthResult> {
   return userId ? { ok: true, userId } : { ok: false };
 }
 
-async function resolveEntitlement(
-  userId: string,
-  testPlanId?: SubscriptionPlanId
-): Promise<EntitlementResult> {
-  const requestedTestPlan = isTestEntitlementSyncEnabled() && isPlanId(testPlanId) ? testPlanId : null;
-  const rpcName = requestedTestPlan ? "sift_set_test_entitlement" : "sift_get_or_create_entitlement";
-  const params = requestedTestPlan
-    ? { p_user_id: userId, p_plan_id: requestedTestPlan }
-    : { p_user_id: userId };
-  const entitlement = await callSupabaseRpc<{ plan_id?: string }>(rpcName, params);
+async function resolveEntitlement(userId: string): Promise<EntitlementResult> {
+  const entitlement = await callSupabaseRpc<{ plan_id?: string }>(
+    "sift_get_or_create_entitlement",
+    { p_user_id: userId }
+  );
   const planId = isPlanId(entitlement?.plan_id) ? entitlement.plan_id : "free";
 
   return {
@@ -713,16 +715,20 @@ async function callSupabaseRpc<T>(functionName: string, params: Record<string, u
     throw new Error("Supabase service role environment is not configured.");
   }
 
-  const response = await fetch(`${trimTrailingSlash(supabaseUrl)}/rest/v1/rpc/${functionName}`, {
-    method: "POST",
-    headers: {
-      "apikey": serviceRoleKey,
-      "Authorization": `Bearer ${serviceRoleKey}`,
-      "Content-Type": "application/json",
-      "Accept": "application/json"
+  const response = await fetchWithTimeout(
+    `${trimTrailingSlash(supabaseUrl)}/rest/v1/rpc/${functionName}`,
+    {
+      method: "POST",
+      headers: {
+        "apikey": serviceRoleKey,
+        "Authorization": `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(params)
     },
-    body: JSON.stringify(params)
-  });
+    defaultInternalRequestTimeoutMs
+  );
 
   if (!response.ok) {
     throw new Error(`Supabase RPC failed: ${JSON.stringify(await readErrorPreview(response))}`);
@@ -740,10 +746,6 @@ function readBearerToken(request: Request) {
 
 function isPlanId(value: unknown): value is SubscriptionPlanId {
   return value === "free" || value === "plus" || value === "pro" || value === "family";
-}
-
-function isTestEntitlementSyncEnabled() {
-  return Deno.env.get("ALLOW_TEST_ENTITLEMENT_SYNC") === "true";
 }
 
 class ProviderRequestError extends Error {
@@ -1085,6 +1087,7 @@ function buildSystemPrompt() {
     "If text is blurry, materially cut off, too small or distant to read confidently, translated poorly, unreadable, or ingredients are not listed, mark affected dishes unclear or ask_staff.",
     "Set imageQuality.readability to poor and needsRetake to true whenever multiple dish names or descriptions are cropped, the menu is distant enough that text must be guessed, glare or blur obscures ingredients, or only fragments are readable. Do this even if a few words can still be inferred.",
     "For low_risk, still include confirmation language when allergies are severe.",
+    "For a severe or cross-contact-sensitive profile, do not use low_risk when the dish depends on a common pattern, unknown ingredient, cross-contact concern, translation uncertainty, or image uncertainty. Use at least ask_staff. Reserve low_risk for genuinely simple dishes supported by visible text, while still advising confirmation.",
     "Questions must be specific, short, and usable with restaurant staff.",
     "Preserve each dish name exactly as printed on the menu whenever it is readable, even when the explanatory text is translated into another language.",
     "For each dish, write questionsToAsk in the target restaurant language when provided. If no target restaurant language is provided, use the user's preferred language.",
@@ -1099,9 +1102,8 @@ function buildSystemPrompt() {
     "Do not expose hidden chain-of-thought and do not invent citations, URLs, or web-search claims.",
     "Use restaurantName as a short 1-4 word saved-scan title, not necessarily a literal restaurant name. Summarize the whole menu theme, not individual dishes. Examples: Japanese menu, Mexican menu, Steak and seafood, Cafe breakfast.",
     "If no useful menu theme is visible, set restaurantName to Menu scan.",
-    "Return only JSON matching the provided schema.",
-    "Use camelCase keys exactly as specified: restaurantName, scanSummary, overallRisk, dishName, riskLevel, possibleAllergens, hiddenRiskIngredients, crossContactConcerns, evidenceConfidence, riskBasis, questionsToAsk, questionsToAskUserLanguage, conservativeLanguage, restaurantMessage, imageQuality, needsRetake.",
-    `Required JSON schema: ${JSON.stringify(modelScanResultSchema)}`
+    "Return only JSON matching the API-provided response schema.",
+    "Use camelCase keys exactly as specified: restaurantName, scanSummary, overallRisk, dishName, riskLevel, possibleAllergens, hiddenRiskIngredients, crossContactConcerns, evidenceConfidence, riskBasis, questionsToAsk, questionsToAskUserLanguage, conservativeLanguage, restaurantMessage, imageQuality, needsRetake."
   ].join("\n");
 }
 
@@ -1163,16 +1165,12 @@ function isValidRequest(value: Partial<AnalyzeMenuRequest>): value is AnalyzeMen
     return false;
   }
 
-  if (value.testPlanId !== undefined && !isPlanId(value.testPlanId)) {
-    return false;
-  }
-
   return true;
 }
 
 type BoundedJsonBody<T> =
   | { ok: true; value: T }
-  | { ok: false; status: 400 | 413 };
+  | { ok: false; status: 400 | 408 | 413 };
 
 async function readBoundedJsonBody<T>(request: Request): Promise<BoundedJsonBody<T>> {
   const maxImageBase64Length = Number(Deno.env.get("MAX_IMAGE_BASE64_LENGTH") ?? defaultMaxImageBase64Length);
@@ -1197,20 +1195,29 @@ async function readBoundedJsonBody<T>(request: Request): Promise<BoundedJsonBody
 
   const chunks: Uint8Array[] = [];
   let receivedBytes = 0;
+  const deadline = Date.now() + defaultBodyReadTimeoutMs;
 
   while (true) {
-    const { done, value } = await reader.read();
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) {
+      await cancelReader(reader);
+      return { ok: false, status: 408 };
+    }
+
+    const chunk = await readChunkWithTimeout(reader, remainingMs);
+    if (!chunk) {
+      await cancelReader(reader);
+      return { ok: false, status: 408 };
+    }
+
+    const { done, value } = chunk;
     if (done) {
       break;
     }
 
     receivedBytes += value.byteLength;
     if (receivedBytes > maxRequestBytes) {
-      try {
-        await reader.cancel();
-      } catch {
-        // Ignore cancellation errors; the request is already rejected.
-      }
+      await cancelReader(reader);
       return { ok: false, status: 413 };
     }
     chunks.push(value);
@@ -1221,6 +1228,33 @@ async function readBoundedJsonBody<T>(request: Request): Promise<BoundedJsonBody
     return { ok: true, value: JSON.parse(bodyText) as T };
   } catch {
     return { ok: false, status: 400 };
+  }
+}
+
+async function readChunkWithTimeout(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  timeoutMs: number
+) {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  try {
+    return await Promise.race([
+      reader.read(),
+      new Promise<null>((resolve) => {
+        timeout = setTimeout(() => resolve(null), timeoutMs);
+      })
+    ]);
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  }
+}
+
+async function cancelReader(reader: ReadableStreamDefaultReader<Uint8Array>) {
+  try {
+    await reader.cancel();
+  } catch {
+    // The request is already being rejected.
   }
 }
 
@@ -1594,8 +1628,8 @@ function normalizeScanResult(value: Record<string, unknown>, profileId: string):
       limitations: readStringArray(transparency?.limitations).length > 0
         ? readStringArray(transparency?.limitations)
         : ["Sift cannot verify full ingredients, staff practices, or kitchen cross-contact."],
-      sourceReferences: readSourceReferences(transparency?.sourceReferences),
-      webSearchQueries: readStringArray(transparency?.webSearchQueries)
+      sourceReferences: [],
+      webSearchQueries: []
     }
   };
 }
@@ -1765,6 +1799,9 @@ function sanitizeScanResult(scanResult: ScanResult): ScanResult {
 function verifyScanResultRisk(scanResult: ScanResult, profile: UserProfile): ScanResult {
   const poorImage = scanResult.imageQuality.readability === "poor";
   const hasSevereAllergy = profile.allergies.some((allergy) => allergy.severity === "severe");
+  const hasSensitiveAllergy = profile.allergies.some(
+    (allergy) => allergy.severity === "severe" || allergy.avoidCrossContact
+  );
 
   const dishes = scanResult.dishes.map((dish) => {
     let nextDish = {
@@ -1795,9 +1832,7 @@ function verifyScanResultRisk(scanResult: ScanResult, profile: UserProfile): Sca
       const directMatches = matchedPatterns.filter((pattern) => isDirectAllergenPattern(allergy, pattern));
       const targetRisk: RiskLevel =
         directMatches.length > 0
-          ? sensitive
-            ? "avoid_unless_confirmed"
-            : "high_risk"
+          ? "avoid_unless_confirmed"
           : sensitive
             ? "ask_staff"
             : "ask_staff";
@@ -1820,7 +1855,7 @@ function verifyScanResultRisk(scanResult: ScanResult, profile: UserProfile): Sca
       };
     }
 
-    if (vaguePrepMatches.length > 0 && (hasSevereAllergy || profile.allergies.some((allergy) => allergy.avoidCrossContact))) {
+    if (vaguePrepMatches.length > 0 && hasSensitiveAllergy) {
       nextDish = {
         ...nextDish,
         riskLevel: escalateRisk(nextDish.riskLevel, "ask_staff"),
@@ -1834,6 +1869,29 @@ function verifyScanResultRisk(scanResult: ScanResult, profile: UserProfile): Sca
             .map((allergy) => `${allergy.name}: ${allergy.severity}${allergy.avoidCrossContact ? ", cross-contact sensitive" : ""}`),
           commonRiskPatterns: vaguePrepMatches,
           uncertainty: ["Vague preparation terms can hide sauces, oils, shared equipment, or omitted ingredients."]
+        })
+      };
+    }
+
+    const hasMaterialUncertainty = nextDish.riskBasis.some((basis) =>
+      basis === "common_pattern" ||
+      basis === "unknown_ingredient" ||
+      basis === "cross_contact" ||
+      basis === "translation_uncertain" ||
+      basis === "image_uncertain"
+    );
+    if (hasSensitiveAllergy && hasMaterialUncertainty && nextDish.riskLevel === "low_risk") {
+      nextDish = {
+        ...nextDish,
+        riskLevel: "ask_staff",
+        conservativeLanguage: "Possible hidden or cross-contact risk. Ask staff before ordering.",
+        transparency: appendDishTransparency(nextDish.transparency, {
+          profileFactors: profile.allergies
+            .filter((allergy) => allergy.severity === "severe" || allergy.avoidCrossContact)
+            .map((allergy) => `${allergy.name}: ${allergy.severity}${allergy.avoidCrossContact ? ", cross-contact sensitive" : ""}`),
+          uncertainty: [
+            "A severe or cross-contact-sensitive profile requires staff confirmation when preparation or ingredient evidence is uncertain."
+          ]
         })
       };
     }
@@ -1859,13 +1917,23 @@ function verifyScanResultRisk(scanResult: ScanResult, profile: UserProfile): Sca
   const materiallyTruncatedDishCount = dishes.filter((dish) =>
     /(^|\s)(?:\.{3}|…)/u.test(`${dish.dishName} ${dish.menuDescription ?? ""}`)
   ).length;
-  const inferredPoorImage = poorImage || materiallyTruncatedDishCount >= 2;
+  const normalizedImageIssues = scanResult.imageQuality.issues.map(normalizeForMatch);
+  const reportsBlur = normalizedImageIssues.some((issue) => issue.includes("blur"));
+  const reportsLowResolution = normalizedImageIssues.some((issue) =>
+    issue.includes("low resolution") || issue.includes("low quality")
+  );
+  const inferredPoorImage =
+    poorImage ||
+    materiallyTruncatedDishCount >= 2 ||
+    (reportsBlur && reportsLowResolution);
   const imageQuality = {
     ...scanResult.imageQuality,
     readability: inferredPoorImage ? "poor" as const : scanResult.imageQuality.readability,
-    issues: materiallyTruncatedDishCount >= 2
-      ? uniqueStrings([...scanResult.imageQuality.issues, "Multiple menu entries are cut off."])
-      : scanResult.imageQuality.issues,
+    issues: uniqueStrings([
+      ...scanResult.imageQuality.issues,
+      ...(materiallyTruncatedDishCount >= 2 ? ["Multiple menu entries are cut off."] : []),
+      ...(reportsBlur && reportsLowResolution ? ["Blur and low resolution make the menu unreliable to read."] : [])
+    ]),
     needsRetake: scanResult.imageQuality.needsRetake === true || inferredPoorImage
   };
   const overallRisk = inferredPoorImage ? "unclear" : recomputeOverallRisk(dishes);
@@ -1876,7 +1944,10 @@ function verifyScanResultRisk(scanResult: ScanResult, profile: UserProfile): Sca
     imageQuality,
     scanSummary: {
       ...scanResult.scanSummary,
-      overallRisk
+      overallRisk,
+      summary: inferredPoorImage
+        ? "The menu image is not clear enough for reliable analysis. Retake the photo or ask staff directly."
+        : scanResult.scanSummary.summary
     },
     transparency: {
       checked: scanResult.transparency?.checked ?? ["Menu photo", "Allergy profile", "Common ingredient and preparation patterns"],
@@ -2357,6 +2428,14 @@ function trimTrailingSlash(value: string) {
   return value.replace(/\/+$/, "");
 }
 
+function analysisResponseHeaders(provider: AnalysisProvider, model: string) {
+  return {
+    "X-Sift-Analysis-Provider": provider,
+    "X-Sift-Analysis-Model": model,
+    "X-Sift-Analysis-Configuration": `prompt=${promptVersion};schema=${schemaVersion};thinking=${provider === "gemini" ? getGeminiThinkingLevel() : "provider_default"}`
+  };
+}
+
 function getSafeErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unknown error";
 }
@@ -2366,8 +2445,7 @@ async function readErrorPreview(response: Response) {
   return {
     status: response.status,
     statusText: response.statusText,
-    classification: classifyProviderError(text),
-    bodyPreview: redactSensitiveText(text).slice(0, 500)
+    classification: classifyProviderError(text)
   };
 }
 

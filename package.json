@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "eval:ai": "node scripts/run-ai-evals.mjs",
-    "eval:ai:live": "node scripts/run-live-ai-evals.mjs"
+    "eval:ai:live": "node scripts/run-live-ai-evals.mjs",
+    "test:backend:smoke": "node scripts/run-backend-smoke.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
