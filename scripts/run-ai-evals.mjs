@@ -21,7 +21,66 @@ const bannedPatterns = [
   /riskless/i,
   /nothing to worry about/i,
   /risk[- ]free/i,
-  /allergen[- ]free/i
+  /allergen[- ]free/i,
+  /seguro para comer/i,
+  /completamente seguro/i,
+  /sin riesgo/i,
+  /sans danger/i,
+  /aucun risque/i,
+  /totalement s[ûu]r/i,
+  /sicher zu essen/i,
+  /kein risiko/i,
+  /v[öo]llig sicher/i,
+  /sicuro da mangiare/i,
+  /nessun rischio/i,
+  /completamente sicuro/i,
+  /sem risco/i,
+  /安全に食べ/u,
+  /絶対に安全/u,
+  /リスクはありません/u,
+  /안전하게 먹/u,
+  /완전히 안전/u,
+  /위험이 없습니다/u,
+  /可以安全食用/u,
+  /完全安全/u,
+  /没有风险/u,
+  /ปลอดภัยที่จะกิน/u,
+  /ไม่มีความเสี่ยง/u,
+  /ปลอดภัยอย่างแน่นอน/u
+];
+const bannedSafetyExamples = [
+  "seguro para comer",
+  "sans danger",
+  "sicher zu essen",
+  "sicuro da mangiare",
+  "sem risco",
+  "絶対に安全",
+  "완전히 안전",
+  "完全安全",
+  "ปลอดภัยอย่างแน่นอน"
+];
+const conservativeUncertaintyExamples = [
+  "Confirme con el personal porque solo se analizó el texto visible.",
+  "Confirmez avec le personnel; seul le texte visible a été analysé.",
+  "Beim Personal bestätigen; nur der sichtbare Menütext wurde geprüft.",
+  "Confermare con il personale; è stato analizzato solo il testo visibile.",
+  "Confirmar com a equipe; apenas o texto visível foi analisado.",
+  "表示されたメニュー文のみを確認したため、スタッフに確認してください。",
+  "표시된 메뉴 문구만 확인했으므로 직원에게 확인하세요.",
+  "仅分析了可见菜单文字，请向工作人员确认。",
+  "เนื่องจากวิเคราะห์เฉพาะข้อความที่มองเห็น โปรดยืนยันกับพนักงาน"
+];
+const conservativeLanguageMarkers = [
+  "texto visible",
+  "texte visible",
+  "sichtbar",
+  "testo visibile",
+  "texto visível",
+  "表示",
+  "표시된",
+  "可见",
+  "可見",
+  "ข้อความที่มองเห็น"
 ];
 const riskLevels = new Set(["low_risk", "ask_staff", "high_risk", "avoid_unless_confirmed", "unclear"]);
 const evidenceConfidenceValues = new Set(["high", "medium", "low"]);
@@ -53,6 +112,33 @@ const allergenRiskPatterns = {
 
 const cases = JSON.parse(fs.readFileSync(casesPath, "utf8"));
 const failures = [];
+
+for (const example of bannedSafetyExamples) {
+  if (!bannedPatterns.some((pattern) => pattern.test(example))) {
+    failures.push(`Banned multilingual safety example was not detected: ${example}`);
+  }
+}
+for (const example of conservativeUncertaintyExamples) {
+  if (!hasConservativeUncertaintyText(example)) {
+    failures.push(`Conservative multilingual uncertainty example was not accepted: ${example}`);
+  }
+}
+for (const validatorPath of [
+  "src/utils/scanResultValidation.ts",
+  "supabase/functions/analyze-menu/index.ts"
+]) {
+  const validatorSource = fs.readFileSync(path.resolve(validatorPath), "utf8");
+  for (const example of bannedSafetyExamples) {
+    if (!validatorSource.includes(example)) {
+      failures.push(`${validatorPath} is missing multilingual banned-safety marker: ${example}`);
+    }
+  }
+  for (const marker of conservativeLanguageMarkers) {
+    if (!validatorSource.includes(marker)) {
+      failures.push(`${validatorPath} is missing multilingual uncertainty marker: ${marker}`);
+    }
+  }
+}
 
 for (const item of cases) {
   if (!item.id || !item.name || !item.profile || !item.menuText || !item.expected) {
@@ -258,7 +344,55 @@ function hasConservativeUncertaintyText(value) {
     "unclear",
     "uncertain",
     "cross-contact",
-    "kitchen"
+    "kitchen",
+    "texto visible",
+    "confirme",
+    "pregunte al personal",
+    "no se puede verificar",
+    "contacto cruzado",
+    "texte visible",
+    "confirmez",
+    "demandez au personnel",
+    "ne peut pas vérifier",
+    "contamination croisée",
+    "sichtbar",
+    "bestätigen",
+    "personal fragen",
+    "nicht überprüfen",
+    "kreuzkontakt",
+    "testo visibile",
+    "confermare",
+    "chiedere al personale",
+    "non può verificare",
+    "contatto incrociato",
+    "texto visível",
+    "confirmar",
+    "pergunte à equipe",
+    "não é possível verificar",
+    "contato cruzado",
+    "表示",
+    "確認",
+    "スタッフ",
+    "検証でき",
+    "交差接触",
+    "표시된",
+    "확인",
+    "직원",
+    "확인할 수",
+    "교차 접촉",
+    "可见",
+    "确认",
+    "无法核实",
+    "交叉接触",
+    "可見",
+    "確認",
+    "無法核實",
+    "交叉接觸",
+    "ข้อความที่มองเห็น",
+    "ยืนยัน",
+    "สอบถามพนักงาน",
+    "ไม่สามารถตรวจสอบ",
+    "การสัมผัสข้าม"
   ].some((phrase) => text.includes(phrase));
 }
 

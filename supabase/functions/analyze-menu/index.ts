@@ -148,7 +148,7 @@ const defaultMaxImageBase64Length = 3_000_000;
 const defaultBodyReadTimeoutMs = 8_000;
 const defaultInternalRequestTimeoutMs = 5_000;
 const defaultProviderTimeoutMs = 22_000;
-const promptVersion = "2026-07-12.2";
+const promptVersion = "2026-07-12.3";
 const schemaVersion = "5";
 const retryableProviderStatuses = new Set([429, 500, 502, 503, 504]);
 const maxImmediateRetryElapsedMs = 5_000;
@@ -1079,6 +1079,7 @@ function buildSystemPrompt() {
     "You are not a doctor, restaurant, kitchen worker, or food safety certifier.",
     "You cannot verify ingredients, preparation, staff practices, suppliers, substitutions, or cross-contact.",
     "Never write: safe to eat, safe for you, you can eat this, probably fine, guarantee, guaranteed, completely safe, allergen-free, safe option, safe choice, safe meal, safe dish, ok to eat, no risk, zero risk, riskless, nothing to worry about, definitely safe, or risk-free.",
+    "Apply that prohibition semantically in every output language; do not translate those phrases into equivalent guarantees or zero-risk claims.",
     "Use conservative wording such as: low risk based on visible menu text, ask staff before ordering, avoid unless staff can clearly confirm, or not enough information.",
     "For severe allergies, escalate any reasonable hidden ingredient or cross-contact concern.",
     "For a severe allergy, if the visible dish name or description directly lists that allergen or an unmistakable derivative such as tahini for sesame, use avoid_unless_confirmed.",
@@ -2073,7 +2074,32 @@ function rewriteBannedSafetyLanguage(value: unknown): unknown {
       .replace(/riskless/gi, "lower risk based on visible menu text")
       .replace(/risk[- ]free/gi, "lower risk based on visible menu text")
       .replace(/nothing to worry about/gi, "confirm details with staff before ordering")
-      .replace(/allergen[- ]free/gi, "without the listed allergen based on available information");
+      .replace(/allergen[- ]free/gi, "without the listed allergen based on available information")
+      .replace(/seguro para comer/gi, "riesgo bajo según el texto visible del menú; confirme con el personal")
+      .replace(/completamente seguro/gi, "riesgo bajo según el texto visible del menú")
+      .replace(/sin riesgo/gi, "sin riesgo evidente según el texto visible del menú")
+      .replace(/sans danger/gi, "risque faible selon le texte visible du menu; confirmez avec le personnel")
+      .replace(/aucun risque/gi, "aucun risque évident selon le texte visible du menu")
+      .replace(/totalement s[ûu]r/gi, "risque faible selon le texte visible du menu")
+      .replace(/sicher zu essen/gi, "geringes Risiko laut sichtbarem Menütext; beim Personal bestätigen")
+      .replace(/kein risiko/gi, "kein offensichtliches Risiko laut sichtbarem Menütext")
+      .replace(/v[öo]llig sicher/gi, "geringes Risiko laut sichtbarem Menütext")
+      .replace(/sicuro da mangiare/gi, "rischio basso in base al testo visibile del menu; confermare con il personale")
+      .replace(/nessun rischio/gi, "nessun rischio evidente in base al testo visibile del menu")
+      .replace(/completamente sicuro/gi, "rischio basso in base al testo visibile del menu")
+      .replace(/sem risco/gi, "sem risco evidente com base no texto visível do menu")
+      .replace(/安全に食べ/gu, "表示されたメニュー文では低リスクですが、スタッフに確認してください")
+      .replace(/絶対に安全/gu, "表示されたメニュー文では低リスク")
+      .replace(/リスクはありません/gu, "表示されたメニュー文では明らかなリスクは見つかりません")
+      .replace(/안전하게 먹/gu, "표시된 메뉴 문구상 위험이 낮지만 직원에게 확인하세요")
+      .replace(/완전히 안전/gu, "표시된 메뉴 문구상 위험이 낮음")
+      .replace(/위험이 없습니다/gu, "표시된 메뉴 문구상 명백한 위험이 발견되지 않음")
+      .replace(/可以安全食用/gu, "根据可见菜单文字风险较低，请向工作人员确认")
+      .replace(/完全安全/gu, "根据可见菜单文字风险较低")
+      .replace(/没有风险/gu, "根据可见菜单文字未发现明显风险")
+      .replace(/ปลอดภัยที่จะกิน/gu, "ความเสี่ยงต่ำตามข้อความเมนูที่มองเห็น โปรดยืนยันกับพนักงาน")
+      .replace(/ไม่มีความเสี่ยง/gu, "ไม่พบความเสี่ยงที่ชัดเจนจากข้อความเมนูที่มองเห็น")
+      .replace(/ปลอดภัยอย่างแน่นอน/gu, "ความเสี่ยงต่ำตามข้อความเมนูที่มองเห็น");
   }
 
   if (Array.isArray(value)) {
@@ -2111,7 +2137,32 @@ function containsBannedSafetyLanguage(value: unknown): boolean {
     /riskless/i,
     /nothing to worry about/i,
     /risk[- ]free/i,
-    /allergen[- ]free/i
+    /allergen[- ]free/i,
+    /seguro para comer/i,
+    /completamente seguro/i,
+    /sin riesgo/i,
+    /sans danger/i,
+    /aucun risque/i,
+    /totalement s[ûu]r/i,
+    /sicher zu essen/i,
+    /kein risiko/i,
+    /v[öo]llig sicher/i,
+    /sicuro da mangiare/i,
+    /nessun rischio/i,
+    /completamente sicuro/i,
+    /sem risco/i,
+    /安全に食べ/u,
+    /絶対に安全/u,
+    /リスクはありません/u,
+    /안전하게 먹/u,
+    /완전히 안전/u,
+    /위험이 없습니다/u,
+    /可以安全食用/u,
+    /完全安全/u,
+    /没有风险/u,
+    /ปลอดภัยที่จะกิน/u,
+    /ไม่มีความเสี่ยง/u,
+    /ปลอดภัยอย่างแน่นอน/u
   ];
 
   if (typeof value === "string") {
@@ -2142,7 +2193,55 @@ function hasConservativeUncertaintyText(value: unknown): boolean {
     "unclear",
     "uncertain",
     "cross-contact",
-    "kitchen"
+    "kitchen",
+    "texto visible",
+    "confirme",
+    "pregunte al personal",
+    "no se puede verificar",
+    "contacto cruzado",
+    "texte visible",
+    "confirmez",
+    "demandez au personnel",
+    "ne peut pas vérifier",
+    "contamination croisée",
+    "sichtbar",
+    "bestätigen",
+    "personal fragen",
+    "nicht überprüfen",
+    "kreuzkontakt",
+    "testo visibile",
+    "confermare",
+    "chiedere al personale",
+    "non può verificare",
+    "contatto incrociato",
+    "texto visível",
+    "confirmar",
+    "pergunte à equipe",
+    "não é possível verificar",
+    "contato cruzado",
+    "表示",
+    "確認",
+    "スタッフ",
+    "検証でき",
+    "交差接触",
+    "표시된",
+    "확인",
+    "직원",
+    "확인할 수",
+    "교차 접촉",
+    "可见",
+    "确认",
+    "无法核实",
+    "交叉接触",
+    "可見",
+    "確認",
+    "無法核實",
+    "交叉接觸",
+    "ข้อความที่มองเห็น",
+    "ยืนยัน",
+    "สอบถามพนักงาน",
+    "ไม่สามารถตรวจสอบ",
+    "การสัมผัสข้าม"
   ].some((phrase) => text.includes(phrase));
 }
 

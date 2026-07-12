@@ -9,7 +9,7 @@ Sift now has a deployed, authenticated, quota-protected AI path and a repeatable
 
 - Provider/model: `gemini-3.5-flash`
 - Thinking level: `low`
-- Prompt version: `2026-07-12.2`
+- Prompt version: `2026-07-12.3`
 - Provider schema version: `5`
 - Structured output: enabled with a compact Gemini response schema
 - Full server validation: enabled after normalization
@@ -17,8 +17,8 @@ Sift now has a deployed, authenticated, quota-protected AI path and a repeatable
 - Provider timeout: `22000ms`
 - Google Search grounding: disabled
 - Provider fallback: none; unresolved failures become a calm `unclear` result
-- Edge Function: `analyze-menu` version 49, JWT verification enabled
-- Deployment SHA-256: `f34e4cad8bdc905219eb841fdee281a3a21936c8e4f79381235b07735b12de4f`
+- Edge Function: `analyze-menu` version 50, JWT verification enabled
+- Deployment SHA-256: `7e06731ce67f89209e83216f4a6841df354d629ea858b06a76d045c76dfb95a5`
 
 Low was retained because the medium test exceeded the latency target and produced a malformed or truncated model response on its second case. Low is still provisional until the full gate passes.
 
@@ -39,6 +39,7 @@ Low was retained because the medium test exceeded the latency target and produce
 - Model-supplied references are discarded; only provider-grounded references may be merged later.
 - Live eval pacing and a hard 120-call ledger.
 - Live gate enforcement now checks exact case completeness, published error/rate/latency thresholds, full client-facing shape, and configuration provenance.
+- Safety-claim rejection and conservative-uncertainty validation now cover English, Spanish, French, German, Italian, Portuguese, Japanese, Korean, Simplified/Traditional Chinese, and Thai.
 
 ## Supabase Evidence
 
@@ -79,7 +80,10 @@ July 12 candidate evidence:
 - The paced version-48 gate ran 17 of 60 cases before Gemini returned `provider_rate_limited` and the harness stopped automatically.
 - Of those 17 responses, eight were AI-produced and nine were fallbacks: five provider timeouts, two malformed-output fallbacks, one provider-unavailable fallback, and one provider-rate-limit fallback.
 - Six of eight AI-produced responses passed their case expectations. The two failures were a direct-listed mild allergen one tier below Sift's policy and a blurred/low-resolution image not marked for retake.
-- Version 49 deterministically fixes those two findings, removes the duplicated textual JSON schema to reduce prompt overhead, and is deployed. It has not received a post-deployment live model call because the free-tier quota was exhausted.
+- Version 49 deterministically fixes those two findings, removes the duplicated textual JSON schema to reduce prompt overhead, and is deployed.
+- A version-49 canary on July 12 reached the authenticated Edge Function and returned the expected calm `unclear` fallback in about 3.1s, but Gemini again reported `provider_rate_limited`; no model output was produced.
+- The harness now keeps provider fallbacks in schema/safety and availability accounting without misclassifying them as model allergen misses. Critical repeats reject every provider fallback, while the 60-case gate retains its explicit 5% clear/partial-image fallback-rate ceiling and does not treat poor-image fallbacks as image-analysis success.
+- Version 50 deploys the multilingual safety validators and repeat-gate accounting fixes. Its no-provider backend smoke test passes; it still awaits a model-producing live call after the free-tier limit resets.
 
 Initial low calibration (`2026-07-10.3`, schema 5, 12 cases):
 
@@ -124,7 +128,7 @@ The function performs a pre-auth declared-length check and bounded stream read, 
 
 ## Private-Beta Gate Status
 
-The private-beta AI gate is **not passed**. The current version-49 candidate still needs the complete 60-image gate and the curated 18-case set repeated three times. The July 12 run stopped after 17 cases when the free-tier project returned a provider rate limit. No paid inference was enabled.
+The private-beta AI gate is **not passed**. The current version-50 candidate still needs the complete 60-image gate and the curated 18-case set repeated three times. The July 12 run stopped after 17 cases when the free-tier project returned a provider rate limit, and a later version-49 canary confirmed that the provider limit had not reset. No paid inference was enabled.
 
 The next live run must demonstrate:
 
@@ -142,7 +146,7 @@ The next live run must demonstrate:
 ## Resume Procedure
 
 1. Wait for the Gemini free-tier quota window to reset; do not enable billing.
-2. Archive and reset the diagnostic ledger with `npm.cmd run eval:ai:live -- reset-ledger --confirm` because version 49 is a new candidate.
+2. Archive and reset the diagnostic ledger with `npm.cmd run eval:ai:live -- reset-ledger --confirm` because version 50 is a new candidate.
 3. Reuse the current disposable evaluation user if its session remains valid, otherwise run `npm.cmd run eval:ai:live -- prepare` and assign the printed user a Family/admin entitlement through the server-side database path.
 4. Run the 60-case gate with the default 15-second pacing. Increase `--min-call-interval-ms` if the active AI Studio RPM limit is lower.
 5. Stop immediately on `provider_rate_limited` or any billing-required response.

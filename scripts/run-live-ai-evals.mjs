@@ -257,9 +257,9 @@ async function invokeCase(supabase, session, testCase, phase, pass) {
 
   const latencyMs = Math.round(performance.now() - start);
   const status = response?.status ?? 0;
-  const validation = validateLiveResult(testCase, body, status, parseError);
-  const fallback = body?.analysisSource === "fallback";
   const failureCategory = response?.headers.get("x-sift-analysis-failure") ?? null;
+  const fallback = body?.analysisSource === "fallback" || Boolean(failureCategory);
+  const validation = validateLiveResult(testCase, body, status, parseError, { fallback });
   const clearImageFallback = fallback && testCase.expected.readability !== "poor";
   const stopReason = failureCategory === "provider_rate_limited"
     ? "provider_rate_limit"
@@ -289,6 +289,7 @@ async function invokeCase(supabase, session, testCase, phase, pass) {
     analysisModel: body?.analysisModel ?? null,
     configurationProvenance: extractConfigurationProvenance(body, response?.headers),
     failureCategory,
+    fallback,
     clearImageFallback,
     quotaOrBillingStop: stopReason === "provider_rate_limit" || stopReason === "quota_or_provider_rate_limit" || stopReason === "provider_quota_or_billing_required",
     stopReason,
@@ -297,7 +298,7 @@ async function invokeCase(supabase, session, testCase, phase, pass) {
   };
 }
 
-function validateLiveResult(testCase, output, status, parseError) {
+function validateLiveResult(testCase, output, status, parseError, { fallback = false } = {}) {
   const failures = [];
   const metrics = {
     directSevereMisses: 0,
@@ -410,11 +411,17 @@ function validateLiveResult(testCase, output, status, parseError) {
     }
   }
 
-  if (testCase.expected.readability === "poor") {
+  if (testCase.expected.readability === "poor" && !fallback) {
     metrics.poorImageCorrect = output.scanSummary.overallRisk === "unclear" && output.imageQuality.needsRetake === true;
     if (!metrics.poorImageCorrect) {
       failures.push("poor_image_not_unclear_with_retake");
     }
+  }
+
+  // Provider fallbacks are availability outcomes, not evidence about the model's
+  // allergen reasoning. Their schema and safety wording still remain validated.
+  if (fallback) {
+    return { passed: failures.length === 0, failures, metrics };
   }
 
   for (const expectation of testCase.expected.minimumRisks ?? []) {
@@ -465,6 +472,7 @@ function summarize(results) {
       acc.poorImageCases += 1;
       if (metrics.poorImageCorrect) acc.poorImageCorrect += 1;
     }
+    if (item.fallback) acc.fallbacks += 1;
     if (item.clearImageFallback) acc.clearImageFallbacks += 1;
     if (item.expectedReadability !== "poor") acc.clearOrPartialCases += 1;
     if (!item.validation.passed) acc.failedCases += 1;
@@ -479,6 +487,7 @@ function summarize(results) {
     benignDishCount: 0,
     poorImageCases: 0,
     poorImageCorrect: 0,
+    fallbacks: 0,
     clearImageFallbacks: 0,
     clearOrPartialCases: 0,
     failedCases: 0
@@ -604,8 +613,8 @@ function validatePhasePlan(phase, allCases, selectedCases, repeat) {
 
   if (phase.startsWith("repeat")) {
     const criticalCases = allCases.filter((item) => CRITICAL_REPEAT_IDS.has(item.id));
-    if (criticalCases.length === 0 || !hasExactCaseSet(selectedCases, criticalCases)) {
-      fail(`Repeat phases require the curated critical set (${criticalCases.length} cases).`);
+    if (criticalCases.length === 0 || repeat !== 3 || !hasExactCaseSet(selectedCases, criticalCases)) {
+      fail(`Repeat phases require the curated critical set (${criticalCases.length} cases) exactly three times (--cases critical --repeat 3).`);
     }
   }
 }
@@ -640,6 +649,7 @@ function evaluatePhaseEvidence(evidence, allCases) {
     for (const metric of ["directSevereMisses", "deterministicUnderEscalations", "forbiddenSafetyClaims", "invalidSchema", "missingQuestions"]) {
       addThresholdFailure(failures, evidence.summary[metric] > 0, toSnakeCase(metric), evidence.summary[metric], "= 0");
     }
+    addThresholdFailure(failures, evidence.summary.fallbacks > 0, "critical_repeat_fallbacks", evidence.summary.fallbacks, "= 0");
   } else if (evidence.summary.failedCases > 0 || evidence.stoppedEarly) {
     failures.push({ rule: "case_failures_or_early_stop", actual: evidence.summary.failedCases, expected: "no failed cases and no early stop" });
   }
