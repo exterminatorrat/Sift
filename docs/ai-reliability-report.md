@@ -71,6 +71,7 @@ Local checks:
 - `npm.cmd run typecheck`: pass.
 - `npm.cmd run eval:ai`: fixture integrity, generic sample-output checks, and multilingual prohibited/conservative-language tests against the real client validator pass for 25 fixtures. This is not a claim that 25 model responses passed.
 - Live harness syntax and 60-case manifest integrity: pass.
+- `npm.cmd run eval:ai:live -- self-test`: pass for provider/model metric separation, fallback counting, and poor-image fallback accounting.
 - `npm.cmd run test:backend:smoke`: pass for anonymous sign-in, unauthenticated `401`, and authenticated malformed-request `400` without a provider call.
 
 July 12 candidate evidence:
@@ -84,6 +85,7 @@ July 12 candidate evidence:
 - A version-49 canary on July 12 reached the authenticated Edge Function and returned the expected calm `unclear` fallback in about 3.1s, but Gemini again reported `provider_rate_limited`; no model output was produced.
 - The harness now keeps provider fallbacks in schema/safety and availability accounting without misclassifying them as model allergen misses. Critical repeats reject every provider fallback, while the 60-case gate retains its explicit 5% clear/partial-image fallback-rate ceiling and does not treat poor-image fallbacks as image-analysis success.
 - Version 50 deploys the multilingual safety validators and repeat-gate accounting fixes. Its no-provider backend smoke test passes; it still awaits a model-producing live call after the free-tier limit resets.
+- A controlled version-50 canary again returned `provider_rate_limited` in about 3.1s. Corrected accounting recorded zero model safety misses, one provider fallback, and a failed availability diagnostic; the harness stopped without attempting the gate.
 
 Initial low calibration (`2026-07-10.3`, schema 5, 12 cases):
 
@@ -128,7 +130,7 @@ The function performs a pre-auth declared-length check and bounded stream read, 
 
 ## Private-Beta Gate Status
 
-The private-beta AI gate is **not passed**. The current version-50 candidate still needs the complete 60-image gate and the curated 18-case set repeated three times. The July 12 run stopped after 17 cases when the free-tier project returned a provider rate limit, and a later version-49 canary confirmed that the provider limit had not reset. No paid inference was enabled.
+The private-beta AI gate is **not passed**. The current version-50 candidate still needs the complete 60-image gate and the curated 18-case set repeated three times. The July 12 run stopped after 17 cases when the free-tier project returned a provider rate limit; later version-49 and version-50 canaries confirmed that the provider limit had not reset. No paid inference was enabled.
 
 The next live run must demonstrate:
 

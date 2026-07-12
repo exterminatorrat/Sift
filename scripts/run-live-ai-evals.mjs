@@ -116,8 +116,63 @@ if (command === "prepare") {
   await cleanupSession();
 } else if (command === "reset-ledger") {
   resetLedger();
+} else if (command === "self-test") {
+  runHarnessSelfTests();
 } else {
   printUsage();
+}
+
+function runHarnessSelfTests() {
+  const allCases = readJson(MANIFEST_PATH);
+  const clearCase = allCases.find((item) => item.id === "I-001");
+  const poorCase = allCases.find((item) => item.expected?.readability === "poor");
+  const sampleOutput = readJson(path.resolve("docs/ai-evals/sample-output.json"));
+  if (!clearCase || !poorCase || !sampleOutput) {
+    fail("Harness self-test fixtures are missing.");
+  }
+
+  const fallbackOutput = structuredClone(sampleOutput);
+  fallbackOutput.analysisSource = "fallback";
+
+  const fallbackValidation = validateLiveResult(clearCase, fallbackOutput, 200, null, { fallback: true });
+  assertHarness(
+    fallbackValidation.metrics.directSevereMisses === 0 &&
+      fallbackValidation.metrics.deterministicUnderEscalations === 0,
+    "Provider fallback was misclassified as a model allergen miss."
+  );
+
+  const modelValidation = validateLiveResult(clearCase, sampleOutput, 200, null, { fallback: false });
+  assertHarness(
+    modelValidation.metrics.directSevereMisses > 0 || modelValidation.metrics.deterministicUnderEscalations > 0,
+    "Model-specific expectations were not evaluated for an AI-produced result."
+  );
+
+  const clearSummary = summarize([{
+    latencyMs: 100,
+    expectedReadability: "clear",
+    fallback: true,
+    clearImageFallback: true,
+    validation: fallbackValidation
+  }]);
+  assertHarness(clearSummary.fallbacks === 1, "Fallback total was not counted.");
+  assertHarness(clearSummary.clearImageFallbackRate === 1, "Clear-image fallback rate was not counted.");
+
+  const poorFallbackValidation = validateLiveResult(poorCase, fallbackOutput, 200, null, { fallback: true });
+  const poorSummary = summarize([{
+    latencyMs: 100,
+    expectedReadability: "poor",
+    fallback: true,
+    clearImageFallback: false,
+    validation: poorFallbackValidation
+  }]);
+  assertHarness(poorSummary.fallbacks === 1, "Poor-image fallback was not counted.");
+  assertHarness(poorSummary.poorImagePassRate === 0, "Poor-image provider fallback counted as image-analysis success.");
+
+  console.log("Live eval harness self-tests passed: fallback separation, availability counts, and poor-image accounting.");
+}
+
+function assertHarness(condition, message) {
+  if (!condition) fail(`Harness self-test failed: ${message}`);
 }
 
 async function prepareSession() {
@@ -906,6 +961,7 @@ function printUsage() {
   npm run eval:ai:live -- run --phase calibration-medium --cases calibration
   npm run eval:ai:live -- run --phase gate --cases all
   npm run eval:ai:live -- run --phase repeat-critical --cases critical --repeat 3
+  npm run eval:ai:live -- self-test
   npm run eval:ai:live -- report
   npm run eval:ai:live -- cleanup
 
