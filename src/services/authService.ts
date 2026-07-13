@@ -1,13 +1,15 @@
 import "react-native-url-polyfill/auto";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as AppleAuthentication from "expo-apple-authentication";
+import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
-import { Platform } from "react-native";
-import { createClient } from "@supabase/supabase-js";
+import { AppState, Platform } from "react-native";
+import { createClient, processLock } from "@supabase/supabase-js";
 import { AuthSession } from "../types/auth";
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+const REQUIRE_APPLE_SIGN_IN = process.env.EXPO_PUBLIC_REQUIRE_APPLE_SIGN_IN === "true";
 const LOCAL_AUTH_KEY = "sift.authSession";
 const LEGACY_LOCAL_AUTH_KEY = "sift:authSession";
 const SUPABASE_AUTH_STORAGE_KEY = "sift.supabaseAuth";
@@ -54,12 +56,31 @@ const supabase =
         auth: {
           autoRefreshToken: true,
           detectSessionInUrl: false,
+          lock: processLock,
           persistSession: true,
           storage: secureAuthStorage,
           storageKey: SUPABASE_AUTH_STORAGE_KEY
         }
       })
     : null;
+
+if (supabase && Platform.OS !== "web") {
+  AppState.addEventListener("change", (state) => {
+    if (state === "active") {
+      supabase.auth.startAutoRefresh();
+    } else {
+      supabase.auth.stopAutoRefresh();
+    }
+  });
+}
+
+export function isAppleAccountRequired() {
+  return REQUIRE_APPLE_SIGN_IN;
+}
+
+export function isDurableAuthSession(session: AuthSession | null) {
+  return Boolean(session?.mode === "supabase" && session.provider === "apple");
+}
 
 export async function isAppleSignInAvailable() {
   if (Platform.OS !== "ios") {
@@ -74,13 +95,13 @@ export async function loadAuthSession(): Promise<AuthSession | null> {
   const storedSession = await loadLocalAuthSession();
 
   if (supabase) {
-    const session = await ensureSupabaseSession();
+    const session = await ensureSupabaseSession(!REQUIRE_APPLE_SIGN_IN);
     if (session?.user) {
       return createSupabaseSession(session.user, storedSession);
     }
   }
 
-  return storedSession;
+  return null;
 }
 
 export async function getSupabaseAccessToken(): Promise<string | null> {
@@ -88,7 +109,7 @@ export async function getSupabaseAccessToken(): Promise<string | null> {
     return null;
   }
 
-  const session = await ensureSupabaseSession();
+  const session = await ensureSupabaseSession(!REQUIRE_APPLE_SIGN_IN);
   return session?.access_token ?? null;
 }
 
@@ -115,48 +136,69 @@ export async function signInWithApple(): Promise<AuthSession> {
     throw new Error("Apple sign-in is only available on supported iOS devices.");
   }
 
+  if (!supabase) {
+    throw new Error("Sift authentication is not configured for this build.");
+  }
+
+  const rawNonce = Crypto.randomUUID();
+  const hashedNonce = await Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    rawNonce
+  );
+  const requestState = Crypto.randomUUID();
   const credential = await AppleAuthentication.signInAsync({
+    nonce: hashedNonce,
     requestedScopes: [
       AppleAuthentication.AppleAuthenticationScope.EMAIL,
       AppleAuthentication.AppleAuthenticationScope.FULL_NAME
-    ]
+    ],
+    state: requestState
   });
 
-  const fullName = formatAppleName(credential.fullName);
-
-  if (supabase) {
-    if (!credential.identityToken) {
-      throw new Error("Apple did not return an identity token.");
-    }
-
-    const { data, error } = await supabase.auth.signInWithIdToken({
-      provider: "apple",
-      token: credential.identityToken
-    });
-
-    if (error || !data.user) {
-      if (error && isProviderDisabledError(error.message)) {
-        const session = createLocalAppleSession(credential, fullName);
-        await saveLocalAuthSession(session);
-        return session;
-      }
-
-      throw new Error(error?.message ?? "Could not sign in with Apple.");
-    }
-
-    const session: AuthSession = {
-      email: data.user.email ?? credential.email ?? null,
-      fullName,
-      id: data.user.id,
-      mode: "supabase",
-      provider: "apple",
-      signedInAt: new Date().toISOString()
-    };
-    await saveLocalAuthSession(session);
-    return session;
+  if (credential.state !== requestState) {
+    throw new Error("Apple sign-in could not be verified. Please try again.");
   }
 
-  const session = createLocalAppleSession(credential, fullName);
+  const fullName = formatAppleName(credential.fullName);
+  if (!credential.identityToken) {
+    throw new Error("Apple did not return an identity token.");
+  }
+
+  const { data: currentSessionData } = await supabase.auth.getSession();
+  const authResponse = currentSessionData.session?.user.is_anonymous
+    ? await supabase.auth.linkIdentity({
+        nonce: rawNonce,
+        provider: "apple",
+        token: credential.identityToken
+      })
+    : await supabase.auth.signInWithIdToken({
+        nonce: rawNonce,
+        provider: "apple",
+        token: credential.identityToken
+      });
+
+  if (authResponse.error || !authResponse.data.user) {
+    throw new Error(authResponse.error?.message ?? "Could not sign in with Apple.");
+  }
+
+  if (credential.fullName) {
+    await supabase.auth.updateUser({
+      data: {
+        family_name: credential.fullName.familyName,
+        full_name: fullName,
+        given_name: credential.fullName.givenName
+      }
+    });
+  }
+
+  const session: AuthSession = {
+    email: authResponse.data.user.email ?? credential.email ?? null,
+    fullName: fullName ?? readMetadataName(authResponse.data.user.user_metadata),
+    id: authResponse.data.user.id,
+    mode: "supabase",
+    provider: "apple",
+    signedInAt: new Date().toISOString()
+  };
   await saveLocalAuthSession(session);
   return session;
 }
@@ -175,10 +217,14 @@ export async function signOut() {
   }
 }
 
-async function ensureSupabaseSession() {
+async function ensureSupabaseSession(allowAnonymous: boolean) {
   const { data: sessionData } = await supabase!.auth.getSession();
   if (sessionData.session) {
     return sessionData.session;
+  }
+
+  if (!allowAnonymous) {
+    return null;
   }
 
   const { data, error } = await supabase!.auth.signInAnonymously();
@@ -264,13 +310,21 @@ function deleteSecureItem(key: string) {
 }
 
 function createSupabaseSession(
-  user: { id: string; email?: string | null; is_anonymous?: boolean },
+  user: {
+    id: string;
+    email?: string | null;
+    is_anonymous?: boolean;
+    user_metadata?: Record<string, unknown>;
+  },
   storedSession: AuthSession | null
 ): AuthSession {
   const isAnonymous = user.is_anonymous === true;
+  const metadataName = typeof user.user_metadata?.full_name === "string"
+    ? user.user_metadata.full_name
+    : null;
   return {
     email: user.email ?? storedSession?.email ?? null,
-    fullName: isAnonymous ? null : storedSession?.fullName ?? null,
+    fullName: isAnonymous ? null : metadataName ?? storedSession?.fullName ?? null,
     id: user.id,
     mode: isAnonymous ? "supabase_anonymous" : "supabase",
     provider: isAnonymous ? "anonymous" : "apple",
@@ -286,7 +340,7 @@ function parseStoredAuthSession(value: string) {
       typeof parsed !== "object" ||
       typeof parsed.id !== "string" ||
       parsed.id.length === 0 ||
-      (parsed.mode !== "supabase" && parsed.mode !== "supabase_anonymous" && parsed.mode !== "local_apple") ||
+      (parsed.mode !== "supabase" && parsed.mode !== "supabase_anonymous") ||
       (parsed.provider !== "apple" && parsed.provider !== "anonymous") ||
       typeof parsed.signedInAt !== "string" ||
       !Number.isFinite(Date.parse(parsed.signedInAt)) ||
@@ -311,23 +365,10 @@ function formatAppleName(fullName: AppleAuthentication.AppleAuthenticationFullNa
   return name.length > 0 ? name : null;
 }
 
-function createLocalAppleSession(
-  credential: AppleAuthentication.AppleAuthenticationCredential,
-  fullName: string | null
-): AuthSession {
-  return {
-    email: credential.email ?? null,
-    fullName,
-    id: credential.user,
-    mode: "local_apple",
-    provider: "apple",
-    signedInAt: new Date().toISOString()
-  };
-}
-
-function isProviderDisabledError(message: string) {
-  const normalizedMessage = message.toLowerCase();
-  return normalizedMessage.includes("provider") && normalizedMessage.includes("not enabled");
+function readMetadataName(metadata?: Record<string, unknown>) {
+  return typeof metadata?.full_name === "string" && metadata.full_name.trim().length > 0
+    ? metadata.full_name.trim()
+    : null;
 }
 
 function getDefaultSupabaseAuthStorageKey(value?: string) {

@@ -151,7 +151,7 @@ const defaultProviderTimeoutMs = 22_000;
 const defaultPerUserRequestRateLimit = 12;
 const defaultPerUserScanRateLimit = 4;
 const defaultGlobalScanRateLimit = 4;
-const promptVersion = "2026-07-12.3";
+const promptVersion = "2026-07-13.1";
 const schemaVersion = "5";
 const retryableProviderStatuses = new Set([429, 500, 502, 503, 504]);
 const maxImmediateRetryElapsedMs = 5_000;
@@ -210,6 +210,7 @@ const vaguePrepPatterns = [
   "dressing",
   "marinade",
   "broth",
+  "soup",
   "batter",
   "fried",
   "shared fryer",
@@ -496,7 +497,9 @@ Deno.serve(async (request) => {
 
     const auth = await authenticateRequest(request);
     if (!auth.ok) {
-      return jsonResponse({ error: "Authentication required." }, 401);
+      return auth.reason === "account_required"
+        ? jsonResponse({ error: "A signed-in account is required.", code: "account_required" }, 403)
+        : jsonResponse({ error: "Authentication required." }, 401);
     }
 
     const requestRate = await claimMenuRequestMinuteRate(auth.userId);
@@ -648,7 +651,7 @@ Deno.serve(async (request) => {
 
 type AuthResult =
   | { ok: true; userId: string }
-  | { ok: false };
+  | { ok: false; reason: "account_required" | "authentication_required" };
 
 type EntitlementResult = {
   planId: SubscriptionPlanId;
@@ -672,14 +675,14 @@ type ScanLimitResult = {
 async function authenticateRequest(request: Request): Promise<AuthResult> {
   const accessToken = readBearerToken(request);
   if (!accessToken) {
-    return { ok: false };
+    return { ok: false, reason: "authentication_required" };
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   if (!supabaseUrl || !anonKey) {
     console.error("Supabase auth environment is not configured.");
-    return { ok: false };
+    return { ok: false, reason: "authentication_required" };
   }
 
   const response = await fetchWithTimeout(
@@ -694,12 +697,20 @@ async function authenticateRequest(request: Request): Promise<AuthResult> {
   );
 
   if (!response.ok) {
-    return { ok: false };
+    return { ok: false, reason: "authentication_required" };
   }
 
   const user = await response.json();
   const userId = readString(user?.id);
-  return userId ? { ok: true, userId } : { ok: false };
+  if (!userId) {
+    return { ok: false, reason: "authentication_required" };
+  }
+
+  if (Deno.env.get("REQUIRE_DURABLE_AUTH") === "true" && user?.is_anonymous === true) {
+    return { ok: false, reason: "account_required" };
+  }
+
+  return { ok: true, userId };
 }
 
 async function resolveEntitlement(userId: string): Promise<EntitlementResult> {
@@ -1172,6 +1183,7 @@ function buildSystemPrompt() {
     "Do not label an otherwise benign dish high_risk or avoid_unless_confirmed solely because a different dish on the same menu contains the allergen; use ask_staff for plausible shared-kitchen uncertainty unless the benign dish has its own direct evidence.",
     "Treat sauces, broths, marinades, dressings, oils, spice mixes, garnishes, batters, coatings, desserts, shared fryers, shared woks, shared grills, and vague descriptions as risk signals.",
     "If text is blurry, materially cut off, too small or distant to read confidently, translated poorly, unreadable, or ingredients are not listed, mark affected dishes unclear or ask_staff.",
+    "Do not reconstruct or guess exact menu text that is materially blurred. Judge readability from visible pixel clarity even when cuisine context makes a likely word seem inferable.",
     "Set imageQuality.readability to poor and needsRetake to true whenever multiple dish names or descriptions are cropped, the menu is distant enough that text must be guessed, glare or blur obscures ingredients, or only fragments are readable. Do this even if a few words can still be inferred.",
     "For low_risk, still include confirmation language when allergies are severe.",
     "For a severe or cross-contact-sensitive profile, do not use low_risk when the dish depends on a common pattern, unknown ingredient, cross-contact concern, translation uncertainty, or image uncertainty. Use at least ask_staff. Reserve low_risk for genuinely simple dishes supported by visible text, while still advising confirmation.",
@@ -1942,7 +1954,7 @@ function verifyScanResultRisk(scanResult: ScanResult, profile: UserProfile): Sca
       };
     }
 
-    if (vaguePrepMatches.length > 0 && hasSensitiveAllergy) {
+    if (vaguePrepMatches.length > 0) {
       nextDish = {
         ...nextDish,
         riskLevel: escalateRisk(nextDish.riskLevel, "ask_staff"),
@@ -1952,7 +1964,6 @@ function verifyScanResultRisk(scanResult: ScanResult, profile: UserProfile): Sca
         transparency: appendDishTransparency(nextDish.transparency, {
           visibleMenuText: vaguePrepMatches,
           profileFactors: profile.allergies
-            .filter((allergy) => allergy.severity === "severe" || allergy.avoidCrossContact)
             .map((allergy) => `${allergy.name}: ${allergy.severity}${allergy.avoidCrossContact ? ", cross-contact sensitive" : ""}`),
           commonRiskPatterns: vaguePrepMatches,
           uncertainty: ["Vague preparation terms can hide sauces, oils, shared equipment, or omitted ingredients."]
@@ -2009,17 +2020,22 @@ function verifyScanResultRisk(scanResult: ScanResult, profile: UserProfile): Sca
   const reportsLowResolution = normalizedImageIssues.some((issue) =>
     issue.includes("low resolution") || issue.includes("low quality")
   );
+  const reportsLowContrast = normalizedImageIssues.some((issue) => issue.includes("low contrast"));
   const inferredPoorImage =
     poorImage ||
     materiallyTruncatedDishCount >= 2 ||
-    (reportsBlur && reportsLowResolution);
+    (reportsBlur && reportsLowResolution) ||
+    (hasSensitiveAllergy && reportsBlur && reportsLowContrast);
   const imageQuality = {
     ...scanResult.imageQuality,
     readability: inferredPoorImage ? "poor" as const : scanResult.imageQuality.readability,
     issues: uniqueStrings([
       ...scanResult.imageQuality.issues,
       ...(materiallyTruncatedDishCount >= 2 ? ["Multiple menu entries are cut off."] : []),
-      ...(reportsBlur && reportsLowResolution ? ["Blur and low resolution make the menu unreliable to read."] : [])
+      ...(reportsBlur && reportsLowResolution ? ["Blur and low resolution make the menu unreliable to read."] : []),
+      ...(hasSensitiveAllergy && reportsBlur && reportsLowContrast
+        ? ["Blur and low contrast are not reliable enough for a severe or cross-contact-sensitive profile."]
+        : [])
     ]),
     needsRetake: scanResult.imageQuality.needsRetake === true || inferredPoorImage
   };

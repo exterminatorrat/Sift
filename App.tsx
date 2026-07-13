@@ -38,7 +38,13 @@ import {
   ScanQuotaExceededError,
   ScanRateLimitExceededError
 } from "./src/services/aiAnalysisService";
-import { loadAuthSession, signInWithApple, signOut } from "./src/services/authService";
+import {
+  isAppleAccountRequired,
+  isDurableAuthSession,
+  loadAuthSession,
+  signInWithApple,
+  signOut
+} from "./src/services/authService";
 import { captureMenuImage, ImageAccessError, pickMenuImage } from "./src/services/imageService";
 import {
   clearScanHistory,
@@ -104,6 +110,7 @@ export default function App() {
   const monthlyScanCount = getMonthlyScanCount(scanHistory);
   const canStartScan = monthlyScanCount < subscriptionPlan.scanLimit;
   const canCreateProfile = profiles.length < subscriptionPlan.profileLimit;
+  const hasRequiredAuth = !isAppleAccountRequired() || isDurableAuthSession(authSession);
 
   useEffect(() => {
     let mounted = true;
@@ -187,7 +194,7 @@ export default function App() {
       <I18nProvider language={profile.preferredLanguage}>
         <NavigationContainer>
           <Stack.Navigator
-            initialRouteName={!authSession ? "Login" : !onboardingComplete ? "Onboarding" : "Home"}
+            initialRouteName={!hasRequiredAuth ? "Login" : !onboardingComplete ? "Onboarding" : "Home"}
             screenOptions={{ animation: "none", headerShown: false }}
           >
           <Stack.Screen name="Login">

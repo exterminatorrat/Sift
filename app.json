@@ -26,6 +26,7 @@
       "bundler": "metro"
     },
     "plugins": [
+      "expo-apple-authentication",
       "expo-secure-store"
     ]
   }

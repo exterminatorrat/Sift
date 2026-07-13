@@ -168,7 +168,45 @@ function runHarnessSelfTests() {
   assertHarness(poorSummary.fallbacks === 1, "Poor-image fallback was not counted.");
   assertHarness(poorSummary.poorImagePassRate === 0, "Poor-image provider fallback counted as image-analysis success.");
 
-  console.log("Live eval harness self-tests passed: fallback separation, availability counts, and poor-image accounting.");
+  const resumableResults = normalizeResumableResults([
+    { caseId: "I-001", pass: 1, quotaOrBillingStop: false },
+    { caseId: "I-005", pass: 1, quotaOrBillingStop: true }
+  ]);
+  assertHarness(
+    resumableResults.length === 1 && resumableResults[0].caseId === "I-001",
+    "Quota-stopped cases were incorrectly treated as completed resume evidence."
+  );
+
+  const configurationResult = {
+    configurationProvenance: {
+      fields: {
+        provider: { status: "available", value: "gemini" },
+        model: { status: "available", value: "gemini-3.5-flash" },
+        configuration: { status: "available", value: "prompt=test;schema=5;thinking=low" }
+      }
+    }
+  };
+  assertHarness(
+    configurationIdentity(configurationResult) === configurationIdentity(structuredClone(configurationResult)),
+    "Equivalent provider configurations produced different resume identities."
+  );
+  const configurationFailures = evaluateConfigurationProvenance(summarizeConfigurationProvenance([
+    configurationResult,
+    {
+      configurationProvenance: {
+        fields: {
+          ...configurationResult.configurationProvenance.fields,
+          configuration: { status: "available", value: "prompt=changed;schema=5;thinking=low" }
+        }
+      }
+    }
+  ]));
+  assertHarness(
+    configurationFailures.some((failure) => failure.rule === "single_configuration_identity"),
+    "Mixed prompt configurations were not rejected."
+  );
+
+  console.log("Live eval harness self-tests passed: fallback separation, availability counts, poor-image accounting, resume filtering, and configuration locking.");
 }
 
 function assertHarness(condition, message) {
@@ -212,19 +250,34 @@ async function runPhase() {
     fail(`No cases selected by ${selection}.`);
   }
 
-  const plannedCalls = selectedCases.length * repeat;
+  const outputPath = path.join(OUTPUT_ROOT, `${safeFilePart(phase)}.json`);
+  const priorEvidence = options.resume === true
+    ? readResumablePhaseEvidence(outputPath, phase, selection, repeat)
+    : null;
+  const priorResults = normalizeResumableResults(priorEvidence?.results ?? []);
+  assertConfigurationConsistency(priorResults, "Existing resume evidence");
+  const completedKeys = new Set(priorResults.map((result) => resultKey(result.caseId, result.pass)));
+  const remainingCalls = selectedCases.reduce((total, testCase) => {
+    for (let pass = 1; pass <= repeat; pass += 1) {
+      if (!completedKeys.has(resultKey(testCase.id, pass))) total += 1;
+    }
+    return total;
+  }, 0);
   const ledger = readLedger();
-  if (ledger.totalCalls + plannedCalls > MAX_PROVIDER_CALLS) {
-    fail(`This phase would exceed the ${MAX_PROVIDER_CALLS}-call cap (${ledger.totalCalls} already used, ${plannedCalls} planned).`);
+  if (ledger.totalCalls + remainingCalls > MAX_PROVIDER_CALLS) {
+    fail(`This phase would exceed the ${MAX_PROVIDER_CALLS}-call cap (${ledger.totalCalls} already used, ${remainingCalls} remaining).`);
   }
 
   const { supabase, session } = await authenticatedClient();
-  const results = [];
+  const results = [...priorResults];
   let stoppedEarly = false;
   let previousCallStartedAt = 0;
 
   for (let pass = 1; pass <= repeat && !stoppedEarly; pass += 1) {
     for (const testCase of selectedCases) {
+      if (completedKeys.has(resultKey(testCase.id, pass))) {
+        continue;
+      }
       const waitMs = Math.max(0, minCallIntervalMs - (Date.now() - previousCallStartedAt));
       if (previousCallStartedAt > 0 && waitMs > 0) {
         await delay(waitMs);
@@ -233,7 +286,19 @@ async function runPhase() {
       const callIndex = claimCall(phase, testCase.id, pass);
       console.log(`[${callIndex}/${MAX_PROVIDER_CALLS}] ${phase} pass ${pass}: ${testCase.id} ${testCase.name}`);
       const result = await invokeCase(supabase, session, testCase, phase, pass);
+      assertResumeConfigurationMatch(priorResults, result);
       results.push(result);
+      writeJson(outputPath, createPhaseEvidence({
+        phase,
+        selection,
+        repeat,
+        minCallIntervalMs,
+        priorStartedAt: priorEvidence?.startedAt,
+        stoppedEarly: result.quotaOrBillingStop,
+        session,
+        results,
+        allCases
+      }));
 
       if (result.quotaOrBillingStop) {
         stoppedEarly = true;
@@ -248,12 +313,42 @@ async function runPhase() {
     }
   }
 
+  const evidence = createPhaseEvidence({
+    phase,
+    selection,
+    repeat,
+    minCallIntervalMs,
+    priorStartedAt: priorEvidence?.startedAt,
+    stoppedEarly,
+    session,
+    results,
+    allCases
+  });
+  writeJson(outputPath, evidence);
+  printSummary(evidence.summary, outputPath);
+  printEvaluation(evidence.evaluation);
+  if (!evidence.evaluation.passed) {
+    process.exitCode = 1;
+  }
+}
+
+function createPhaseEvidence({
+  phase,
+  selection,
+  repeat,
+  minCallIntervalMs,
+  priorStartedAt,
+  stoppedEarly,
+  session,
+  results,
+  allCases
+}) {
   const evidence = {
     phase,
     selection,
     repeat,
     minCallIntervalMs,
-    startedAt: results[0]?.startedAt ?? new Date().toISOString(),
+    startedAt: priorStartedAt ?? results[0]?.startedAt ?? new Date().toISOString(),
     completedAt: new Date().toISOString(),
     stoppedEarly,
     userId: session.userId,
@@ -262,13 +357,72 @@ async function runPhase() {
     results
   };
   evidence.evaluation = evaluatePhaseEvidence(evidence, allCases);
-  const outputPath = path.join(OUTPUT_ROOT, `${safeFilePart(phase)}.json`);
-  writeJson(outputPath, evidence);
-  printSummary(evidence.summary, outputPath);
-  printEvaluation(evidence.evaluation);
-  if (!evidence.evaluation.passed) {
-    process.exitCode = 1;
+  return evidence;
+}
+
+function readResumablePhaseEvidence(outputPath, phase, selection, repeat) {
+  if (!fs.existsSync(outputPath)) {
+    return null;
   }
+
+  const evidence = readJson(outputPath);
+  if (
+    evidence.phase !== phase ||
+    evidence.selection !== selection ||
+    evidence.repeat !== repeat ||
+    !Array.isArray(evidence.results)
+  ) {
+    fail(`Existing ${phase} evidence does not match this run. Start without --resume to replace it.`);
+  }
+  return evidence;
+}
+
+function normalizeResumableResults(results) {
+  const completed = new Map();
+  for (const result of results) {
+    if (
+      typeof result?.caseId !== "string" ||
+      !Number.isInteger(result?.pass) ||
+      result.quotaOrBillingStop === true
+    ) {
+      continue;
+    }
+    completed.set(resultKey(result.caseId, result.pass), result);
+  }
+  return [...completed.values()];
+}
+
+function resultKey(caseId, pass) {
+  return `${caseId}:${pass}`;
+}
+
+function assertResumeConfigurationMatch(priorResults, nextResult) {
+  if (priorResults.length === 0) return;
+
+  const priorIdentity = configurationIdentity(priorResults[0]);
+  const nextIdentity = configurationIdentity(nextResult);
+  if (!priorIdentity || !nextIdentity || priorIdentity !== nextIdentity) {
+    fail("The deployed AI configuration changed since this checkpoint. Start a new phase instead of mixing candidates with --resume.");
+  }
+}
+
+function assertConfigurationConsistency(results, label) {
+  if (results.length === 0) return;
+
+  const identities = new Set(results.map(configurationIdentity));
+  if (identities.has(null) || identities.size !== 1) {
+    fail(`${label} does not contain one complete provider/model/configuration identity.`);
+  }
+}
+
+function configurationIdentity(result) {
+  const fields = result?.configurationProvenance?.fields;
+  const provider = fields?.provider?.status === "available" ? fields.provider.value : null;
+  const model = fields?.model?.status === "available" ? fields.model.value : null;
+  const configuration = fields?.configuration?.status === "available" ? fields.configuration.value : null;
+  return provider && model && configuration
+    ? JSON.stringify({ provider, model, configuration })
+    : null;
 }
 
 async function invokeCase(supabase, session, testCase, phase, pass) {
@@ -688,6 +842,11 @@ function evaluatePhaseEvidence(evidence, allCases) {
       : null;
   const completeness = evaluateCompleteness(evidence.results, expectedCases, evidence.repeat);
   const failures = [...completeness.failures];
+  const configurationFailures = evaluateConfigurationProvenance(evidence.configurationProvenance);
+
+  if (evidence.phase === "gate" || evidence.phase.startsWith("repeat")) {
+    failures.push(...configurationFailures);
+  }
 
   if (evidence.phase === "gate") {
     addThresholdFailure(failures, evidence.summary.directSevereMisses > GATE_THRESHOLDS.directSevereMisses, "direct_severe_misses", evidence.summary.directSevereMisses, "= 0");
@@ -716,6 +875,24 @@ function evaluatePhaseEvidence(evidence, allCases) {
     completeness,
     failures
   };
+}
+
+function evaluateConfigurationProvenance(provenance) {
+  const failures = [];
+  for (const field of ["provider", "model", "configuration"]) {
+    const values = new Set(
+      (provenance?.observed ?? [])
+        .filter((item) => item.field === field)
+        .map((item) => JSON.stringify(item.value))
+    );
+    if (values.size !== 1) {
+      failures.push({ rule: `single_${field}_identity`, actual: values.size, expected: 1 });
+    }
+  }
+  if ((provenance?.unknownCases ?? 0) > 0) {
+    failures.push({ rule: "configuration_provenance_known", actual: provenance.unknownCases, expected: 0 });
+  }
+  return failures;
 }
 
 function evaluateCompleteness(results, expectedCases, repeat) {
@@ -960,6 +1137,7 @@ function printUsage() {
   npm run eval:ai:live -- run --phase calibration-low --cases calibration
   npm run eval:ai:live -- run --phase calibration-medium --cases calibration
   npm run eval:ai:live -- run --phase gate --cases all
+  npm run eval:ai:live -- run --phase gate --cases all --resume
   npm run eval:ai:live -- run --phase repeat-critical --cases critical --repeat 3
   npm run eval:ai:live -- self-test
   npm run eval:ai:live -- report
@@ -967,6 +1145,7 @@ function printUsage() {
 
 Raw evidence is written under output/ai-evals and is ignored by Git.
 Calls are paced 15 seconds apart by default; override with --min-call-interval-ms.
+Use --resume to continue a matching checkpoint after a daily provider quota reset.
 The runner refuses to exceed ${MAX_PROVIDER_CALLS} claimed calls.`);
 }
 

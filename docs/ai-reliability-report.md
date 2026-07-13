@@ -9,7 +9,7 @@ Sift now has a deployed, authenticated, quota-protected AI path and a repeatable
 
 - Provider/model: `gemini-3.5-flash`
 - Thinking level: `low`
-- Prompt version: `2026-07-12.3`
+- Prompt version: `2026-07-13.1`
 - Provider schema version: `5`
 - Structured output: enabled with a compact Gemini response schema
 - Full server validation: enabled after normalization
@@ -17,10 +17,10 @@ Sift now has a deployed, authenticated, quota-protected AI path and a repeatable
 - Provider timeout: `22000ms`
 - Google Search grounding: disabled
 - Provider fallback: none; unresolved failures become a calm `unclear` result
-- Edge Function: `analyze-menu` version 51, JWT verification enabled
-- Deployment SHA-256: `9c15f399b9c8080908ce93b9d8188d7f545e9c78959819e07443b74a38be06b8`
+- Edge Function: `analyze-menu` version 53, JWT verification enabled
+- Deployment SHA-256: `f79a717d1bf39548d002da9e09c264155fb346fe30dcd966ce7cb9361d402a59`
 
-Low was retained because the medium test exceeded the latency target and produced a malformed or truncated model response on its second case. Low is still provisional until the full gate passes.
+Low was retained because the medium test exceeded the latency target and produced a malformed or truncated model response on its second case. Version 53 has passed static and non-provider backend checks, but it has not produced a live model result because the free-tier daily quota was already exhausted after the version-52 diagnostic run. Low remains provisional until the full gate passes.
 
 ## Reliability Work Completed
 
@@ -39,6 +39,7 @@ Low was retained because the medium test exceeded the latency target and produce
 - HTTPS-only source references and grounding disabled for the beta gate.
 - Model-supplied references are discarded; only provider-grounded references may be merged later.
 - Live eval pacing and a hard 120-call ledger.
+- Checkpoint resume support that excludes quota-stop placeholders and rejects mixed provider, model, prompt, schema, or thinking configurations.
 - Live gate enforcement now checks exact case completeness, published error/rate/latency thresholds, full client-facing shape, and configuration provenance.
 - Safety-claim rejection and conservative-uncertainty validation now cover English, Spanish, French, German, Italian, Portuguese, Japanese, Korean, Simplified/Traditional Chinese, and Thai.
 
@@ -74,8 +75,18 @@ Local checks:
 - `npm.cmd run typecheck`: pass.
 - `npm.cmd run eval:ai`: fixture integrity, generic sample-output checks, and multilingual prohibited/conservative-language tests against the real client validator pass for 25 fixtures. This is not a claim that 25 model responses passed.
 - Live harness syntax and 60-case manifest integrity: pass.
-- `npm.cmd run eval:ai:live -- self-test`: pass for provider/model metric separation, fallback counting, and poor-image fallback accounting.
+- `npm.cmd run eval:ai:live -- self-test`: pass for provider/model metric separation, fallback counting, poor-image fallback accounting, quota-safe resume filtering, and configuration locking.
 - `npm.cmd run test:backend:smoke`: pass for anonymous sign-in, unauthenticated `401`, and authenticated malformed-request `400` without a provider call.
+
+July 13 version-52 diagnostic evidence:
+
+- One pre-gate canary produced a valid AI result. The paced gate then attempted 19 cases before `I-019` returned Gemini `429 RESOURCE_EXHAUSTED`; no billing was enabled.
+- The 18 pre-quota gate outcomes were 13 successful AI analyses, four provider timeouts, and one provider `503`. The quota-stop response was recorded separately and is excluded from resume completion.
+- Across the 13 AI-produced gate results: directly listed severe-allergen misses `0`, forbidden safety claims `0`, invalid client-visible schema `0`, missing staff questions `0`, and benign high/avoid labels `0` of `10` evaluated benign dishes.
+- Two policy checks failed: Lentil Soup was `low_risk` instead of the required `ask_staff` floor for vague soup preparation, and one blurred/low-contrast severe-profile image was not marked `poor` with a retake.
+- Version 53 adds a deterministic `ask_staff` floor for vague soup/preparation patterns, a severe-profile blur plus low-contrast retake floor, and an explicit instruction not to reconstruct materially blurred menu text.
+- Version-52 gate availability remained below target: five pre-quota provider fallbacks, p50 `15.961s`, p95/p99 `26.005s`. Successful telemetry averaged `14.605s`, with `31,332` input tokens, `11,837` output tokens, and `2,707` thinking tokens across 13 successes.
+- The observed free-tier window was exhausted after the canary plus the paced gate traffic. Google publishes project-specific limits in AI Studio rather than one universal number, so this run records the observed stop instead of claiming an exact contractual daily quota.
 
 July 12 candidate evidence:
 
@@ -134,7 +145,7 @@ The function performs a pre-auth declared-length check and bounded stream read, 
 
 ## Private-Beta Gate Status
 
-The private-beta AI gate is **not passed**. The current version-51 candidate still needs the complete 60-image gate and the curated 18-case set repeated three times. The July 12 run stopped after 17 cases when the free-tier project returned a provider rate limit; later version-49 and version-50 canaries confirmed that the provider limit had not reset. No paid inference was enabled.
+The private-beta AI gate is **not passed**. Version 52 produced useful diagnostic evidence but failed two policy checks and its availability/latency thresholds. Version 53 contains targeted fixes and still needs a fresh canary, the complete 60-image gate, and the curated 18-case set repeated three times. No paid inference was enabled.
 
 The next live run must demonstrate:
 
@@ -151,14 +162,15 @@ The next live run must demonstrate:
 
 ## Resume Procedure
 
-1. Wait for the Gemini free-tier quota window to reset; do not enable billing.
-2. Archive and reset the diagnostic ledger with `npm.cmd run eval:ai:live -- reset-ledger --confirm` because version 50 is a new candidate.
+1. Wait for the Gemini free-tier quota window to reset; do not enable billing. Google documents daily resets at midnight Pacific, which is approximately `15:00` the following day in Shanghai during Pacific daylight time.
+2. The version-52 gate and call ledger are already archived locally, and the 120-call candidate ledger is reset for version 53.
 3. Reuse the current disposable evaluation user if its session remains valid, otherwise run `npm.cmd run eval:ai:live -- prepare` and assign the printed user a Family/admin entitlement through the server-side database path.
-4. Run the 60-case gate with the default 15-second pacing. Increase `--min-call-interval-ms` if the active AI Studio RPM limit is lower.
-5. Stop immediately on `provider_rate_limited` or any billing-required response.
-6. Only if the gate passes, run `npm.cmd run eval:ai:live -- run --phase repeat-critical --cases critical --repeat 3`.
-7. Run `npm.cmd run eval:ai:live -- cleanup`, then delete the disposable auth user server-side.
-8. Update this report and `Sift Launch Tracker.xlsx` only from the new evidence.
+4. Run a version-53 canary: `npm.cmd run eval:ai:live -- run --phase v53-canary --cases I-001 --stop-on-fallback`.
+5. If the canary produces a valid AI result, start a fresh gate without `--resume`: `npm.cmd run eval:ai:live -- run --phase gate --cases all`.
+6. If a later daily quota stop interrupts that same version-53 gate, continue only after reset with `npm.cmd run eval:ai:live -- run --phase gate --cases all --resume`. The harness rejects configuration drift.
+7. Only if the gate passes, run `npm.cmd run eval:ai:live -- run --phase repeat-critical --cases critical --repeat 3`.
+8. Run `npm.cmd run eval:ai:live -- cleanup`, then delete the disposable auth user server-side.
+9. Update this report and `Sift Launch Tracker.xlsx` only from the new evidence.
 
 Raw live outputs remain under ignored `output/ai-evals`; only aggregate evidence belongs in Git.
 
