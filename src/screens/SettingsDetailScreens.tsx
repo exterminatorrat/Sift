@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Alert, Animated, Easing, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Check,
@@ -72,9 +72,77 @@ export function SubscriptionScreen({
   onSelectPlan
 }: SubscriptionScreenProps) {
   const { t } = useI18n();
+  const [planNoticeVisible, setPlanNoticeVisible] = useState(false);
+  const planNoticeProgress = useRef(new Animated.Value(0)).current;
+  const planNoticeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (planNoticeTimeout.current) {
+        clearTimeout(planNoticeTimeout.current);
+      }
+    };
+  }, []);
+
+  const selectPlan = async (plan: SubscriptionPlan) => {
+    if (plan.id === currentPlanId) {
+      return;
+    }
+
+    await onSelectPlan(plan.id);
+    if (planNoticeTimeout.current) {
+      clearTimeout(planNoticeTimeout.current);
+    }
+
+    setPlanNoticeVisible(true);
+    planNoticeProgress.setValue(0);
+    Animated.timing(planNoticeProgress, {
+      duration: 240,
+      easing: Easing.out(Easing.cubic),
+      toValue: 1,
+      useNativeDriver: true
+    }).start();
+    planNoticeTimeout.current = setTimeout(() => {
+      Animated.timing(planNoticeProgress, {
+        duration: 180,
+        easing: Easing.in(Easing.cubic),
+        toValue: 0,
+        useNativeDriver: true
+      }).start(({ finished }) => {
+        if (finished) {
+          setPlanNoticeVisible(false);
+        }
+      });
+    }, 1500);
+  };
 
   return (
-    <SettingsShell onBack={onBack}>
+    <SettingsShell
+      onBack={onBack}
+      overlay={
+        planNoticeVisible ? (
+          <Animated.View
+            accessibilityLiveRegion="polite"
+            style={[
+              styles.settingsToast,
+              {
+                opacity: planNoticeProgress,
+                transform: [
+                  {
+                    translateY: planNoticeProgress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [24, 0]
+                    })
+                  }
+                ]
+              }
+            ]}
+          >
+            <Text style={styles.settingsToastText}>{t("subscription.planChangedToast")}</Text>
+          </Animated.View>
+        ) : null
+      }
+    >
       <Header title={t("subscription.title")} body={t("subscription.body")} />
       <View style={styles.testModeCard}>
         <Text style={styles.testModeText}>{t("subscription.testMode")}</Text>
@@ -88,7 +156,7 @@ export function SubscriptionScreen({
             currentLabel={t("subscription.current")}
             key={plan.id}
             monthlyScanCount={monthlyScanCount}
-            onSelect={() => onSelectPlan(plan.id)}
+            onSelect={() => selectPlan(plan)}
             plan={plan}
             t={t}
           />
@@ -292,11 +360,16 @@ export function HelpSupportScreen({ onBack }: BasicSettingsScreenProps) {
   );
 }
 
-function SettingsShell({ children, onBack }: React.PropsWithChildren<BasicSettingsScreenProps>) {
+function SettingsShell({
+  children,
+  onBack,
+  overlay
+}: React.PropsWithChildren<BasicSettingsScreenProps & { overlay?: React.ReactNode }>) {
   return (
     <SafeAreaView style={styles.screen}>
       <AppTopBar showBack onBack={onBack} />
       <ScrollView contentContainerStyle={styles.content}>{children}</ScrollView>
+      {overlay}
     </SafeAreaView>
   );
 }
@@ -585,6 +658,19 @@ const styles = StyleSheet.create({
   testModeText: {
     color: colors.primaryDark,
     ...typography.bodySmall
+  },
+  settingsToast: {
+    alignSelf: "center",
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    bottom: 36,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    position: "absolute"
+  },
+  settingsToastText: {
+    color: colors.textInverse,
+    ...typography.label
   },
   subscriptionCard: {
     backgroundColor: colors.surfaceWarm,

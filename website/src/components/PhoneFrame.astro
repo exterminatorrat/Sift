@@ -1,0 +1,186 @@
+---
+type Props = {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  eager?: boolean;
+  className?: string;
+  caption?: string;
+};
+
+const {
+  src,
+  alt,
+  width = 390,
+  height = 844,
+  eager = false,
+  className = "",
+  caption
+} = Astro.props;
+---
+
+<figure class:list={["phone-figure", className]}>
+  <div class="phone-frame">
+    <span class="phone-frame__button phone-frame__button--action" aria-hidden="true"></span>
+    <span class="phone-frame__button phone-frame__button--volume-up" aria-hidden="true"></span>
+    <span class="phone-frame__button phone-frame__button--volume-down" aria-hidden="true"></span>
+    <span class="phone-frame__button phone-frame__button--side" aria-hidden="true"></span>
+    <span class="phone-frame__button phone-frame__button--camera" aria-hidden="true"></span>
+    <div class="phone-frame__screen">
+      <img
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        loading={eager ? "eager" : "lazy"}
+        fetchpriority={eager ? "high" : "auto"}
+        decoding="async"
+      />
+      <span class="phone-frame__island" aria-hidden="true"></span>
+    </div>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .phone-figure {
+    margin: 0;
+  }
+
+  .phone-frame {
+    background: linear-gradient(105deg, #202523 0%, #6d7470 9%, #252a28 18%, #111513 50%, #353b38 83%, #7a817d 92%, #252a28 100%);
+    border: 1px solid rgba(117, 126, 121, 0.82);
+    border-radius: clamp(35px, 14.4%, 44px);
+    box-shadow: 0 34px 72px rgba(11, 41, 39, 0.18), 0 10px 24px rgba(11, 23, 21, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.13);
+    padding: 5px;
+    position: relative;
+    z-index: 0;
+  }
+
+  .phone-frame::after {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: inherit;
+    content: "";
+    inset: 1px;
+    pointer-events: none;
+    position: absolute;
+    z-index: 5;
+  }
+
+  .phone-frame__screen {
+    aspect-ratio: 390 / 844;
+    background: var(--cream);
+    border: 2px solid #050807;
+    border-radius: clamp(30px, 12.5%, 38px);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+  }
+
+  .phone-frame img {
+    background: var(--cream);
+    display: block;
+    height: auto;
+    transform: translateY(18px);
+    width: 100%;
+  }
+
+  .phone-frame__island {
+    background: #020303;
+    border: 1px solid rgba(54, 63, 60, 0.72);
+    border-radius: 999px;
+    box-shadow: 0 1px 1px rgba(255, 255, 255, 0.08), 0 2px 6px rgba(0, 0, 0, 0.3);
+    height: 17px;
+    left: 50%;
+    position: absolute;
+    top: 8px;
+    transform: translateX(-50%);
+    width: 29%;
+    z-index: 4;
+  }
+
+  .phone-frame__island::after {
+    background: radial-gradient(circle at 35% 35%, #294f50 0 12%, #0d2222 28%, #020505 65%);
+    border-radius: 50%;
+    content: "";
+    height: 5px;
+    position: absolute;
+    right: 6px;
+    top: 5px;
+    width: 5px;
+  }
+
+  .phone-frame__button {
+    background: linear-gradient(90deg, #242a27, #747b77 54%, #252a28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(5, 12, 10, 0.2);
+    display: block;
+    position: absolute;
+    width: 3px;
+    z-index: 1;
+  }
+
+  .phone-frame__button--action,
+  .phone-frame__button--volume-up,
+  .phone-frame__button--volume-down {
+    border-radius: 2px 0 0 2px;
+    left: -3px;
+  }
+
+  .phone-frame__button--action {
+    height: 28px;
+    top: 17%;
+  }
+
+  .phone-frame__button--volume-up {
+    height: 43px;
+    top: 25%;
+  }
+
+  .phone-frame__button--volume-down {
+    height: 43px;
+    top: 34.5%;
+  }
+
+  .phone-frame__button--side,
+  .phone-frame__button--camera {
+    border-radius: 0 2px 2px 0;
+    right: -3px;
+  }
+
+  .phone-frame__button--side {
+    height: 68px;
+    top: 26%;
+  }
+
+  .phone-frame__button--camera {
+    height: 46px;
+    top: 57%;
+  }
+
+  figcaption {
+    color: var(--ink-muted);
+    font-size: 0.88rem;
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  @media (max-width: 700px) {
+    .phone-frame img {
+      transform: translateY(15px);
+    }
+
+    .phone-frame__island {
+      height: 15px;
+      top: 7px;
+    }
+
+    .phone-frame__island::after {
+      height: 4px;
+      right: 5px;
+      top: 4px;
+      width: 4px;
+    }
+  }
+</style>

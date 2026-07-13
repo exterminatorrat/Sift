@@ -1,0 +1,86 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import { site } from "../config/site";
+---
+
+<BaseLayout
+  title="Accessibility at Sift"
+  description="Sift's accessibility goals, including a WCAG 2.2 Level AA target and a direct way to report barriers."
+  path="/accessibility"
+>
+  <PageHero
+    title="Sift should be usable when the decision matters."
+    description="We aim to make the Sift website understandable, navigable, and robust for disabled visitors and people using assistive technologies."
+    compact
+  />
+
+  <section class="content-section">
+    <div class="shell prose">
+      {site.accessibilityAuditDate && (
+        <div class="legal-meta" aria-label="Accessibility review details">
+          <span><strong>Last reviewed:</strong> {site.accessibilityAuditDate}</span>
+          <span><strong>Target:</strong> WCAG 2.2 Level AA</span>
+        </div>
+      )}
+      <h2>Our accessibility target</h2>
+      <p>
+        We aim to conform to the Web Content Accessibility Guidelines (WCAG) 2.2 Level AA. This is a working
+        standard for design, implementation, testing, and ongoing improvement—not a claim that the website has been
+        independently certified or is free of every accessibility barrier.
+      </p>
+
+      <h2>What we design and test for</h2>
+      <ul>
+        <li>Semantic landmarks, headings, lists, links, and controls that expose meaningful structure.</li>
+        <li>Keyboard navigation with a visible focus indicator and a way to skip repeated navigation.</li>
+        <li>Readable color contrast, with allergy or risk information never communicated by color alone.</li>
+        <li>Content that reflows at narrow widths and remains usable when text is enlarged or the page is zoomed.</li>
+        <li>Descriptive text alternatives for meaningful images and appropriately hidden decorative graphics.</li>
+        <li>Reduced-motion support for visitors who prefer less animation.</li>
+        <li>Plain, direct language and predictable navigation across product, safety, support, and legal pages.</li>
+        <li>Touch targets sized for comfortable use where practical.</li>
+      </ul>
+
+      <h2>Compatibility</h2>
+      <p>
+        Accessibility can vary with the browser, operating system, assistive technology, and personal settings in
+        use. We focus testing on current, standards-based browsers and common keyboard and screen-reader workflows,
+        while continuing to address problems found in other configurations.
+      </p>
+
+      <h2>Report an accessibility barrier</h2>
+      <p>
+        Email <a href={`mailto:${site.supportEmail}?subject=Accessibility%20feedback`}>{site.supportEmail}</a> with
+        “Accessibility feedback” in the subject line. If you can, include:
+      </p>
+      <ul>
+        <li>The page address or feature where the problem occurred.</li>
+        <li>What you were trying to do and what happened instead.</li>
+        <li>Your browser, device, operating system, and assistive technology.</li>
+        <li>The format or accommodation that would help you access the information.</li>
+      </ul>
+      <div class="callout callout--warning">
+        <strong>Do not include sensitive health information, allergy profile details, or other private data unless our support team asks for specific information and explains why it is needed.</strong>
+      </div>
+      <p>
+        If a barrier prevents you from accessing safety, privacy, or support information, tell us what information
+        you need and we will work to provide an accessible alternative.
+      </p>
+
+      <h2>Third-party services</h2>
+      <p>
+        Sift may link to services we do not control, such as an app marketplace or an email provider. Their
+        accessibility is governed by their own products and policies, but feedback about an external step in the
+        Sift journey is still useful to us.
+      </p>
+
+      <h2>Ongoing work</h2>
+      <p>
+        Accessibility is part of product quality, not a one-time checklist. We use reported barriers, manual review,
+        and automated checks to guide improvements, with priority given to issues that block access to core product,
+        safety, support, privacy, or legal information.
+      </p>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-10T00:00:00+08:00",
+  "title": "Design System: Sift",
+  "extensions": {
+    "colorMeta": {
+      "primary-teal": { "role": "primary", "displayName": "Protective Teal", "canonical": "#1F8A83", "tonalRamp": ["#0B2927", "#0F403D", "#145B56", "#18746E", "#1F8A83", "#5DB0AA", "#9ACFCA", "#DDF4F1"] },
+      "primary-deep": { "role": "primary", "displayName": "Deep Table Teal", "canonical": "#18746E", "tonalRamp": ["#071F1D", "#0C3532", "#104C48", "#15635E", "#18746E", "#4D9C96", "#91CAC5", "#DAF1EE"] },
+      "primary-soft": { "role": "primary", "displayName": "Quiet Teal Wash", "canonical": "#DDF4F1", "tonalRamp": ["#102C29", "#1F4E49", "#36746E", "#609A95", "#8FC2BD", "#B8DEDA", "#DDF4F1", "#F1FBFA"] },
+      "app-cream": { "role": "neutral", "displayName": "App Cream", "canonical": "#FFF8EF", "tonalRamp": ["#30271F", "#5A493A", "#83705E", "#AA9986", "#D0C2B1", "#E9DDD0", "#FFF8EF", "#FFFCF8"] },
+      "warm-surface": { "role": "neutral", "displayName": "Warm Surface", "canonical": "#FFFCF7", "tonalRamp": ["#302A23", "#574E44", "#80766B", "#A99F93", "#CFC6BA", "#EAE3DA", "#FFFCF7", "#FFFFFF"] },
+      "tangerine": { "role": "secondary", "displayName": "Table Tangerine", "canonical": "#F2A65A", "tonalRamp": ["#321C08", "#603813", "#8E5522", "#BA7838", "#F2A65A", "#F6C08A", "#FAD9B8", "#FFF0E0"] },
+      "safe-green": { "role": "tertiary", "displayName": "Safe Green", "canonical": "#2FAE72", "tonalRamp": ["#08291A", "#0E4A2E", "#176B43", "#238C59", "#2FAE72", "#70C99A", "#ADE3C5", "#E3F6EC"] },
+      "ask-amber": { "role": "tertiary", "displayName": "Ask Amber", "canonical": "#B17812", "tonalRamp": ["#2B1A02", "#513403", "#785006", "#96660C", "#B17812", "#D4A246", "#EAC77E", "#FFF1C9"] },
+      "danger-red": { "role": "tertiary", "displayName": "Danger Red", "canonical": "#D94F4F", "tonalRamp": ["#320B0B", "#5B1717", "#842727", "#AD3838", "#D94F4F", "#E98282", "#F4B6B6", "#FFE2E2"] },
+      "ink": { "role": "neutral", "displayName": "Dining Ink", "canonical": "#182321", "tonalRamp": ["#101817", "#182321", "#2F3C39", "#4B5A56", "#71807C", "#9DA9A6", "#CDD4D2", "#F1F4F3"] },
+      "ink-muted": { "role": "neutral", "displayName": "Muted Ink", "canonical": "#5F6F6B", "tonalRamp": ["#141C1A", "#26312E", "#3B4945", "#5F6F6B", "#81908C", "#A6B1AE", "#CDD4D2", "#F1F4F3"] },
+      "ink-subtle": { "role": "neutral", "displayName": "Subtle Ink", "canonical": "#8A9692", "tonalRamp": ["#1A211F", "#313B38", "#4B5753", "#687570", "#8A9692", "#ACB5B2", "#D0D6D4", "#F3F5F4"] },
+      "border": { "role": "neutral", "displayName": "Warm Border", "canonical": "#E6DCCF", "tonalRamp": ["#28221C", "#4B4137", "#6F6255", "#988A7B", "#BEB2A4", "#D8CEC1", "#E6DCCF", "#F8F3EC"] },
+      "border-soft": { "role": "neutral", "displayName": "Soft Warm Border", "canonical": "#F0E7DB", "tonalRamp": ["#2B251E", "#51483D", "#796E61", "#A2988A", "#C9C0B5", "#DED7CD", "#F0E7DB", "#FCF9F5"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Brand thesis and rare hero statements." },
+      "headline": { "displayName": "Headline", "purpose": "Page and major section headings." },
+      "title": { "displayName": "Title", "purpose": "Product modules and evidence sections." },
+      "body": { "displayName": "Body", "purpose": "Explanations, support, safety, and legal copy." },
+      "label": { "displayName": "Label", "purpose": "Controls, navigation, metadata, and risk states." }
+    },
+    "shadows": [
+      { "name": "phone-lift", "value": "0 24px 64px rgba(24, 35, 33, 0.18)", "purpose": "Authentic product renders only." },
+      { "name": "control-lift", "value": "0 4px 8px rgba(24, 35, 33, 0.08)", "purpose": "Floating controls and focused navigation only." },
+      { "name": "ambient-veil", "value": "0 12px 32px rgba(24, 35, 33, 0.10)", "purpose": "Temporary menus, dialogs, and overlays." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "Responsive entrances and press feedback." },
+      { "name": "ease-in-out", "value": "cubic-bezier(0.77, 0, 0.175, 1)", "purpose": "On-screen movement and scanning explanations." },
+      { "name": "press", "value": "140ms", "purpose": "Press response on buttons and links." },
+      { "name": "reveal", "value": "280ms", "purpose": "A single orchestrated section or media reveal." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single dominant action on a surface.",
+      "html": "<button class=\"ds-btn-primary\">Download Sift</button>",
+      "css": ".ds-btn-primary { min-height:48px; border:0; border-radius:999px; padding:14px 22px; background:#18746E; color:#fff; font:600 13px/18px Inter,Arial,sans-serif; cursor:pointer; transition:background-color 140ms cubic-bezier(0.23,1,0.32,1),transform 140ms cubic-bezier(0.23,1,0.32,1); } .ds-btn-primary:hover { background:#145B56; } .ds-btn-primary:active { transform:scale(.97); } .ds-btn-primary:focus-visible { outline:2px solid #18746E; outline-offset:3px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A quiet supporting action with a structural border.",
+      "html": "<button class=\"ds-btn-secondary\">See how it works</button>",
+      "css": ".ds-btn-secondary { min-height:48px; border:1px solid #E6DCCF; border-radius:999px; padding:14px 22px; background:#FFFCF7; color:#18746E; font:600 13px/18px Inter,Arial,sans-serif; cursor:pointer; transition:border-color 140ms cubic-bezier(0.23,1,0.32,1),transform 140ms cubic-bezier(0.23,1,0.32,1); } .ds-btn-secondary:hover { border-color:#1F8A83; } .ds-btn-secondary:active { transform:scale(.97); } .ds-btn-secondary:focus-visible { outline:2px solid #1F8A83; outline-offset:3px; }"
+    },
+    {
+      "name": "Status Chip",
+      "kind": "chip",
+      "refersTo": "status-chip",
+      "description": "A text-first risk or filter state that never relies on color alone.",
+      "html": "<span class=\"ds-status-chip\">Ask staff</span>",
+      "css": ".ds-status-chip { display:inline-flex; align-items:center; min-height:32px; border-radius:999px; padding:7px 10px; background:#FFF1C9; color:#7A5108; font:600 13px/18px Inter,Arial,sans-serif; }"
+    },
+    {
+      "name": "Evidence Card",
+      "kind": "card",
+      "refersTo": "evidence-card",
+      "description": "A compact explanation of what Sift checked and what remains unknown.",
+      "html": "<article class=\"ds-evidence-card\"><strong>What Sift checked</strong><p>Visible menu text, your allergy profile, and common preparation patterns.</p></article>",
+      "css": ".ds-evidence-card { max-width:420px; border:1px solid #E6DCCF; border-radius:12px; padding:16px; background:#FFFCF7; color:#182321; font:400 16px/26px 'Source Serif 4',Georgia,serif; } .ds-evidence-card strong { display:block; margin-bottom:8px; font-weight:600; } .ds-evidence-card p { margin:0; color:#5F6F6B; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "description": "A labeled, high-contrast field for support and account tasks.",
+      "html": "<label class=\"ds-field\"><span>Email address</span><input type=\"email\" placeholder=\"you@example.com\"></label>",
+      "css": ".ds-field { display:grid; gap:7px; color:#182321; font:600 13px/18px Inter,Arial,sans-serif; } .ds-field input { min-height:48px; border:1px solid #E6DCCF; border-radius:10px; padding:0 14px; background:#fff; color:#182321; font:400 16px/24px 'Source Serif 4',Georgia,serif; } .ds-field input::placeholder { color:#5F6F6B; } .ds-field input:focus-visible { outline:2px solid #1F8A83; outline-offset:2px; }"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "description": "Essential routes with one clear download action.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-wordmark\" href=\"#\">Sift</a><div><a href=\"#\">Product</a><a href=\"#\">Reliability</a><a href=\"#\">Support</a></div><a class=\"ds-nav-cta\" href=\"#\">Download</a></nav>",
+      "css": ".ds-nav { display:flex; align-items:center; justify-content:space-between; gap:24px; min-height:72px; color:#182321; } .ds-nav div { display:flex; gap:24px; } .ds-nav a { color:inherit; text-decoration:none; font:600 13px/18px Inter,Arial,sans-serif; } .ds-nav a:hover { color:#18746E; } .ds-nav a:focus-visible { outline:2px solid #18746E; outline-offset:4px; } .ds-wordmark { font:600 24px/1 'Source Serif 4',Georgia,serif !important; } .ds-nav-cta { border-radius:999px; padding:12px 18px; background:#18746E; color:#fff !important; }"
+    },
+    {
+      "name": "Menu Annotation",
+      "kind": "custom",
+      "description": "The signature connection between visible menu language, uncertainty, and a staff question.",
+      "html": "<div class=\"ds-annotation\"><p class=\"ds-menu-line\">Tonkotsu ramen — pork broth, noodles, egg, scallion</p><div class=\"ds-margin-note\"><strong>Broth is not a full ingredient list.</strong><span>Ask whether the broth, tare, oil, and toppings contain sesame.</span></div></div>",
+      "css": ".ds-annotation { display:grid; grid-template-columns:minmax(0,1fr) minmax(220px,.7fr); gap:32px; align-items:start; max-width:760px; padding:24px 0; color:#182321; } .ds-menu-line { margin:0; font:500 28px/36px 'Source Serif 4',Georgia,serif; text-decoration:underline; text-decoration-color:#F2A65A; text-decoration-thickness:2px; text-underline-offset:6px; } .ds-margin-note { display:grid; gap:6px; border-top:2px solid #1F8A83; padding-top:12px; font:400 15px/23px 'Source Serif 4',Georgia,serif; } .ds-margin-note strong { font-weight:600; } .ds-margin-note span { color:#5F6F6B; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Menu Margin",
+    "overview": "Sift should feel like the calm, useful notes a careful diner would want beside a real restaurant menu. Product evidence sits close to the original menu language: a visible phrase, a possible concern, the uncertainty around it, and the question that follows. The system is human and table-side first; AI machinery stays behind the explanation. The website may be more expressive than the app, but it must preserve Sift's protective clarity. Deep teal supplies confidence, true white creates breathing room, and app cream appears primarily inside authentic product surfaces.",
+    "keyCharacteristics": [
+      "Real app screens and real menu context carry the visual story.",
+      "Editorial scale is used sparingly; the page is not styled like a magazine.",
+      "Risk information pairs color with language, hierarchy, and iconography.",
+      "Open layouts and strong bands replace repetitive card grids.",
+      "Motion explains scanning or state change and always respects reduced motion."
+    ],
+    "rules": [
+      { "name": "The App Cream Is Evidence Rule", "body": "App cream belongs to Sift's product world. Do not turn it into the website's universal wallpaper.", "section": "colors" },
+      { "name": "The Semantic Color Rule", "body": "Green, amber, and red appear only when a visible label explains their meaning.", "section": "colors" },
+      { "name": "The Human First Rule", "body": "Product and safety explanations use the serif body voice; utility labels use the sans. Technical language never takes over the page.", "section": "typography" },
+      { "name": "The No Ghost Cards Rule", "body": "Never combine a decorative 1px border with a wide soft shadow. Choose a structural border or a restrained lift.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use authentic current Sift captures as the primary product proof.",
+      "Do keep body contrast at or above WCAG 2.2 AA and provide visible keyboard focus.",
+      "Do pair every green, amber, or red state with a readable label.",
+      "Do use one strong menu-annotation moment as the site's memorable signature.",
+      "Do show uncertainty, fallbacks, and limitations beside the reliability method.",
+      "Do respect reduced motion and keep interface feedback under 300ms."
+    ],
+    "donts": [
+      "Don't use generic AI startup templates: gradient meshes, glowing orbs, AI badges, fake dashboards, invented metrics, or vague intelligence claims.",
+      "Don't repeat the V1 website's cream-and-serif editorial template, tiny uppercase kickers, decorative numbered scaffolding, glass navigation, broad shadows, or oversized radii.",
+      "Don't add waitlist forms, early-access cards, coming soon calls to action, or launch theater.",
+      "Don't present reconstructed, outdated, or invented phone UI as the real product.",
+      "Don't claim that a dish is safe to eat, imply a food-safety guarantee, or publish an unsupported accuracy percentage.",
+      "Don't fabricate testimonials, press logos, customer counts, or App Store availability.",
+      "Don't use gradient text, decorative grid backgrounds, repeating stripes, side-stripe borders, or nested card grids."
+    ]
+  }
+}

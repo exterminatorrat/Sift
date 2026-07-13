@@ -1,7 +1,9 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Easing,
+  Image,
+  Keyboard,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,7 +13,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ArrowRight, Plus } from "lucide-react-native";
+import { ArrowLeft, ArrowRight, Plus } from "lucide-react-native";
 import { Allergy, AllergySeverity, UserProfile } from "../types/allergy";
 import { colors } from "../constants/colors";
 import { typography } from "../constants/typography";
@@ -20,7 +22,7 @@ import { AllergyChip } from "../components/AllergyChip";
 import { AnimatedPressable } from "../components/AnimatedPressable";
 import { useI18n } from "../i18n/I18nProvider";
 
-type OnboardingStep = "welcome" | "safety" | "profile" | "scanTips" | "plus";
+type OnboardingStep = "welcome" | "safety" | "profile";
 type OnboardingGraphicVariant = OnboardingStep;
 
 type OnboardingScreenProps = {
@@ -28,11 +30,14 @@ type OnboardingScreenProps = {
   onComplete: (profile: UserProfile) => void | Promise<void>;
 };
 
-const steps: OnboardingStep[] = ["welcome", "safety", "profile", "scanTips", "plus"];
-const onboardingAllergens = commonAllergens.slice(0, 10);
+const steps: OnboardingStep[] = ["welcome", "safety", "profile"];
+const onboardingAllergens = commonAllergens.filter((allergen) =>
+  ["Peanut", "Tree nuts", "Sesame", "Shellfish", "Dairy", "Egg", "Wheat/gluten", "Soy"].includes(allergen)
+);
 const severities: AllergySeverity[] = ["mild", "moderate", "severe"];
 const DOT_PITCH = 15;
-const DOT_TRACK_WIDTH = 24 + (steps.length - 1) * DOT_PITCH;
+const DOT_ACTIVE_WIDTH = 24;
+const DOT_TRACK_WIDTH = DOT_ACTIVE_WIDTH + (steps.length - 1) * DOT_PITCH;
 
 function formatSeverity(severity: AllergySeverity, t: ReturnType<typeof useI18n>["t"]) {
   if (severity === "mild") {
@@ -53,7 +58,12 @@ export function OnboardingScreen({
   const [transitionDirection, setTransitionDirection] = useState(1);
   const [transitioning, setTransitioning] = useState(false);
   const transition = useRef(new Animated.Value(1)).current;
-  const dotProgress = useRef(new Animated.Value(0)).current;
+  const activeDotLeft = useRef(new Animated.Value(0)).current;
+  const activeDotWidth = useRef(new Animated.Value(DOT_ACTIVE_WIDTH)).current;
+  const scrollViewRef = useRef<ScrollView>(null);
+  const noticeProgress = useRef(new Animated.Value(0)).current;
+  const noticeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [noticeText, setNoticeText] = useState<string | null>(null);
   const [profileName, setProfileName] = useState(profile.name || t("onboarding.profileNameDefault"));
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>(
     profile.allergies.map((allergy) => allergy.name)
@@ -74,6 +84,50 @@ export function OnboardingScreen({
     total: steps.length
   });
 
+  useEffect(() => {
+    return () => {
+      if (noticeTimeout.current) {
+        clearTimeout(noticeTimeout.current);
+      }
+    };
+  }, []);
+
+  const showNotice = (message: string) => {
+    if (noticeTimeout.current) {
+      clearTimeout(noticeTimeout.current);
+    }
+
+    setNoticeText(message);
+    noticeProgress.setValue(0);
+    Animated.timing(noticeProgress, {
+      duration: 240,
+      easing: Easing.out(Easing.cubic),
+      toValue: 1,
+      useNativeDriver: true
+    }).start();
+
+    noticeTimeout.current = setTimeout(() => {
+      Animated.timing(noticeProgress, {
+        duration: 180,
+        easing: Easing.in(Easing.cubic),
+        toValue: 0,
+        useNativeDriver: true
+      }).start(({ finished }) => {
+        if (finished) {
+          setNoticeText(null);
+        }
+      });
+    }, 1500);
+  };
+
+  const revealFocusedInput = (target: number) => {
+    setTimeout(() => {
+      scrollViewRef.current
+        ?.getScrollResponder()
+        ?.scrollResponderScrollNativeHandleToKeyboard(target, 132, true);
+    }, 140);
+  };
+
   const copy = useMemo(() => {
     switch (activeStep) {
       case "welcome":
@@ -91,16 +145,6 @@ export function OnboardingScreen({
           body: t("onboarding.profileSetupBody"),
           title: t("onboarding.profileSetupTitle")
         };
-      case "scanTips":
-        return {
-          body: t("onboarding.scanTipsBody"),
-          title: t("onboarding.scanTipsTitle")
-        };
-      case "plus":
-        return {
-          body: t("onboarding.plusBody"),
-          title: t("onboarding.plusTitle")
-        };
     }
   }, [activeStep, t]);
 
@@ -110,8 +154,6 @@ export function OnboardingScreen({
         return t("onboarding.iUnderstand");
       case "profile":
         return t("onboarding.createProfile");
-      case "plus":
-        return t("onboarding.continueFree");
       default:
         return t("onboarding.continue");
     }
@@ -122,12 +164,15 @@ export function OnboardingScreen({
       return;
     }
 
-    if (activeStep === "plus") {
+    if (activeStep === "profile") {
+      Keyboard.dismiss();
+      showNotice(t("profile.savedToast"));
+      await new Promise((resolve) => setTimeout(resolve, 620));
       await onComplete(buildProfile());
       return;
     }
 
-    goToStep(Math.min(stepIndex + 1, steps.length - 1));
+    goToStep(stepIndex + 1);
   };
 
   const goToStep = (nextIndex: number) => {
@@ -136,15 +181,46 @@ export function OnboardingScreen({
     }
 
     const direction = nextIndex > stepIndex ? 1 : -1;
+    const currentDotLeft = stepIndex * DOT_PITCH;
+    const nextDotLeft = nextIndex * DOT_PITCH;
+    const stretchedDotLeft = Math.min(currentDotLeft, nextDotLeft);
+    const stretchedDotWidth = DOT_ACTIVE_WIDTH + Math.abs(nextDotLeft - currentDotLeft);
     setTransitionDirection(direction);
     setTransitioning(true);
-    Animated.spring(dotProgress, {
-      damping: 18,
-      mass: 0.7,
-      stiffness: 180,
-      toValue: nextIndex,
-      useNativeDriver: true
-    }).start();
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(activeDotLeft, {
+          duration: 150,
+          easing: Easing.out(Easing.cubic),
+          toValue: stretchedDotLeft,
+          useNativeDriver: false
+        }),
+        Animated.timing(activeDotWidth, {
+          duration: 150,
+          easing: Easing.out(Easing.cubic),
+          toValue: stretchedDotWidth,
+          useNativeDriver: false
+        })
+      ]),
+      Animated.parallel([
+        Animated.spring(activeDotLeft, {
+          damping: 20,
+          mass: 0.65,
+          overshootClamping: true,
+          stiffness: 220,
+          toValue: nextDotLeft,
+          useNativeDriver: false
+        }),
+        Animated.spring(activeDotWidth, {
+          damping: 20,
+          mass: 0.65,
+          overshootClamping: true,
+          stiffness: 220,
+          toValue: DOT_ACTIVE_WIDTH,
+          useNativeDriver: false
+        })
+      ])
+    ]).start();
     Animated.timing(transition, {
       duration: 115,
       easing: Easing.in(Easing.cubic),
@@ -182,6 +258,8 @@ export function OnboardingScreen({
 
     setSelectedAllergens((current) => [...current, trimmed]);
     setCustomAllergen("");
+    Keyboard.dismiss();
+    showNotice(t("profile.allergenAddedToast"));
   };
 
   const buildProfile = (): UserProfile => ({
@@ -195,17 +273,31 @@ export function OnboardingScreen({
     name: profileName.trim() || t("onboarding.profileNameDefault")
   });
 
-  const activeDotTranslateX = dotProgress.interpolate({
-    inputRange: steps.map((_, index) => index),
-    outputRange: steps.map((_, index) => index * DOT_PITCH)
-  });
-
   return (
     <SafeAreaView style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        automaticallyAdjustKeyboardInsets
+        contentContainerStyle={styles.content}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+        ref={scrollViewRef}
+      >
         <View style={styles.topBar}>
           <Text style={styles.brand}>{t("common.sift")}</Text>
-          <Text style={styles.progressLabel}>{progressLabel}</Text>
+          <View style={styles.topActions}>
+            {stepIndex > 0 && (
+              <AnimatedPressable
+                accessibilityLabel={t("common.back")}
+                accessibilityRole="button"
+                onPress={() => goToStep(stepIndex - 1)}
+                scaleTo={0.9}
+                style={styles.backButton}
+              >
+                <ArrowLeft color={colors.primaryDark} size={19} strokeWidth={2} />
+              </AnimatedPressable>
+            )}
+            <Text style={styles.progressLabel}>{progressLabel}</Text>
+          </View>
         </View>
 
         <Animated.View
@@ -233,13 +325,15 @@ export function OnboardingScreen({
             }
           ]}
         >
-          <View style={styles.hero}>
-            <OnboardingGraphic variant={activeStep} />
-          </View>
+          {activeStep !== "profile" && (
+            <View style={[styles.hero, activeStep === "safety" && styles.safetyHero]}>
+              <OnboardingGraphic variant={activeStep} />
+            </View>
+          )}
 
-          <View style={styles.copy}>
-            <Text style={styles.title}>{copy.title}</Text>
-            <Text style={styles.body}>{copy.body}</Text>
+          <View style={[styles.copy, activeStep === "welcome" && styles.welcomeCopy]}>
+            <Text style={[styles.title, activeStep === "welcome" && styles.welcomeTitle]}>{copy.title}</Text>
+            <Text style={[styles.body, activeStep === "welcome" && styles.welcomeBody]}>{copy.body}</Text>
           </View>
 
           {activeStep === "profile" && (
@@ -249,6 +343,7 @@ export function OnboardingScreen({
               <TextInput
                 value={profileName}
                 onChangeText={setProfileName}
+                onFocus={(event) => revealFocusedInput(event.nativeEvent.target)}
                 placeholder={t("onboarding.profileNameDefault")}
                 placeholderTextColor={colors.inkSubtle}
                 style={styles.input}
@@ -263,6 +358,7 @@ export function OnboardingScreen({
                     key={allergen}
                     label={allergen}
                     selected={selectedAllergens.includes(allergen)}
+                    showSelectedIcon
                     onPress={() => toggleAllergen(allergen)}
                   />
                 ))}
@@ -273,6 +369,7 @@ export function OnboardingScreen({
               <TextInput
                 value={customAllergen}
                 onChangeText={setCustomAllergen}
+                onFocus={(event) => revealFocusedInput(event.nativeEvent.target)}
                 placeholder={t("onboarding.customAllergen")}
                 placeholderTextColor={colors.inkSubtle}
                 style={[styles.input, styles.customInput]}
@@ -287,16 +384,6 @@ export function OnboardingScreen({
                 <Plus color={colors.textInverse} size={20} strokeWidth={2.3} />
               </AnimatedPressable>
             </View>
-
-            {selectedAllergens.length > 0 && (
-              <View style={styles.selectedPreview}>
-                {selectedAllergens.map((allergen) => (
-                  <View key={allergen} style={styles.selectedPill}>
-                    <Text style={styles.selectedPillText}>{allergen}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
 
             <View style={styles.fieldGroup}>
               <Text style={styles.label}>{t("onboarding.sensitivityLabel")}</Text>
@@ -334,23 +421,30 @@ export function OnboardingScreen({
             </View>
           )}
 
-          {activeStep === "scanTips" && (
-            <View style={styles.tipStack}>
-              <TipPill label={t("onboarding.tipReadable")} />
-              <TipPill label={t("onboarding.tipDescriptions")} />
-              <TipPill label={t("onboarding.tipNoGlare")} />
-            </View>
-          )}
-
-          {activeStep === "plus" && (
-            <View style={styles.plusStack}>
-              <PlusFeature label={t("onboarding.plusFeatureScans")} />
-              <PlusFeature label={t("onboarding.plusFeatureTranslations")} />
-              <PlusFeature label={t("onboarding.plusFeatureFamily")} />
-            </View>
-          )}
         </Animated.View>
       </ScrollView>
+
+      {noticeText && (
+        <Animated.View
+          accessibilityLiveRegion="polite"
+          style={[
+            styles.toast,
+            {
+              opacity: noticeProgress,
+              transform: [
+                {
+                  translateY: noticeProgress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [24, 0]
+                  })
+                }
+              ]
+            }
+          ]}
+        >
+          <Text style={styles.toastText}>{noticeText}</Text>
+        </Animated.View>
+      )}
 
       <View style={styles.footer}>
         <View style={styles.dotsTrack}>
@@ -361,7 +455,8 @@ export function OnboardingScreen({
             style={[
               styles.activeDot,
               {
-                transform: [{ translateX: activeDotTranslateX }]
+                left: activeDotLeft,
+                width: activeDotWidth
               }
             ]}
           />
@@ -385,97 +480,21 @@ export function OnboardingScreen({
 }
 
 function OnboardingGraphic({ variant }: { variant: OnboardingGraphicVariant }) {
+  if (variant === "profile") {
+    return null;
+  }
+
   return (
-    <View style={styles.graphicStage}>
-      <View style={styles.artHalo} />
-      {variant === "welcome" && (
-        <View style={styles.artCluster}>
-          <View style={[styles.menuSheet, styles.menuSheetBack]} />
-          <View style={styles.menuSheet}>
-            <View style={styles.foldedCorner} />
-            <View style={styles.menuLineWide} />
-            <View style={styles.menuLine} />
-            <View style={styles.scanBeam} />
-            <View style={styles.floatingRiskCard}>
-              <View style={styles.riskDotTeal} />
-              <View style={styles.riskCardLines}>
-                <View style={styles.riskLineWide} />
-                <View style={styles.riskLineShort} />
-              </View>
-            </View>
-          </View>
-        </View>
-      )}
-
-      {variant === "safety" && (
-        <View style={styles.limitationCard}>
-          <View style={styles.knownPanel}>
-            <View style={styles.menuLineWide} />
-            <View style={styles.menuLine} />
-            <View style={styles.safeBoundaryLine} />
-            <Text style={styles.graphicCaption}>Visible menu</Text>
-          </View>
-          <View style={styles.unknownPanel}>
-            <View style={styles.fadedBlock} />
-            <View style={styles.fadedSmallBlock} />
-            <Text style={styles.graphicCaptionMuted}>Kitchen details</Text>
-          </View>
-        </View>
-      )}
-
-      {variant === "profile" && (
-        <View style={styles.profileCardGraphic}>
-          <View style={styles.profileTopRow}>
-            <View style={styles.avatarDot} />
-            <Text style={styles.profileGraphicName}>Me</Text>
-          </View>
-          <View style={styles.graphicChipRow}>
-            <View style={styles.graphicChip} />
-            <View style={styles.graphicChipShort} />
-          </View>
-          <View style={styles.graphicSeverity}>
-            <View style={styles.graphicSeverityFill} />
-          </View>
-        </View>
-      )}
-
-      {variant === "scanTips" && (
-        <View style={styles.phoneFrame}>
-          <View style={styles.cameraMenu}>
-            <View style={styles.cameraScanFrame} />
-            <View style={styles.menuLineWide} />
-            <View style={styles.menuLine} />
-            <View style={styles.menuLineShort} />
-          </View>
-        </View>
-      )}
-
-      {variant === "plus" && (
-        <View style={styles.plusCardGraphic}>
-          <View style={styles.plusHeaderMark} />
-          <View style={styles.plusRowGraphic} />
-          <View style={styles.plusRowGraphic} />
-          <View style={styles.plusRowGraphicShort} />
-        </View>
-      )}
-    </View>
-  );
-}
-
-function TipPill({ label }: { label: string }) {
-  return (
-    <View style={styles.tipPill}>
-      <Text style={styles.tipPillText}>{label}</Text>
-    </View>
-  );
-}
-
-function PlusFeature({ label }: { label: string }) {
-  return (
-    <View style={styles.plusFeature}>
-      <View style={styles.plusFeatureDot} />
-      <Text style={styles.plusFeatureText}>{label}</Text>
-    </View>
+    <Image
+      accessible={false}
+      resizeMode="contain"
+      source={
+        variant === "welcome"
+          ? require("../assets/onboarding/menu-reveal.png")
+          : require("../assets/onboarding/menu-evidence.png")
+      }
+      style={variant === "welcome" ? styles.welcomeArtwork : styles.safetyArtwork}
+    />
   );
 }
 
@@ -485,19 +504,36 @@ const styles = StyleSheet.create({
     flex: 1
   },
   content: {
-    gap: 24,
+    gap: 18,
     padding: 24,
-    paddingBottom: 150,
-    paddingTop: 18
+    paddingBottom: 142,
+    paddingTop: 16
   },
   topBar: {
     alignItems: "center",
     flexDirection: "row",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    minHeight: 40
+  },
+  topActions: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 12
+  },
+  backButton: {
+    alignItems: "center",
+    backgroundColor: colors.surfaceWarm,
+    borderColor: colors.borderSoft,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    height: 38,
+    justifyContent: "center",
+    width: 38
   },
   brand: {
     color: colors.primaryDark,
-    ...typography.pageTitle
+    ...typography.pageTitle,
+    fontSize: 28
   },
   progressLabel: {
     color: colors.inkSubtle,
@@ -506,20 +542,40 @@ const styles = StyleSheet.create({
   },
   hero: {
     alignItems: "center",
-    minHeight: 198,
+    height: 292,
     justifyContent: "center"
+  },
+  safetyHero: {
+    height: 300
+  },
+  welcomeArtwork: {
+    height: "100%",
+    width: "100%"
+  },
+  safetyArtwork: {
+    height: "100%",
+    width: "100%"
   },
   copy: {
     alignItems: "center",
-    gap: 14
+    gap: 12
+  },
+  welcomeCopy: {
+    alignItems: "flex-start"
   },
   title: {
     color: colors.primaryDark,
     ...typography.display,
-    fontSize: 38,
-    lineHeight: 45,
+    fontSize: 37,
+    lineHeight: 43,
     maxWidth: 342,
     textAlign: "center"
+  },
+  welcomeTitle: {
+    color: colors.ink,
+    fontSize: 42,
+    lineHeight: 48,
+    textAlign: "left"
   },
   body: {
     color: colors.inkMuted,
@@ -527,22 +583,41 @@ const styles = StyleSheet.create({
     maxWidth: 342,
     textAlign: "center"
   },
+  welcomeBody: {
+    fontSize: 17,
+    lineHeight: 27,
+    textAlign: "left"
+  },
   stepPane: {
-    gap: 24
+    gap: 18
   },
   footer: {
     backgroundColor: colors.background,
     bottom: 0,
-    gap: 18,
+    gap: 14,
     left: 0,
     padding: 24,
-    paddingTop: 12,
+    paddingTop: 10,
     position: "absolute",
     right: 0
   },
+  toast: {
+    alignSelf: "center",
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    bottom: 116,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    position: "absolute",
+    zIndex: 2
+  },
+  toastText: {
+    color: colors.textInverse,
+    ...typography.label
+  },
   dotsTrack: {
     alignSelf: "center",
-    height: 24,
+    height: 22,
     position: "relative",
     width: DOT_TRACK_WIDTH
   },
@@ -552,7 +627,7 @@ const styles = StyleSheet.create({
     height: 7,
     opacity: 0.5,
     position: "absolute",
-    top: 8.5,
+    top: 7.5,
     width: 7
   },
   activeDot: {
@@ -562,8 +637,8 @@ const styles = StyleSheet.create({
     left: 0,
     opacity: 1,
     position: "absolute",
-    top: 8,
-    width: 24
+    top: 7,
+    width: DOT_ACTIVE_WIDTH
   },
   button: {
     alignItems: "center",
@@ -573,7 +648,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     justifyContent: "center",
-    minHeight: 52,
+    minHeight: 54,
     paddingHorizontal: 32
   },
   buttonDisabled: {
@@ -581,10 +656,11 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.textInverse,
-    ...typography.button
+    ...typography.button,
+    fontSize: 17
   },
   profileSetup: {
-    gap: 18
+    gap: 16
   },
   fieldGroup: {
     gap: 10
@@ -597,11 +673,11 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: colors.surfaceWarm,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
     color: colors.ink,
     ...typography.bodyLarge,
-    height: 48,
+    height: 50,
     includeFontPadding: false,
     lineHeight: 22,
     paddingBottom: 0,
@@ -626,42 +702,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: colors.primary,
     borderRadius: 999,
-    height: 48,
+    height: 50,
     justifyContent: "center",
-    width: 48
-  },
-  selectedPreview: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8
-  },
-  selectedPill: {
-    backgroundColor: colors.primarySoft,
-    borderColor: colors.primaryMuted,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 12,
-    paddingVertical: 7
-  },
-  selectedPillText: {
-    color: colors.primaryDark,
-    ...typography.badge
+    width: 50
   },
   segmented: {
-    backgroundColor: colors.backgroundAlt,
-    borderRadius: 10,
+    borderColor: colors.border,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
-    padding: 4
+    overflow: "hidden"
   },
   segment: {
     alignItems: "center",
-    borderRadius: 8,
+    borderRightColor: colors.border,
+    borderRightWidth: StyleSheet.hairlineWidth,
     flex: 1,
     justifyContent: "center",
-    minHeight: 38
+    minHeight: 46
   },
   segmentActive: {
-    backgroundColor: colors.surfaceWarm
+    backgroundColor: colors.primarySoft
   },
   segmentText: {
     color: colors.inkMuted,
@@ -672,14 +733,10 @@ const styles = StyleSheet.create({
   },
   switchRow: {
     alignItems: "center",
-    backgroundColor: colors.surfaceWarm,
-    borderColor: colors.borderSoft,
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: 16,
     justifyContent: "space-between",
-    padding: 16
+    paddingVertical: 4
   },
   switchCopy: {
     flex: 1,
@@ -687,326 +744,12 @@ const styles = StyleSheet.create({
   },
   switchTitle: {
     color: colors.ink,
-    ...typography.label
+    ...typography.sectionTitle,
+    fontSize: 18,
+    lineHeight: 24
   },
   switchBody: {
     color: colors.inkMuted,
     ...typography.caption
-  },
-  tipStack: {
-    alignItems: "center",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    justifyContent: "center"
-  },
-  tipPill: {
-    backgroundColor: colors.surfaceWarm,
-    borderColor: colors.borderSoft,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 12,
-    paddingVertical: 8
-  },
-  tipPillText: {
-    color: colors.inkMuted,
-    ...typography.badge
-  },
-  plusStack: {
-    gap: 10
-  },
-  plusFeature: {
-    alignItems: "center",
-    backgroundColor: colors.surfaceWarm,
-    borderColor: colors.borderSoft,
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: "row",
-    gap: 12,
-    minHeight: 54,
-    paddingHorizontal: 16
-  },
-  plusFeatureDot: {
-    backgroundColor: colors.primary,
-    borderRadius: 999,
-    height: 8,
-    width: 8
-  },
-  plusFeatureText: {
-    color: colors.ink,
-    ...typography.body
-  },
-  graphicStage: {
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 180,
-    position: "relative",
-    width: "100%"
-  },
-  artHalo: {
-    backgroundColor: colors.primarySoft,
-    borderRadius: 999,
-    height: 178,
-    opacity: 0.52,
-    position: "absolute",
-    width: 178
-  },
-  artCluster: {
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  menuSheet: {
-    backgroundColor: colors.surfaceWarm,
-    borderColor: colors.borderSoft,
-    borderRadius: 24,
-    borderWidth: StyleSheet.hairlineWidth,
-    elevation: 2,
-    gap: 12,
-    minHeight: 150,
-    padding: 22,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    width: 230
-  },
-  menuSheetBack: {
-    height: 138,
-    opacity: 0.58,
-    position: "absolute",
-    transform: [{ rotate: "-5deg" }, { translateY: 6 }],
-    width: 210
-  },
-  foldedCorner: {
-    backgroundColor: colors.accentSoft,
-    borderBottomLeftRadius: 12,
-    height: 34,
-    position: "absolute",
-    right: 0,
-    top: 0,
-    width: 34
-  },
-  menuLineWide: {
-    backgroundColor: colors.borderStrong,
-    borderRadius: 999,
-    height: 9,
-    opacity: 0.55,
-    width: "72%"
-  },
-  menuLine: {
-    backgroundColor: colors.border,
-    borderRadius: 999,
-    height: 8,
-    width: "55%"
-  },
-  menuLineShort: {
-    backgroundColor: colors.border,
-    borderRadius: 999,
-    height: 8,
-    width: "38%"
-  },
-  scanBeam: {
-    backgroundColor: colors.primary,
-    borderRadius: 999,
-    height: 4,
-    marginVertical: 8,
-    width: "100%"
-  },
-  floatingRiskCard: {
-    alignItems: "center",
-    alignSelf: "flex-end",
-    backgroundColor: colors.surfaceRaised,
-    borderColor: colors.borderSoft,
-    borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: "row",
-    gap: 9,
-    marginTop: 2,
-    padding: 10,
-    width: 138
-  },
-  riskDotTeal: {
-    backgroundColor: colors.primary,
-    borderRadius: 999,
-    height: 10,
-    width: 10
-  },
-  riskCardLines: {
-    flex: 1,
-    gap: 6
-  },
-  riskLineWide: {
-    backgroundColor: colors.warningSoft,
-    borderRadius: 999,
-    height: 7,
-    width: "100%"
-  },
-  riskLineShort: {
-    backgroundColor: colors.primarySoft,
-    borderRadius: 999,
-    height: 7,
-    width: "70%"
-  },
-  limitationCard: {
-    backgroundColor: colors.surfaceWarm,
-    borderColor: colors.borderSoft,
-    borderRadius: 24,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: "row",
-    minHeight: 140,
-    overflow: "hidden",
-    width: 260
-  },
-  knownPanel: {
-    flex: 1,
-    gap: 12,
-    justifyContent: "center",
-    padding: 18
-  },
-  unknownPanel: {
-    alignItems: "center",
-    backgroundColor: colors.backgroundAlt,
-    flex: 1,
-    gap: 12,
-    justifyContent: "center",
-    opacity: 0.74,
-    padding: 18
-  },
-  fadedBlock: {
-    backgroundColor: colors.borderStrong,
-    borderRadius: 16,
-    height: 48,
-    opacity: 0.35,
-    width: 66
-  },
-  fadedSmallBlock: {
-    backgroundColor: colors.borderStrong,
-    borderRadius: 999,
-    height: 9,
-    opacity: 0.3,
-    width: 74
-  },
-  safeBoundaryLine: {
-    backgroundColor: colors.primary,
-    borderRadius: 999,
-    height: 3,
-    width: "82%"
-  },
-  graphicCaption: {
-    color: colors.primaryDark,
-    ...typography.badge
-  },
-  graphicCaptionMuted: {
-    color: colors.inkSubtle,
-    ...typography.badge,
-    textAlign: "center"
-  },
-  avatarDot: {
-    backgroundColor: colors.primarySoft,
-    borderColor: colors.primaryMuted,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: 48,
-    width: 48
-  },
-  profileCardGraphic: {
-    backgroundColor: colors.surfaceWarm,
-    borderColor: colors.borderSoft,
-    borderRadius: 24,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: 16,
-    padding: 22,
-    width: 230
-  },
-  profileTopRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12
-  },
-  profileGraphicName: {
-    color: colors.ink,
-    ...typography.sectionTitle
-  },
-  graphicChipRow: {
-    flexDirection: "row",
-    gap: 8
-  },
-  graphicChip: {
-    backgroundColor: colors.primarySoft,
-    borderRadius: 999,
-    height: 28,
-    width: 86
-  },
-  graphicChipShort: {
-    backgroundColor: colors.accentSoft,
-    borderRadius: 999,
-    height: 28,
-    width: 68
-  },
-  graphicSeverity: {
-    backgroundColor: colors.primarySoft,
-    borderRadius: 999,
-    height: 10,
-    width: "100%"
-  },
-  graphicSeverityFill: {
-    backgroundColor: colors.primary,
-    borderRadius: 999,
-    height: "100%",
-    width: "78%"
-  },
-  phoneFrame: {
-    backgroundColor: colors.ink,
-    borderRadius: 34,
-    padding: 12,
-    width: 150
-  },
-  cameraMenu: {
-    backgroundColor: colors.surfaceWarm,
-    borderRadius: 22,
-    gap: 12,
-    minHeight: 152,
-    overflow: "hidden",
-    padding: 18
-  },
-  cameraScanFrame: {
-    borderColor: colors.primaryMuted,
-    borderRadius: 14,
-    borderWidth: 2,
-    bottom: 18,
-    left: 16,
-    opacity: 0.72,
-    position: "absolute",
-    right: 16,
-    top: 18
-  },
-  plusCardGraphic: {
-    backgroundColor: colors.surfaceWarm,
-    borderColor: colors.borderSoft,
-    borderRadius: 24,
-    borderWidth: StyleSheet.hairlineWidth,
-    gap: 12,
-    padding: 20,
-    width: 230
-  },
-  plusHeaderMark: {
-    alignSelf: "center",
-    backgroundColor: colors.primary,
-    borderRadius: 999,
-    height: 34,
-    marginBottom: 4,
-    width: 34
-  },
-  plusRowGraphic: {
-    backgroundColor: colors.primarySoft,
-    borderRadius: 999,
-    height: 28,
-    width: "100%"
-  },
-  plusRowGraphicShort: {
-    backgroundColor: colors.accentSoft,
-    borderRadius: 999,
-    height: 28,
-    width: "72%"
   }
 });

@@ -3,6 +3,7 @@ import {
   Alert,
   Animated,
   Easing,
+  Keyboard,
   LayoutAnimation,
   Platform,
   Pressable,
@@ -106,8 +107,10 @@ export function ProfileScreen({
   const [customAllergen, setCustomAllergen] = useState("");
   const [expandedAllergyId, setExpandedAllergyId] = useState<string | null>(null);
   const [savedNoticeVisible, setSavedNoticeVisible] = useState(false);
+  const [savedNoticeText, setSavedNoticeText] = useState(t("profile.savedToast"));
   const savedNoticeProgress = useRef(new Animated.Value(0)).current;
   const savedNoticeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     setDraft(profile);
@@ -123,11 +126,12 @@ export function ProfileScreen({
     };
   }, []);
 
-  const showSavedNotice = () => {
+  const showSavedNotice = (message = t("profile.savedToast")) => {
     if (savedNoticeTimeout.current) {
       clearTimeout(savedNoticeTimeout.current);
     }
 
+    setSavedNoticeText(message);
     setSavedNoticeVisible(true);
     savedNoticeProgress.setValue(0);
     Animated.timing(savedNoticeProgress, {
@@ -149,6 +153,14 @@ export function ProfileScreen({
         }
       });
     }, 1700);
+  };
+
+  const revealFocusedInput = (target: number) => {
+    setTimeout(() => {
+      scrollViewRef.current
+        ?.getScrollResponder()
+        ?.scrollResponderScrollNativeHandleToKeyboard(target, 132, true);
+    }, 140);
   };
 
   const save = async () => {
@@ -209,6 +221,8 @@ export function ProfileScreen({
     setCustomAllergen("");
     if (expandAfterAdd) {
       setExpandedAllergyId(nextAllergyId);
+      Keyboard.dismiss();
+      showSavedNotice(t("profile.allergenAddedToast"));
     }
   };
 
@@ -268,7 +282,13 @@ export function ProfileScreen({
 
   return (
     <SafeAreaView style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        automaticallyAdjustKeyboardInsets
+        contentContainerStyle={styles.content}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+        ref={scrollViewRef}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>{t("profile.title")}</Text>
           <Text style={styles.subtitle}>{t("profile.body")}</Text>
@@ -312,34 +332,34 @@ export function ProfileScreen({
             {profiles.map((savedProfile) => {
               const active = savedProfile.id === activeProfileId;
               return (
-                <Pressable
-                  accessibilityRole="button"
+                <View
                   key={savedProfile.id}
-                  onPress={() => selectProfile(savedProfile.id)}
                   style={[styles.profilePill, active && styles.profilePillActive]}
                 >
-                  <View style={styles.profilePillHeader}>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => selectProfile(savedProfile.id)}
+                    style={styles.profileSelectButton}
+                  >
                     <Text style={[styles.profilePillName, active && styles.profilePillNameActive]}>
                       {savedProfile.name || t("profile.profileFallback")}
                     </Text>
-                    <Pressable
-                      accessibilityLabel={t("profile.deleteProfileBody", {
-                        name: savedProfile.name || t("profile.profileFallback")
-                      })}
-                      accessibilityRole="button"
-                      hitSlop={8}
-                      onPress={(event) => {
-                        event.stopPropagation();
-                        confirmDeleteProfile(savedProfile.id, savedProfile.name);
-                      }}
-                    >
-                      <Trash2 color={colors.inkSubtle} size={14} strokeWidth={2.1} />
-                    </Pressable>
-                  </View>
-                  <Text style={styles.profilePillMeta}>
-                    {t("profile.allergiesCount", { count: savedProfile.allergies.length })}
-                  </Text>
-                </Pressable>
+                    <Text style={styles.profilePillMeta}>
+                      {t("profile.allergiesCount", { count: savedProfile.allergies.length })}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityLabel={t("profile.deleteProfileBody", {
+                      name: savedProfile.name || t("profile.profileFallback")
+                    })}
+                    accessibilityRole="button"
+                    hitSlop={8}
+                    onPress={() => confirmDeleteProfile(savedProfile.id, savedProfile.name)}
+                    style={styles.profileDeleteButton}
+                  >
+                    <Trash2 color={colors.inkSubtle} size={14} strokeWidth={2.1} />
+                  </Pressable>
+                </View>
               );
             })}
           </ScrollView>
@@ -350,6 +370,7 @@ export function ProfileScreen({
           <TextInput
             value={draft.name}
             onChangeText={(name) => setDraft((current) => ({ ...current, name }))}
+            onFocus={(event) => revealFocusedInput(event.nativeEvent.target)}
             placeholder={t("profile.profileNamePlaceholder")}
             placeholderTextColor={colors.inkSubtle}
             style={[styles.input, styles.singleLineInput]}
@@ -386,6 +407,7 @@ export function ProfileScreen({
             <TextInput
               value={customAllergen}
               onChangeText={setCustomAllergen}
+              onFocus={(event) => revealFocusedInput(event.nativeEvent.target)}
               placeholder={t("profile.customAllergen")}
               placeholderTextColor={colors.inkSubtle}
               style={[styles.input, styles.singleLineInput, styles.addInput]}
@@ -409,44 +431,42 @@ export function ProfileScreen({
 
               return (
                 <View key={allergy.id} style={[styles.allergyCard, expanded && styles.allergyCardExpanded]}>
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={() => toggleExpandedAllergy(allergy.id, expanded)}
-                    style={styles.allergyCardHeader}
-                  >
-                    <View style={styles.allergyHeaderText}>
-                      <Text style={styles.allergyName}>{formatAllergenName(allergy.name)}</Text>
-                      <View style={styles.allergyMetaRow}>
-                        <View style={styles.severityPill}>
-                          <Text style={styles.severityPillText}>{formatSeverity(allergy.severity)}</Text>
-                        </View>
-                        {allergy.avoidCrossContact && (
-                          <View style={styles.crossContactPill}>
-                            <Text style={styles.crossContactPillText}>{t("profile.crossContactMeta")}</Text>
+                  <View style={styles.allergyCardHeader}>
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => toggleExpandedAllergy(allergy.id, expanded)}
+                      style={styles.allergyExpandButton}
+                    >
+                      <View style={styles.allergyHeaderText}>
+                        <Text style={styles.allergyName}>{formatAllergenName(allergy.name)}</Text>
+                        <View style={styles.allergyMetaRow}>
+                          <View style={styles.severityPill}>
+                            <Text style={styles.severityPillText}>{formatSeverity(allergy.severity)}</Text>
                           </View>
-                        )}
+                          {allergy.avoidCrossContact && (
+                            <View style={styles.crossContactPill}>
+                              <Text style={styles.crossContactPillText}>{t("profile.crossContactMeta")}</Text>
+                            </View>
+                          )}
+                        </View>
                       </View>
-                    </View>
-                    <View style={styles.cardActions}>
-                      <Pressable
-                        accessibilityLabel={t("history.deleteScan")}
-                        accessibilityRole="button"
-                        hitSlop={8}
-                        onPress={(event) => {
-                          event.stopPropagation();
-                          removeAllergy(allergy.id);
-                        }}
-                      >
-                        <Trash2 color={colors.inkSubtle} size={17} strokeWidth={2.1} />
-                      </Pressable>
                       <ChevronDown
                         color={colors.inkSubtle}
                         size={19}
                         strokeWidth={2.1}
                         style={expanded && styles.chevronExpanded}
                       />
-                    </View>
-                  </Pressable>
+                    </Pressable>
+                    <Pressable
+                      accessibilityLabel={t("history.deleteScan")}
+                      accessibilityRole="button"
+                      hitSlop={8}
+                      onPress={() => removeAllergy(allergy.id)}
+                      style={styles.allergyDeleteButton}
+                    >
+                      <Trash2 color={colors.inkSubtle} size={17} strokeWidth={2.1} />
+                    </Pressable>
+                  </View>
 
                   {expanded && (
                     <View style={styles.expandedDetails}>
@@ -488,6 +508,7 @@ export function ProfileScreen({
                         <TextInput
                           value={allergy.notes ?? ""}
                           onChangeText={(notes) => updateAllergy(allergy.id, { notes })}
+                          onFocus={(event) => revealFocusedInput(event.nativeEvent.target)}
                           placeholder={t("profile.customDetailsLongPlaceholder")}
                           placeholderTextColor={colors.inkSubtle}
                           style={[styles.input, styles.notesInput]}
@@ -531,7 +552,7 @@ export function ProfileScreen({
             }
           ]}
         >
-          <Text style={styles.toastText}>{t("profile.savedToast")}</Text>
+          <Text style={styles.toastText}>{savedNoticeText}</Text>
         </Animated.View>
       )}
     </SafeAreaView>
@@ -613,14 +634,24 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     gap: 3,
     minWidth: 132,
-    paddingHorizontal: 12,
-    paddingVertical: 10
+    position: "relative"
   },
-  profilePillHeader: {
+  profileSelectButton: {
+    gap: 3,
+    minHeight: 54,
+    paddingBottom: 10,
+    paddingLeft: 12,
+    paddingRight: 38,
+    paddingTop: 10
+  },
+  profileDeleteButton: {
     alignItems: "center",
-    flexDirection: "row",
-    gap: 8,
-    justifyContent: "space-between"
+    height: 32,
+    justifyContent: "center",
+    position: "absolute",
+    right: 4,
+    top: 4,
+    width: 32
   },
   profilePillActive: {
     backgroundColor: colors.primarySoft,
@@ -703,11 +734,24 @@ const styles = StyleSheet.create({
   allergyCardHeader: {
     alignItems: "center",
     flexDirection: "row",
+    minHeight: 70
+  },
+  allergyExpandButton: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
     gap: 12,
     justifyContent: "space-between",
     minHeight: 70,
-    paddingHorizontal: 14,
+    paddingLeft: 14,
     paddingVertical: 12
+  },
+  allergyDeleteButton: {
+    alignItems: "center",
+    height: 44,
+    justifyContent: "center",
+    marginHorizontal: 4,
+    width: 44
   },
   allergyHeaderText: {
     flex: 1,
@@ -744,11 +788,6 @@ const styles = StyleSheet.create({
     color: colors.accentMuted,
     ...typography.badge,
     textTransform: "capitalize"
-  },
-  cardActions: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12
   },
   chevronExpanded: {
     transform: [{ rotate: "180deg" }]

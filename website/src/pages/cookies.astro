@@ -1,0 +1,69 @@
+---
+import PageHero from "../components/PageHero.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../config/site";
+
+const title = "Cookie Notice";
+const description =
+  "How the Sift website uses cookies and similar technologies, and how website storage differs from app data stored on your device.";
+---
+
+<BaseLayout title={title} description={description} path="/cookies">
+  <PageHero
+    eyebrow="Legal"
+    title="A website without advertising trackers."
+    description="Sift's public website is designed to work without marketing cookies or cross-site behavioral tracking. This notice explains the limited technical storage that may still be involved."
+    compact
+  />
+
+  <section class="content-section">
+    <article class="shell prose">
+      <div class="legal-meta" aria-label="Notice details">
+        <span><strong>{site.legalEffectiveDate ? "Effective" : "Last updated"}:</strong> {site.legalEffectiveDate ?? "July 10, 2026"}</span>
+        <span><strong>Applies to:</strong> siftallergy.app</span>
+      </div>
+
+      <div class="callout">
+        <strong>Current position:</strong> Sift does not use advertising cookies, marketing pixels, or cross-site behavioral trackers on this public website. We do not use a cookie banner to obtain consent for technologies that the site does not deploy.
+      </div>
+
+      <h2>1. What cookies and similar technologies are</h2>
+      <p>
+        Cookies are small text files that a website can ask a browser to store. Similar technologies include local storage, session storage, pixels, and device identifiers. They can support essential site functions, remember choices, measure use, or track activity across services, depending on how they are configured.
+      </p>
+
+      <h2>2. Technologies used by this website</h2>
+      <p>
+        The Sift website itself does not currently set first-party cookies or browser-storage identifiers for advertising, analytics, personalization, or cross-site tracking. Navigation and page content work without creating an advertising profile or requiring you to accept optional cookies.
+      </p>
+      <p>
+        Hosting, network, or security providers may process standard web-request information and may use strictly necessary cookies or similar short-lived signals to route traffic, prevent abuse, balance load, or protect the site. These providers act as infrastructure for the requested website visit; Sift does not use those signals to serve behavioral advertising.
+      </p>
+
+      <h2>3. Email links and external services</h2>
+      <p>
+        The site includes email links that open your chosen mail application. Sift does not receive anything until you decide to send a message. Your mail provider and any external website you choose to visit may use cookies or other technologies under their own policies.
+      </p>
+
+      <h2>4. App storage is different</h2>
+      <p>
+        The Sift mobile app stores profiles, language preferences, onboarding status, subscription-state settings, and scan history in app storage on your device. It may also store authentication sessions so you can remain signed in. These app records are not website cookies and are governed by our <a href="/privacy">Privacy Policy</a>.
+      </p>
+
+      <h2>5. Browser controls</h2>
+      <p>
+        Most browsers let you view, block, or remove cookies and site data. Blocking strictly necessary technologies can affect whether a host can deliver or protect a site, but Sift's page content does not depend on optional marketing or analytics cookies. Consult your browser's privacy settings for the controls available to you.
+      </p>
+
+      <h2>6. If our use changes</h2>
+      <p>
+        If Sift introduces analytics, personalization, or another technology that changes this notice, we will update this page. Where law requires a choice before a non-essential technology is used, we will provide that choice before enabling it.
+      </p>
+
+      <h2>7. Contact</h2>
+      <p>
+        Questions about this notice can be sent to <a href={`mailto:${site.supportEmail}`}>{site.supportEmail}</a>.
+      </p>
+    </article>
+  </section>
+</BaseLayout>

@@ -48,7 +48,42 @@ try {
     fail(`Expected authenticated malformed request to return 400, received ${malformed.status}.`);
   }
 
-  console.log("Backend smoke checks passed: anonymous auth, 401 boundary, and pre-provider 400 validation.");
+  for (let attempt = 2; attempt <= 12; attempt += 1) {
+    const response = await fetch(functionUrl, {
+      method: "POST",
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${data.session.access_token}`,
+        "Content-Type": "application/json"
+      },
+      body: "{}"
+    });
+
+    if (response.status !== 400) {
+      fail(`Expected malformed request ${attempt} to return 400, received ${response.status}.`);
+    }
+  }
+
+  const throttled = await fetch(functionUrl, {
+    method: "POST",
+    headers: {
+      apikey: supabaseKey,
+      Authorization: `Bearer ${data.session.access_token}`,
+      "Content-Type": "application/json"
+    },
+    body: "{}"
+  });
+  const throttleBody = await throttled.json().catch(() => null);
+
+  if (throttled.status !== 429 || throttleBody?.code !== "scan_rate_limited") {
+    fail(
+      `Expected authenticated request 13 to return typed 429, received ${throttled.status} (${throttleBody?.code ?? "no code"}).`
+    );
+  }
+
+  console.log(
+    "Backend smoke checks passed: anonymous auth, 401 boundary, twelve pre-provider 400 validations, and typed request 13 throttle."
+  );
 } finally {
   await supabase.auth.signOut({ scope: "local" });
 }

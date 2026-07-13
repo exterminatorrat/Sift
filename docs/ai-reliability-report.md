@@ -1,7 +1,7 @@
 # Sift AI Reliability Report
 
 Status: **Checkpoint - private-beta gate not yet passed**  
-Measured: July 12, 2026
+Measured: July 13, 2026
 
 Sift now has a deployed, authenticated, quota-protected AI path and a repeatable image-eval harness. The remaining blocker is completion of the paced 60-image live gate after the Gemini free-tier quota resets. This report records measured evidence only; it does not claim that Sift can guarantee food safety.
 
@@ -17,8 +17,8 @@ Sift now has a deployed, authenticated, quota-protected AI path and a repeatable
 - Provider timeout: `22000ms`
 - Google Search grounding: disabled
 - Provider fallback: none; unresolved failures become a calm `unclear` result
-- Edge Function: `analyze-menu` version 50, JWT verification enabled
-- Deployment SHA-256: `7e06731ce67f89209e83216f4a6841df354d629ea858b06a76d045c76dfb95a5`
+- Edge Function: `analyze-menu` version 51, JWT verification enabled
+- Deployment SHA-256: `9c15f399b9c8080908ce93b9d8188d7f545e9c78959819e07443b74a38be06b8`
 
 Low was retained because the medium test exceeded the latency target and produced a malformed or truncated model response on its second case. Low is still provisional until the full gate passes.
 
@@ -27,6 +27,7 @@ Low was retained because the medium test exceeded the latency target and produce
 - Strict server-side request validation and bounded body reading.
 - Anonymous Supabase JWT authentication before analysis.
 - Atomic server-side monthly quota claims before provider calls.
+- Authenticated request parsing is limited to 12 attempts per user per minute; accepted AI calls are atomically limited to 4 per user and 4 project-wide per minute by default.
 - Client-supplied test entitlement synchronization removed; evaluation entitlements are assigned only through the server-side admin path.
 - Auth and internal RPC calls use bounded timeouts, and request-body streaming has an overall deadline.
 - Privacy-minimized analysis telemetry with 30-day retention.
@@ -48,6 +49,8 @@ Applied migrations:
 - `20260710031822_auth_quota`
 - `20260710031843_ai_reliability_observability`
 - `20260710034023_fix_scan_quota_ambiguity`
+- `20260713040531_scan_rate_limit`
+- `20260713040934_fix_scan_rate_limit_ambiguity`
 
 The entitlement, monthly usage, and telemetry tables have RLS enabled and expose no user policies. Telemetry stores request ID, provider/model and prompt/schema versions, outcome/failure category, latency, image byte count, token counts when available, dish count, readability, plan, and timestamp. It does not store user ID, allergies, menu text, images, prompts, or model output.
 
@@ -86,6 +89,7 @@ July 12 candidate evidence:
 - The harness now keeps provider fallbacks in schema/safety and availability accounting without misclassifying them as model allergen misses. Critical repeats reject every provider fallback, while the 60-case gate retains its explicit 5% clear/partial-image fallback-rate ceiling and does not treat poor-image fallbacks as image-analysis success.
 - Version 50 deploys the multilingual safety validators and repeat-gate accounting fixes. Its no-provider backend smoke test passes; it still awaits a model-producing live call after the free-tier limit resets.
 - A controlled version-50 canary again returned `provider_rate_limited` in about 3.1s. Corrected accounting recorded zero model safety misses, one provider fallback, and a failed availability diagnostic; the harness stopped without attempting the gate.
+- Version 51 adds service-role-only short-window request and accepted-scan limits. Rolled-back database assertions passed the 12th/13th request boundary, the 4th/5th scan boundary, monthly rejection before global-slot consumption, and RPC privilege checks. The backend smoke test passed without invoking Gemini.
 
 Initial low calibration (`2026-07-10.3`, schema 5, 12 cases):
 
@@ -130,7 +134,7 @@ The function performs a pre-auth declared-length check and bounded stream read, 
 
 ## Private-Beta Gate Status
 
-The private-beta AI gate is **not passed**. The current version-50 candidate still needs the complete 60-image gate and the curated 18-case set repeated three times. The July 12 run stopped after 17 cases when the free-tier project returned a provider rate limit; later version-49 and version-50 canaries confirmed that the provider limit had not reset. No paid inference was enabled.
+The private-beta AI gate is **not passed**. The current version-51 candidate still needs the complete 60-image gate and the curated 18-case set repeated three times. The July 12 run stopped after 17 cases when the free-tier project returned a provider rate limit; later version-49 and version-50 canaries confirmed that the provider limit had not reset. No paid inference was enabled.
 
 The next live run must demonstrate:
 

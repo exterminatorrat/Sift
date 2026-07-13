@@ -1,0 +1,54 @@
+---
+import DownloadAction from "./DownloadAction.astro";
+import Logo from "./Logo.astro";
+import { site } from "../config/site";
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="shell">
+    <div class="site-footer__top">
+      <div class="site-footer__brand">
+        <Logo compact />
+        <p>Sift helps people with food allergies ask better questions before they eat.</p>
+        <p class="site-footer__boundary">Questions, not guarantees.</p>
+        <DownloadAction className="button button--primary button--small" />
+      </div>
+
+      <nav class="footer-nav" aria-label="Footer navigation">
+        <div>
+          <h2>Product</h2>
+          <a href="/#pricing">Pricing</a>
+          <a href="/how-it-works">How it works</a>
+          <a href="/reliability">Reliability</a>
+          <a href="/safety">Safety</a>
+        </div>
+        <div>
+          <h2>Company</h2>
+          <a href="/about">About</a>
+          <a href="/contact">Contact</a>
+          <a href="/support">Support</a>
+        </div>
+        <div>
+          <h2>Legal</h2>
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+          <a href="/cookies">Cookie notice</a>
+          <a href="/accessibility">Accessibility</a>
+          <a href="/delete-account">Delete account</a>
+        </div>
+        <div>
+          <h2>Contact</h2>
+          <a href={`mailto:${site.supportEmail}`}>{site.supportEmail}</a>
+          <a href={`mailto:${site.feedbackEmail}`}>{site.feedbackEmail}</a>
+        </div>
+      </nav>
+    </div>
+
+    <div class="site-footer__bottom">
+      <p>© {year} Sift. All rights reserved.</p>
+      <p>Sift does not guarantee that a dish or restaurant is safe.</p>
+    </div>
+  </div>
+</footer>

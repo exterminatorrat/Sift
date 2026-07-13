@@ -1,0 +1,151 @@
+---
+import PageHero from "../components/PageHero.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../config/site";
+
+const title = "Privacy Policy";
+const description =
+  "How Sift handles allergy profiles, selected menu photos, scan results, account information, and service diagnostics.";
+---
+
+<BaseLayout title={title} description={description} path="/privacy">
+  <PageHero
+    eyebrow="Legal"
+    title="Privacy, explained plainly."
+    description="This policy describes the information Sift processes, what stays on your device, what is sent for a requested menu scan, and the choices available to you."
+    compact
+  />
+
+  <section class="content-section">
+    <article class="shell prose">
+      <div class="legal-meta" aria-label="Policy details">
+        <span><strong>{site.legalEffectiveDate ? "Effective" : "Last updated"}:</strong> {site.legalEffectiveDate ?? "July 10, 2026"}</span>
+        <span><strong>Applies to:</strong> The Sift app and siftallergy.app</span>
+      </div>
+
+      <div class="callout">
+        <strong>Sift is built for careful decisions, not certainty.</strong> Sift can surface possible concerns and questions to ask, but it cannot confirm ingredients, kitchen practices, or cross-contact. It is not a medical service and does not guarantee that any food is safe.
+      </div>
+
+      <h2>1. Scope</h2>
+      <p>
+        This Privacy Policy explains how {site.legalEntity ? `${site.legalEntity}, operating as Sift,` : "Sift"} ("Sift," "we," "us," or "our") handles information when you use the Sift mobile app, visit this website, or contact support. It also applies when a parent, guardian, or caregiver creates and manages a profile for another person.
+      </p>
+
+      <h2>2. Information we process</h2>
+      <h3>Allergy profiles and preferences</h3>
+      <p>
+        You may provide allergen names, severity settings, cross-contact preferences, profile names or nicknames, custom notes, preferred app language, and restaurant language. Allergy information can be sensitive. Only include information you are comfortable using with the service.
+      </p>
+
+      <h3>Menu photos and scan content</h3>
+      <p>
+        When you choose to scan or upload a menu, Sift processes the selected image and the visible menu information it contains. A scan may produce dish names, possible-allergen flags, explanations, image-readability information, questions for restaurant staff, and translated messages. Sift does not open your camera or photo library for a scan until you take that action and grant the required permission.
+      </p>
+
+      <h3>Account and authentication information</h3>
+      <p>
+        Sift may use an account or anonymous service identifier to authorize requests and protect the analysis service. If you choose Sign in with Apple, we may receive an Apple-provided identifier and, when Apple makes them available, your name and email address or private relay address. Authentication tokens may be stored on your device to keep you signed in.
+      </p>
+
+      <h3>Support communications</h3>
+      <p>
+        If you email us, we receive the address you use and the content of your message. Please do not send menu photos, medical records, or detailed allergy information unless it is necessary for the support request.
+      </p>
+
+      <h3>Technical and diagnostic information</h3>
+      <p>
+        The services that operate Sift may process request time, response status, error details, service events, IP address, authentication or device identifiers, and similar technical information needed to deliver the service, secure it, prevent abuse, enforce usage limits, and diagnose failures. We do not need the contents of your full allergy profile or menu photo in routine logs and aim to avoid placing them there.
+      </p>
+
+      <h3>Website visits</h3>
+      <p>
+        This website does not contain account forms or an advertising network. Our hosting and security infrastructure may still process ordinary request information, such as IP address, browser type, requested page, and request time, to deliver and protect the site. See our <a href="/cookies">Cookie Notice</a> for details about website storage and tracking.
+      </p>
+
+      <h2>3. What stays on your device</h2>
+      <p>
+        Sift is designed to keep core app state local. Allergy profiles, onboarding status, language preferences, subscription-state settings, and saved scan history are stored in app storage on your device. Authentication sessions are stored in device storage, with protected storage used where the platform supports it.
+      </p>
+      <p>
+        Local records remain until you edit or delete them, clear scan history, reset the app, or remove the app and its data. Device backups, operating-system behavior, and restored installations may affect whether a local copy persists. Signing out is not the same as deleting profiles or scan history.
+      </p>
+
+      <h2>4. What is sent for a requested scan</h2>
+      <p>
+        When live analysis is available and you ask Sift to analyze a menu, the app sends the selected menu image, relevant allergy-profile details, language preferences, and limited request metadata to Sift's server-side analysis service. The service may pass that information to an AI-processing provider to return a structured result for your scan.
+      </p>
+      <p>
+        Sift and its providers may process this information to complete the request, validate the returned structure, handle errors, secure the service, prevent abuse, and improve reliability. Sift does not use menu photos or allergy profiles for advertising tracking. Do not submit an image or profile detail you do not want processed in this way.
+      </p>
+
+      <h2>5. How we use information</h2>
+      <p>We process information for purposes that include:</p>
+      <ul>
+        <li>providing requested menu analysis and displaying scan results;</li>
+        <li>saving your profiles, preferences, and scan history on your device;</li>
+        <li>authenticating access and applying service or plan limits;</li>
+        <li>generating explanations, uncertainty notices, staff questions, and translations;</li>
+        <li>responding to support, privacy, safety, and deletion requests;</li>
+        <li>detecting abuse, securing the service, and troubleshooting errors; and</li>
+        <li>evaluating and improving product reliability and safety wording.</li>
+      </ul>
+
+      <h2>6. Service providers and disclosure</h2>
+      <p>
+        We may share information with providers that perform functions for Sift, such as cloud hosting, authentication, AI processing, email, security, diagnostics, and customer support. They may process information only as needed to provide those functions, under their terms and our configuration. Provider availability and configurations can change as the service evolves.
+      </p>
+      <p>
+        We do not sell personal information. We do not disclose allergy profiles or menu photos for cross-context behavioral advertising. We may disclose information if reasonably necessary to comply with law, protect the rights or safety of users or others, investigate misuse, or complete a business reorganization subject to appropriate protections.
+      </p>
+
+      <h2>7. Retention</h2>
+      <p>
+        Device-local profiles and scan history remain under your control as described above. For information processed by Sift's servers or service providers, retention varies by data category, operational need, security requirements, provider configuration, and applicable law. We retain or instruct providers to retain information only for as long as reasonably necessary to provide and protect the service, resolve errors, prevent abuse, meet legal obligations, and handle disputes.
+      </p>
+      <p>
+        We do not promise that every server log, security record, provider copy, or backup is deleted immediately after a scan or account-deletion request. Limited copies may remain for a period in backup, fraud-prevention, security, or legally required records, after which they are deleted or de-identified under the applicable process. You may contact us to ask about the retention that applies to a specific request.
+      </p>
+
+      <h2>8. Your choices and privacy rights</h2>
+      <p>You can control much of Sift's processing directly:</p>
+      <ul>
+        <li>Edit or delete saved allergy profiles in the app.</li>
+        <li>Clear local scan history from Settings.</li>
+        <li>Decline or revoke camera and photo-library permissions in your device settings.</li>
+        <li>Avoid submitting a menu photo or particular profile detail for analysis.</li>
+        <li>Sign out of an account. Remember that signing out does not itself erase local or server records.</li>
+        <li>Request account or server-data deletion using the process on our <a href="/delete-account">Delete Account</a> page.</li>
+      </ul>
+      <p>
+        Depending on where you live, you may also have rights to request access, correction, deletion, restriction, portability, or an explanation of how personal information is used. We may need to verify your request and may deny or limit it where the law permits or requires us to keep information.
+      </p>
+
+      <h2>9. Security</h2>
+      <p>
+        We use reasonable administrative, technical, and organizational measures intended to protect information. No device, transmission method, storage system, or provider is completely secure, so we cannot guarantee absolute security. If you believe your Sift account or information has been compromised, contact us promptly.
+      </p>
+
+      <h2>10. Children and caregiver-managed profiles</h2>
+      <p>
+        Sift is intended for people who can understand its safety limits and for parents, guardians, or caregivers acting on behalf of someone else. It is not intended for unsupervised use by children who cannot legally consent to data processing. A parent or guardian should create and manage any profile for a child and should avoid adding unnecessary identifying information.
+      </p>
+
+      <h2>11. International processing</h2>
+      <p>
+        Sift and its service providers may process information in countries other than the one where you live. Privacy protections and government-access rules may differ between countries. Where required, we use lawful mechanisms intended to protect information transferred across borders.
+      </p>
+
+      <h2>12. Changes to this policy</h2>
+      <p>
+        We may update this policy when the product, providers, or legal requirements change. We will post the revised policy here and update the date above. If a change materially affects how we use information, we will provide additional notice when required.
+      </p>
+
+      <h2>13. Contact</h2>
+      <p>
+        For privacy questions or requests, email <a href={`mailto:${site.supportEmail}`}>{site.supportEmail}</a>. Please describe the request without including unnecessary medical or allergy information.
+      </p>
+      {site.legalEntity && <p><strong>{site.legalEntity}</strong>{site.legalAddress && <><br />{site.legalAddress}</>}</p>}
+    </article>
+  </section>
+</BaseLayout>

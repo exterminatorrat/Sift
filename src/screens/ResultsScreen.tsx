@@ -63,6 +63,8 @@ export function ResultsScreen({
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const hasMenuPhoto = Boolean(scanResult.imageUri);
+  const lowerConcernDishes = scanResult.dishes.filter((dish) => dish.riskLevel === "low_risk");
+  const attentionDishes = scanResult.dishes.filter((dish) => dish.riskLevel !== "low_risk");
   const scanTransparency = scanResult.transparency ?? {
     checked: ["Menu photo", "Allergy profile", "Common ingredient and preparation patterns"],
     limitations: ["Sift cannot verify full ingredients, kitchen preparation, or cross-contact."],
@@ -223,18 +225,48 @@ export function ResultsScreen({
           )}
         </View>
 
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{t("results.dishesFound")}</Text>
-          <Text style={styles.sectionMeta}>
-            {t("common.itemsCount", { count: scanResult.dishes.length })}
-          </Text>
-        </View>
+        {attentionDishes.length > 0 && (
+          <View style={styles.dishSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t("results.needsAttention")}</Text>
+              <Text style={styles.sectionMeta}>
+                {t("common.itemsCount", { count: attentionDishes.length })}
+              </Text>
+            </View>
+            <View style={styles.cards}>
+              {attentionDishes.map((dish) => (
+                <RiskCard key={dish.id} dish={dish} onPress={() => handleOpenDish(dish)} />
+              ))}
+            </View>
+          </View>
+        )}
 
-        <View style={styles.cards}>
-          {scanResult.dishes.map((dish) => (
-            <RiskCard key={dish.id} dish={dish} onPress={() => handleOpenDish(dish)} />
-          ))}
-        </View>
+        {lowerConcernDishes.length > 0 && (
+          <View style={styles.dishSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t("results.lowerConcern")}</Text>
+              <Text style={styles.sectionMeta}>
+                {t("common.itemsCount", { count: lowerConcernDishes.length })}
+              </Text>
+            </View>
+            <Text style={styles.sectionDescription}>{t("results.lowerConcernBody")}</Text>
+            <View style={styles.cards}>
+              {lowerConcernDishes.map((dish) => (
+                <RiskCard key={dish.id} dish={dish} onPress={() => handleOpenDish(dish)} />
+              ))}
+            </View>
+          </View>
+        )}
+
+        {scanResult.dishes.length === 0 && (
+          <View style={styles.dishSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t("results.dishesFound")}</Text>
+              <Text style={styles.sectionMeta}>{t("common.itemsCount", { count: 0 })}</Text>
+            </View>
+            <Text style={styles.sectionDescription}>{scanResult.scanSummary.summary}</Text>
+          </View>
+        )}
 
         {scanResult.restaurantMessage && (
           <View style={styles.translationPreview}>
@@ -825,6 +857,13 @@ const styles = StyleSheet.create({
   sectionMeta: {
     color: colors.inkSubtle,
     ...typography.badge
+  },
+  dishSection: {
+    gap: 12
+  },
+  sectionDescription: {
+    color: colors.inkMuted,
+    ...typography.bodySmall
   },
   cards: {
     gap: 16

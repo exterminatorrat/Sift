@@ -1,0 +1,608 @@
+---
+import {
+  CameraOff,
+  ChefHat,
+  CircleCheck,
+  CircleQuestionMark,
+  HeartPulse,
+  MessageCircleQuestionMark,
+  TriangleAlert
+} from "@lucide/astro";
+import PageHero from "../components/PageHero.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Safety and Sift"
+  description="Understand Sift's Low Risk, Ask Staff, High Risk, and Unclear labels—and the recipe, kitchen, and cross-contact information the app cannot confirm."
+  path="/safety"
+>
+  <PageHero
+    eyebrow="Safety boundary"
+    title="Four labels. None is permission to eat."
+    description="Sift reviews visible menu information and common ingredient patterns. It cannot confirm a restaurant's full recipe, substitutions, preparation process, or cross-contact controls."
+    compact
+  />
+
+  <section class="boundary" aria-labelledby="boundary-title">
+    <div class="shell boundary__layout">
+      <figure class="boundary__screen">
+        <img
+          src="/app/onboarding-safety.png"
+          alt="Sift onboarding screen explaining that visible menu information does not include all kitchen details and that the app does not guarantee food safety"
+          width="390"
+          height="844"
+          loading="eager"
+          decoding="async"
+        />
+        <figcaption>This boundary appears inside the app before the first scan.</figcaption>
+      </figure>
+
+      <div class="boundary__copy">
+        <h2 id="boundary-title">A menu is evidence. It is not the whole kitchen.</h2>
+        <p>
+          Menu language can identify an ingredient, name a preparation style, or leave useful clues. It usually cannot
+          show every sauce component, brand change, garnish, shared utensil, fryer, grill, prep surface, or staff
+          procedure.
+        </p>
+        <p>
+          Sift is designed to help a diner notice possible concerns and prepare questions. Restaurant staff—and the
+          person managing the allergy—remain the source of the final decision.
+        </p>
+        <div class="boundary__rule">
+          <strong>Questions, not guarantees.</strong>
+          <span>Every result should lead to confirmation, not replace it.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="states" aria-labelledby="states-title">
+    <div class="shell">
+      <div class="states__heading">
+        <h2 id="states-title">How to read a Sift status</h2>
+        <p>
+          Status colors always travel with a label and explanation. Read the words and supporting detail; do not use
+          color alone to make a decision.
+        </p>
+      </div>
+
+      <dl class="risk-scale">
+        <div class="risk risk--low">
+          <dt>
+            <span class="risk__icon"><CircleCheck size={24} stroke-width={1.8} aria-hidden="true" /></span>
+            <span><strong>Low Risk</strong><small>No likely concern found in the information Sift could review</small></span>
+          </dt>
+          <dd>
+            This does <strong>not</strong> mean medically low risk or “safe to eat.” Confirm the current recipe,
+            substitutions, preparation, and cross-contact controls with staff.
+          </dd>
+        </div>
+
+        <div class="risk risk--ask">
+          <dt>
+            <span class="risk__icon"><MessageCircleQuestionMark size={24} stroke-width={1.8} aria-hidden="true" /></span>
+            <span><strong>Ask Staff</strong><small>A possible concern needs restaurant confirmation</small></span>
+          </dt>
+          <dd>
+            Sift found a term, common ingredient pattern, preparation clue, or information gap worth checking. Use the
+            suggested questions and ask the restaurant before ordering.
+          </dd>
+        </div>
+
+        <div class="risk risk--high">
+          <dt>
+            <span class="risk__icon"><TriangleAlert size={24} stroke-width={1.8} aria-hidden="true" /></span>
+            <span><strong>High Risk</strong><small>A likely concern appears in visible text or common preparation</small></span>
+          </dt>
+          <dd>
+            Treat the concern seriously and speak with staff. If ingredients and cross-contact cannot be confirmed to
+            the standard required for your allergy plan, do not rely on the scan to proceed.
+          </dd>
+        </div>
+
+        <div class="risk risk--unclear">
+          <dt>
+            <span class="risk__icon"><CircleQuestionMark size={24} stroke-width={1.8} aria-hidden="true" /></span>
+            <span><strong>Unclear</strong><small>There is not enough reliable information for a useful assessment</small></span>
+          </dt>
+          <dd>
+            Retake the photo if text is blurred, cropped, or unreadable. If the menu itself lacks detail—or if the
+            result remains unclear—ask restaurant staff directly.
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="unknowns" aria-labelledby="unknowns-title">
+    <div class="shell unknowns__layout">
+      <div class="unknowns__copy">
+        <h2 id="unknowns-title">What sits outside the frame</h2>
+        <p>
+          Sift may help you form questions about these details, but it cannot observe or verify them from a menu photo.
+        </p>
+
+        <ul>
+          <li><ChefHat size={21} stroke-width={1.7} aria-hidden="true" /><span>Full recipes, off-menu ingredients, substitutions, and supplier changes</span></li>
+          <li><CameraOff size={21} stroke-width={1.7} aria-hidden="true" /><span>Ingredients obscured by blur, crop, glare, handwriting, or incomplete translations</span></li>
+          <li><TriangleAlert size={21} stroke-width={1.7} aria-hidden="true" /><span>Shared fryers, grills, prep surfaces, utensils, storage, and airborne exposure</span></li>
+          <li><MessageCircleQuestionMark size={21} stroke-width={1.7} aria-hidden="true" /><span>Whether a restaurant can reliably follow a requested preparation change</span></li>
+        </ul>
+
+        <p class="unknowns__repeat">
+          Recipes and kitchen practices can change after a menu is printed. Cross-contact risk remains even when an
+          allergen is not listed.
+        </p>
+      </div>
+
+      <figure class="unknowns__screen">
+        <img
+          src="/app/results-unclear.png"
+          alt="Sift Unclear result showing poor image readability, a request to retake the photo or ask staff, and the app's safety notice"
+          width="390"
+          height="844"
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption>When evidence is weak, Sift is designed to stop short of a confident answer.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="conversation" aria-labelledby="conversation-title">
+    <div class="shell conversation__layout">
+      <div class="conversation__heading">
+        <MessageCircleQuestionMark size={36} stroke-width={1.6} aria-hidden="true" />
+        <h2 id="conversation-title">Carry the scan into a real conversation.</h2>
+        <p>Use questions that a staff member can confirm with the kitchen, not yes-or-no reassurance.</p>
+      </div>
+
+      <ol class="questions">
+        <li>
+          <span>1</span>
+          “Can you confirm every ingredient in this dish, including the sauce, garnish, and seasoning?”
+        </li>
+        <li>
+          <span>2</span>
+          “Is this prepared with shared fryers, grills, utensils, surfaces, or storage?”
+        </li>
+        <li>
+          <span>3</span>
+          “Has the recipe or supplier changed from what is printed on the menu?”
+        </li>
+        <li>
+          <span>4</span>
+          “Can the person preparing the dish confirm the requested precautions?”
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="emergency" aria-labelledby="emergency-title">
+    <div class="shell emergency__inner">
+      <HeartPulse size={34} stroke-width={1.7} aria-hidden="true" />
+      <div>
+        <h2 id="emergency-title">Sift is not an emergency service.</h2>
+        <p>
+          If you think an allergic reaction is occurring, follow the individual's emergency action plan and seek
+          emergency medical help. Do not use Sift to diagnose a reaction or decide whether treatment is needed.
+        </p>
+      </div>
+      <nav aria-label="Additional safety information">
+        <a href="/reliability">Reliability method <span aria-hidden="true">→</span></a>
+        <a href="/support">Contact support <span aria-hidden="true">→</span></a>
+      </nav>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .boundary {
+    padding-block: clamp(74px, 10vw, 132px);
+  }
+
+  .boundary__layout {
+    align-items: center;
+    display: grid;
+    gap: clamp(52px, 10vw, 146px);
+    grid-template-columns: minmax(310px, 0.72fr) minmax(0, 1.28fr);
+  }
+
+  .boundary__screen {
+    margin: 0 auto;
+    max-width: 310px;
+  }
+
+  .boundary__screen img,
+  .unknowns__screen img {
+    background: var(--cream);
+    border-radius: 24px;
+    box-shadow: var(--shadow-phone);
+    width: 100%;
+  }
+
+  .boundary__screen figcaption,
+  .unknowns__screen figcaption {
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    line-height: 1.45;
+    margin-top: 18px;
+    text-align: center;
+  }
+
+  .boundary__copy h2 {
+    margin-bottom: 26px;
+  }
+
+  .boundary__copy > p {
+    color: #34433f;
+    font-size: clamp(1.05rem, 1.8vw, 1.2rem);
+    max-width: 64ch;
+    text-wrap: pretty;
+  }
+
+  .boundary__rule {
+    border-block: 1px solid var(--border);
+    display: grid;
+    gap: 5px;
+    margin-top: 36px;
+    padding-block: 20px;
+  }
+
+  .boundary__rule strong {
+    color: var(--teal-700);
+    font-size: 1.16rem;
+  }
+
+  .boundary__rule span {
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+  }
+
+  .states {
+    background: var(--warm);
+    padding-block: clamp(72px, 10vw, 124px);
+  }
+
+  .states__heading {
+    align-items: end;
+    display: grid;
+    gap: 24px clamp(44px, 9vw, 128px);
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.72fr);
+    margin-bottom: clamp(46px, 7vw, 72px);
+  }
+
+  .states__heading h2,
+  .states__heading p {
+    margin-bottom: 0;
+  }
+
+  .states__heading p {
+    color: var(--ink-muted);
+    max-width: 58ch;
+  }
+
+  .risk-scale {
+    margin: 0;
+  }
+
+  .risk {
+    align-items: center;
+    border-top: 1px solid var(--border);
+    display: grid;
+    gap: 24px clamp(40px, 8vw, 112px);
+    grid-template-columns: minmax(300px, 0.85fr) minmax(0, 1.15fr);
+    padding-block: 28px 30px;
+  }
+
+  .risk:last-child {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .risk dt {
+    align-items: center;
+    display: flex;
+    gap: 16px;
+  }
+
+  .risk__icon {
+    align-items: center;
+    border-radius: 50%;
+    display: inline-flex;
+    flex: 0 0 auto;
+    height: 48px;
+    justify-content: center;
+    width: 48px;
+  }
+
+  .risk dt strong {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 0.83rem;
+    margin-bottom: 3px;
+  }
+
+  .risk dt small {
+    color: var(--ink-muted);
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 0.74rem;
+    line-height: 1.45;
+    max-width: 36ch;
+  }
+
+  .risk dd {
+    color: #34433f;
+    margin: 0;
+    max-width: 66ch;
+  }
+
+  .risk dd strong {
+    color: var(--ink);
+  }
+
+  .risk--low .risk__icon {
+    background: #e7f6ee;
+    color: var(--green);
+  }
+
+  .risk--low dt strong {
+    color: var(--green);
+  }
+
+  .risk--ask .risk__icon {
+    background: #fff2cf;
+    color: var(--amber);
+  }
+
+  .risk--ask dt strong {
+    color: var(--amber);
+  }
+
+  .risk--high .risk__icon {
+    background: #fff0f1;
+    color: var(--red);
+  }
+
+  .risk--high dt strong {
+    color: var(--red);
+  }
+
+  .risk--unclear .risk__icon {
+    background: #eeece7;
+    color: #4c5956;
+  }
+
+  .risk--unclear dt strong {
+    color: #4c5956;
+  }
+
+  .unknowns {
+    padding-block: clamp(78px, 11vw, 142px);
+  }
+
+  .unknowns__layout {
+    align-items: center;
+    display: grid;
+    gap: clamp(54px, 10vw, 148px);
+    grid-template-columns: minmax(0, 1.28fr) minmax(300px, 0.72fr);
+  }
+
+  .unknowns__copy h2 {
+    margin-bottom: 22px;
+  }
+
+  .unknowns__copy > p:not(.unknowns__repeat) {
+    color: var(--ink-muted);
+    max-width: 60ch;
+  }
+
+  .unknowns__copy ul {
+    list-style: none;
+    margin: 36px 0 0;
+    padding: 0;
+  }
+
+  .unknowns__copy li {
+    align-items: start;
+    border-top: 1px solid var(--border);
+    color: #34433f;
+    display: grid;
+    gap: 15px;
+    grid-template-columns: 25px minmax(0, 1fr);
+    padding-block: 18px;
+  }
+
+  .unknowns__copy li:last-child {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .unknowns__copy li svg {
+    color: var(--teal-600);
+    margin-top: 3px;
+  }
+
+  .unknowns__repeat {
+    background: var(--teal-050);
+    color: #29433f;
+    margin: 30px 0 0;
+    padding: 20px 22px;
+  }
+
+  .unknowns__screen {
+    margin: 0 auto;
+    max-width: 310px;
+  }
+
+  .conversation {
+    background: var(--teal-800);
+    color: var(--white);
+    padding-block: clamp(72px, 10vw, 118px);
+  }
+
+  .conversation__layout {
+    display: grid;
+    gap: 44px clamp(60px, 10vw, 150px);
+    grid-template-columns: minmax(0, 0.78fr) minmax(360px, 1.22fr);
+  }
+
+  .conversation__heading svg {
+    color: var(--tangerine);
+    margin-bottom: 24px;
+  }
+
+  .conversation h2 {
+    color: var(--white);
+    font-size: clamp(2.2rem, 4.3vw, 4rem);
+    margin-bottom: 22px;
+  }
+
+  .conversation__heading p {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0;
+    max-width: 46ch;
+  }
+
+  .questions {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .questions li {
+    border-top: 1px solid rgba(255, 255, 255, 0.24);
+    color: rgba(255, 255, 255, 0.9);
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 28px minmax(0, 1fr);
+    padding-block: 22px;
+  }
+
+  .questions li:last-child {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+  }
+
+  .questions span {
+    color: var(--tangerine);
+    font-family: var(--font-sans);
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding-top: 3px;
+  }
+
+  .emergency {
+    padding-block: clamp(56px, 8vw, 86px);
+  }
+
+  .emergency__inner {
+    align-items: start;
+    display: grid;
+    gap: 22px clamp(28px, 5vw, 68px);
+    grid-template-columns: auto minmax(0, 1fr) minmax(200px, auto);
+  }
+
+  .emergency svg {
+    color: var(--red);
+    margin-top: 5px;
+  }
+
+  .emergency h2 {
+    font-size: clamp(1.8rem, 3vw, 2.55rem);
+    margin-bottom: 12px;
+  }
+
+  .emergency p {
+    color: #34433f;
+    margin-bottom: 0;
+    max-width: 70ch;
+  }
+
+  .emergency nav {
+    border-top: 1px solid var(--border);
+    display: grid;
+  }
+
+  .emergency a {
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    color: var(--teal-700);
+    display: flex;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    justify-content: space-between;
+    min-height: 52px;
+    text-decoration: none;
+  }
+
+  @media (max-width: 900px) {
+    .boundary__layout,
+    .states__heading,
+    .unknowns__layout,
+    .conversation__layout {
+      grid-template-columns: 1fr;
+    }
+
+    .boundary__screen,
+    .unknowns__screen {
+      max-width: 280px;
+    }
+
+    .boundary__screen {
+      grid-row: 2;
+    }
+
+    .risk {
+      grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+    }
+
+    .unknowns__copy {
+      max-width: 760px;
+    }
+
+    .emergency__inner {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .emergency nav {
+      grid-column: 2;
+      max-width: 420px;
+    }
+  }
+
+  @media (max-width: 680px) {
+    .risk {
+      align-items: start;
+      gap: 15px;
+      grid-template-columns: 1fr;
+    }
+
+    .risk dd {
+      padding-left: 64px;
+    }
+
+    .boundary__screen img,
+    .unknowns__screen img {
+      border-radius: 18px;
+    }
+
+    .emergency__inner {
+      grid-template-columns: 1fr;
+    }
+
+    .emergency nav {
+      grid-column: 1;
+      margin-top: 10px;
+      max-width: none;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .risk dd {
+      padding-left: 0;
+    }
+  }
+</style>

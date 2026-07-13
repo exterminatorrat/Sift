@@ -1,0 +1,20 @@
+---
+import { ArrowUpRight } from "@lucide/astro";
+import { site } from "../config/site";
+
+type Props = {
+  label?: string;
+  className?: string;
+};
+
+const { label = "Download Sift", className = "button button--primary" } = Astro.props;
+---
+
+{
+  site.appStoreUrl && (
+    <a class={className} href={site.appStoreUrl} rel="noopener noreferrer">
+      <span>{label}</span>
+      <ArrowUpRight aria-hidden="true" size={16} stroke-width={2} />
+    </a>
+  )
+}

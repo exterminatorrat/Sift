@@ -22,6 +22,12 @@ export class ScanQuotaExceededError extends Error {
   }
 }
 
+export class ScanRateLimitExceededError extends Error {
+  constructor(readonly retryAfterSeconds: number) {
+    super("Please wait before starting another scan.");
+  }
+}
+
 export async function analyzeMenuImage(request: AnalyzeMenuRequest): Promise<ScanResult> {
   if (ANALYSIS_MODE !== "supabase" || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
     return withImageUri(
@@ -51,7 +57,26 @@ export async function analyzeMenuImage(request: AnalyzeMenuRequest): Promise<Sca
     }
 
     if (response.status === 429) {
-      throw new ScanQuotaExceededError();
+      const details = await response.json().catch(() => null) as {
+        code?: string;
+        retryAfterSeconds?: number;
+      } | null;
+      if (details?.code === "scan_rate_limited") {
+        const retryAfterSeconds = Number(
+          details.retryAfterSeconds ?? response.headers.get("Retry-After") ?? 60
+        );
+        throw new ScanRateLimitExceededError(
+          Number.isFinite(retryAfterSeconds) ? Math.max(1, retryAfterSeconds) : 60
+        );
+      }
+      if (details?.code === "monthly_scan_limit") {
+        throw new ScanQuotaExceededError();
+      }
+
+      const retryAfterSeconds = Number(response.headers.get("Retry-After") ?? 60);
+      throw new ScanRateLimitExceededError(
+        Number.isFinite(retryAfterSeconds) ? Math.max(1, retryAfterSeconds) : 60
+      );
     }
 
     if (!response.ok) {
@@ -71,7 +96,7 @@ export async function analyzeMenuImage(request: AnalyzeMenuRequest): Promise<Sca
       request.profile.preferredLanguage
     );
   } catch (error) {
-    if (error instanceof ScanQuotaExceededError) {
+    if (error instanceof ScanQuotaExceededError || error instanceof ScanRateLimitExceededError) {
       throw error;
     }
 

@@ -1,0 +1,649 @@
+---
+import { Braces, Camera, CircleQuestionMark, ShieldCheck, SlidersHorizontal } from "@lucide/astro";
+import PageHero from "../components/PageHero.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="How Sift approaches reliability"
+  description="Learn how Sift constrains AI analysis with structured outputs, server and client validation, deterministic safety floors, explicit Unclear results, and failure-mode evaluation."
+  path="/reliability"
+>
+  <PageHero
+    eyebrow="Reliability"
+    title="Confidence should come from the method, not a magic number."
+    description="Sift uses AI to review imperfect menu information, then surrounds that output with structure, validation, conservative rules, and an explicit way to say ‘not enough information.’"
+    compact
+  />
+
+  <section class="method-intro" aria-labelledby="method-intro-title">
+    <div class="shell method-intro__inner">
+      <h2 id="method-intro-title">AI is one part of a constrained path.</h2>
+      <p>
+        Menu analysis is not a single prompt followed by a verdict. The source image, the requested structure, the
+        checks around the response, and the way uncertainty is presented all affect whether a result is useful.
+      </p>
+    </div>
+  </section>
+
+  <section class="method" aria-labelledby="method-title">
+    <div class="shell method__layout">
+      <div class="method__heading">
+        <h2 id="method-title">The analysis path</h2>
+        <p>Each stage is designed to preserve context and prevent weak information from looking more certain than it is.</p>
+      </div>
+
+      <ol class="method__steps">
+        <li>
+          <span class="method__number">01</span>
+          <Camera size={23} stroke-width={1.7} aria-hidden="true" />
+          <div>
+            <h3>Inputs stay specific.</h3>
+            <p>
+              Sift analyzes the menu image selected by the user in the context of that user's allergy profile. Image
+              readability is part of the result, because a blurred or incomplete source changes what can be inferred.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="method__number">02</span>
+          <Braces size={23} stroke-width={1.7} aria-hidden="true" />
+          <div>
+            <h3>The model must return a defined structure.</h3>
+            <p>
+              The response is expected to separate an overall status from per-dish reasoning, possible allergens,
+              hidden-risk patterns, cross-contact concerns, staff questions, readability, and source references.
+              That makes the output checkable instead of leaving it as free-form prose.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="method__number">03</span>
+          <ShieldCheck size={23} stroke-width={1.7} aria-hidden="true" />
+          <div>
+            <h3>The server validates before the app accepts it.</h3>
+            <p>
+              Server-side checks verify required fields, allowed status values, and basic consistency. Malformed,
+              missing, or contradictory data is not treated as a complete analysis.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="method__number">04</span>
+          <SlidersHorizontal size={23} stroke-width={1.7} aria-hidden="true" />
+          <div>
+            <h3>The client validates again and applies deterministic floors.</h3>
+            <p>
+              The app checks the result before rendering it. Conditions such as insufficient image detail, missing
+              required evidence, contradictory fields, or a validation failure can only move the experience toward
+              more caution; they cannot be promoted into a reassuring status.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="method__number">05</span>
+          <CircleQuestionMark size={23} stroke-width={1.7} aria-hidden="true" />
+          <div>
+            <h3>Unclear is a first-class outcome.</h3>
+            <p>
+              If Sift cannot support a useful interpretation, it says <strong>Unclear</strong> and directs the user to
+              retake the photo or ask staff. The system is not designed to fill an information gap with false
+              confidence.
+            </p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="evidence" aria-labelledby="evidence-title">
+    <div class="shell evidence__layout">
+      <div class="evidence__copy">
+        <h2 id="evidence-title">The app shows what sits underneath the status.</h2>
+        <p>
+          A risk label is a starting point. Sift keeps the visible checks, limitations, and dish-level reasoning close
+          enough for the diner to inspect before deciding what to ask.
+        </p>
+
+        <ul class="margin-notes">
+          <li>
+            <span>Input quality</span>
+            The result reports whether the menu image was readable enough to interpret.
+          </li>
+          <li>
+            <span>Scope</span>
+            The summary names what Sift checked and calls out when external restaurant sources were not returned.
+          </li>
+          <li>
+            <span>Reasoning</span>
+            Dish details separate possible allergens, hidden-risk ingredients, cross-contact concerns, and questions.
+          </li>
+          <li>
+            <span>Boundary</span>
+            The interface repeats that Sift cannot guarantee a dish is safe.
+          </li>
+        </ul>
+      </div>
+
+      <figure class="evidence__screens">
+        <img
+          class="evidence__summary"
+          src="/app/results-top.png"
+          alt="Sift scan summary showing image readability, what the app checked, and the no-guarantee safety notice"
+          width="390"
+          height="844"
+          loading="lazy"
+          decoding="async"
+        />
+        <img
+          class="evidence__detail"
+          src="/app/dish-detail-reasoning.png"
+          alt="Sift dish detail showing possible allergens, hidden-risk ingredients, cross-contact concerns, and staff questions"
+          width="390"
+          height="844"
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption>Current Sift screens. The summary and its supporting detail are both available to the user.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="evaluation" aria-labelledby="evaluation-title">
+    <div class="shell">
+      <div class="evaluation__heading">
+        <h2 id="evaluation-title">Evaluate the ways the system can fail.</h2>
+        <p>
+          A useful evaluation separates failure modes instead of averaging them into one flattering score. These are
+          the categories Sift's validation program is designed to examine.
+        </p>
+      </div>
+
+      <div class="evaluation__table-wrap" tabindex="0" role="region" aria-label="Reliability evaluation table">
+        <table>
+          <caption class="visually-hidden">Sift evaluation categories and the failures each category is intended to expose</caption>
+          <thead>
+            <tr>
+              <th scope="col">Failure mode</th>
+              <th scope="col">What is examined</th>
+              <th scope="col">What must not be hidden</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Image and text capture</th>
+              <td>Blur, crop, glare, small type, layout, and language conditions.</td>
+              <td>Unreadable or missing menu information.</td>
+            </tr>
+            <tr>
+              <th scope="row">Listed-allergen recall</th>
+              <td>Whether visible allergen terms relevant to the user's profile are surfaced.</td>
+              <td>Missed concerns, especially when the app sounds reassuring.</td>
+            </tr>
+            <tr>
+              <th scope="row">Hidden-risk reasoning</th>
+              <td>Whether common ingredient or preparation patterns are raised with appropriate uncertainty.</td>
+              <td>Speculation presented as fact, or common patterns omitted without explanation.</td>
+            </tr>
+            <tr>
+              <th scope="row">Cross-contact guidance</th>
+              <td>Whether the result prompts relevant staff questions without claiming to know kitchen practice.</td>
+              <td>Implied knowledge of fryers, surfaces, utensils, suppliers, or preparation areas.</td>
+            </tr>
+            <tr>
+              <th scope="row">Calibration and fallback</th>
+              <td>Whether status, reasoning, and image quality agree—and whether weak evidence becomes Unclear.</td>
+              <td>Contradictions, malformed output, or false confidence.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="metric" aria-labelledby="metric-title">
+    <div class="shell metric__layout">
+      <h2 id="metric-title">Why there is no single “accuracy” percentage</h2>
+      <div>
+        <p>
+          One number can collapse very different tasks: reading a menu, matching an allergy term, reasoning about a
+          common preparation pattern, choosing an appropriately cautious status, and recognizing when the evidence is
+          insufficient. Those errors do not carry the same consequence, and performance can change with allergen,
+          language, menu format, and image quality.
+        </p>
+        <p>
+          Sift will only publish measured reliability claims with the test scope, method, sample, and limitations beside
+          them. A percentage without that context would be easier to market and harder to trust.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="status-note" aria-labelledby="status-title">
+    <div class="shell status-note__inner">
+      <ShieldCheck size={34} stroke-width={1.6} aria-hidden="true" />
+      <div>
+        <h2 id="status-title">Current validation status</h2>
+        <p>
+          Sift's full live validation gate is not yet complete. The structured checks and failure-mode evaluation plan
+          described here are safeguards and methodology—not proof of end-to-end production performance. Until that
+          gate is complete, Sift does not publish an accuracy percentage or describe the system as production-validated.
+        </p>
+      </div>
+      <a href="/safety">Read the safety boundary <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .method-intro {
+    padding-block: clamp(66px, 9vw, 108px);
+  }
+
+  .method-intro__inner {
+    align-items: end;
+    display: grid;
+    gap: 28px clamp(44px, 9vw, 132px);
+    grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.72fr);
+  }
+
+  .method-intro h2,
+  .method-intro p {
+    margin-bottom: 0;
+  }
+
+  .method-intro p {
+    color: var(--ink-muted);
+    max-width: 58ch;
+    text-wrap: pretty;
+  }
+
+  .method {
+    background: var(--teal-900);
+    color: var(--white);
+    padding-block: clamp(72px, 10vw, 124px);
+  }
+
+  .method__layout {
+    display: grid;
+    gap: 46px clamp(56px, 10vw, 150px);
+    grid-template-columns: minmax(220px, 0.55fr) minmax(0, 1.45fr);
+  }
+
+  .method__heading {
+    align-self: start;
+    position: sticky;
+    top: calc(var(--header-height) + 42px);
+  }
+
+  .method__heading h2 {
+    color: var(--white);
+    font-size: clamp(2.2rem, 4vw, 3.6rem);
+    margin-bottom: 20px;
+  }
+
+  .method__heading p {
+    color: rgba(255, 255, 255, 0.78);
+    margin-bottom: 0;
+    max-width: 34ch;
+  }
+
+  .method__steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .method__steps li {
+    align-items: start;
+    border-top: 1px solid rgba(255, 255, 255, 0.24);
+    display: grid;
+    gap: 18px 22px;
+    grid-template-columns: 42px 30px minmax(0, 1fr);
+    padding-block: 30px 34px;
+  }
+
+  .method__steps li:last-child {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+  }
+
+  .method__number {
+    color: var(--tangerine);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding-top: 5px;
+  }
+
+  .method__steps svg {
+    color: var(--teal-100);
+    margin-top: 2px;
+  }
+
+  .method__steps h3 {
+    color: var(--white);
+    font-size: clamp(1.35rem, 2vw, 1.72rem);
+    margin-bottom: 10px;
+  }
+
+  .method__steps p {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0;
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
+
+  .method__steps strong {
+    color: var(--white);
+  }
+
+  .evidence {
+    padding-block: clamp(78px, 11vw, 142px);
+  }
+
+  .evidence__layout {
+    align-items: center;
+    display: grid;
+    gap: clamp(54px, 9vw, 132px);
+    grid-template-columns: minmax(0, 0.82fr) minmax(440px, 1.18fr);
+  }
+
+  .evidence__copy h2 {
+    margin-bottom: 24px;
+  }
+
+  .evidence__copy > p {
+    color: var(--ink-muted);
+    margin-bottom: 36px;
+    max-width: 60ch;
+  }
+
+  .margin-notes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .margin-notes li {
+    border-top: 1px solid var(--border);
+    color: #34433f;
+    padding-block: 18px;
+  }
+
+  .margin-notes li:last-child {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .margin-notes span {
+    color: var(--teal-700);
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 0.74rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+
+  .evidence__screens {
+    margin: 0;
+    min-height: 700px;
+    position: relative;
+  }
+
+  .evidence__screens img {
+    background: var(--cream);
+    border-radius: 24px;
+    box-shadow: var(--shadow-phone);
+    position: absolute;
+  }
+
+  .evidence__summary {
+    left: 0;
+    top: 0;
+    width: min(54%, 292px);
+  }
+
+  .evidence__detail {
+    right: 0;
+    top: 88px;
+    width: min(50%, 268px);
+  }
+
+  .evidence__screens figcaption {
+    bottom: 0;
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    line-height: 1.45;
+    margin: 0;
+    position: absolute;
+    right: 0;
+    width: min(58%, 310px);
+  }
+
+  .evaluation {
+    background: var(--warm);
+    padding-block: clamp(72px, 10vw, 124px);
+  }
+
+  .evaluation__heading {
+    display: grid;
+    gap: 24px clamp(40px, 8vw, 112px);
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.72fr);
+    margin-bottom: clamp(44px, 7vw, 72px);
+  }
+
+  .evaluation__heading h2,
+  .evaluation__heading p {
+    margin-bottom: 0;
+  }
+
+  .evaluation__heading p {
+    color: var(--ink-muted);
+    max-width: 60ch;
+  }
+
+  .evaluation__table-wrap {
+    overflow-x: auto;
+  }
+
+  .evaluation__table-wrap:focus-visible {
+    outline: 3px solid var(--teal-600);
+    outline-offset: 6px;
+  }
+
+  table {
+    border-collapse: collapse;
+    min-width: 820px;
+    width: 100%;
+  }
+
+  th,
+  td {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px 22px 0;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  thead th {
+    border-top: 1px solid var(--ink);
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding-block: 14px;
+    text-transform: uppercase;
+  }
+
+  tbody th {
+    color: var(--ink);
+    font-size: 1.08rem;
+    font-weight: 600;
+    width: 24%;
+  }
+
+  tbody td {
+    color: #34433f;
+    width: 38%;
+  }
+
+  .visually-hidden {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+
+  .metric {
+    padding-block: clamp(78px, 11vw, 138px);
+  }
+
+  .metric__layout {
+    display: grid;
+    gap: 36px clamp(54px, 10vw, 148px);
+    grid-template-columns: minmax(0, 0.8fr) minmax(360px, 1.2fr);
+  }
+
+  .metric h2 {
+    font-size: clamp(2.4rem, 5vw, 4.7rem);
+    margin-bottom: 0;
+  }
+
+  .metric p {
+    color: #34433f;
+    font-size: 1.08rem;
+    max-width: 66ch;
+  }
+
+  .metric p:last-child {
+    margin-bottom: 0;
+  }
+
+  .status-note {
+    background: var(--teal-100);
+    padding-block: clamp(54px, 7vw, 78px);
+  }
+
+  .status-note__inner {
+    align-items: start;
+    display: grid;
+    gap: 22px clamp(28px, 5vw, 68px);
+    grid-template-columns: auto minmax(0, 1fr) minmax(190px, auto);
+  }
+
+  .status-note svg {
+    color: var(--teal-700);
+    margin-top: 6px;
+  }
+
+  .status-note h2 {
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    margin-bottom: 12px;
+  }
+
+  .status-note p {
+    color: #29433f;
+    margin-bottom: 0;
+    max-width: 70ch;
+  }
+
+  .status-note a {
+    border-bottom: 1px solid var(--teal-600);
+    color: var(--teal-800);
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    justify-self: end;
+    padding-bottom: 7px;
+    text-decoration: none;
+  }
+
+  @media (max-width: 900px) {
+    .method-intro__inner,
+    .method__layout,
+    .evidence__layout,
+    .evaluation__heading,
+    .metric__layout {
+      grid-template-columns: 1fr;
+    }
+
+    .method__heading {
+      position: static;
+    }
+
+    .method__heading p {
+      max-width: 58ch;
+    }
+
+    .evidence__screens {
+      margin-inline: auto;
+      max-width: 600px;
+      min-height: 680px;
+      width: 100%;
+    }
+
+    .status-note__inner {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .status-note a {
+      grid-column: 2;
+      justify-self: start;
+    }
+  }
+
+  @media (max-width: 620px) {
+    .method__steps li {
+      gap: 12px 14px;
+      grid-template-columns: 34px 26px minmax(0, 1fr);
+    }
+
+    .method__steps p {
+      font-size: 0.96rem;
+    }
+
+    .evidence__screens {
+      min-height: 540px;
+    }
+
+    .evidence__screens img {
+      border-radius: 18px;
+    }
+
+    .evidence__summary {
+      width: 218px;
+    }
+
+    .evidence__detail {
+      top: 72px;
+      width: 205px;
+    }
+
+    .evidence__screens figcaption {
+      width: 230px;
+    }
+
+    .status-note__inner {
+      grid-template-columns: 1fr;
+    }
+
+    .status-note a {
+      grid-column: 1;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .evidence__screens {
+      min-height: 500px;
+    }
+
+    .evidence__summary,
+    .evidence__detail {
+      width: 190px;
+    }
+  }
+</style>

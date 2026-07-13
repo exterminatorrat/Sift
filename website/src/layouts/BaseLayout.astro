@@ -1,0 +1,86 @@
+---
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import { canonicalPath, site } from "../config/site";
+import "../styles/global.css";
+
+type Props = {
+  title: string;
+  description: string;
+  path?: string;
+  noindex?: boolean;
+  schemaType?: "WebPage" | "AboutPage" | "ContactPage" | "WebSite";
+  socialImageAlt?: string;
+  bodyClass?: string;
+};
+
+const {
+  title,
+  description,
+  path = Astro.url.pathname,
+  noindex = false,
+  schemaType = "WebPage",
+  socialImageAlt = "Sift helps diners review menu information and prepare questions for restaurant staff.",
+  bodyClass = ""
+} = Astro.props;
+
+const normalizedPath = canonicalPath(path);
+const canonical = new URL(normalizedPath, site.origin).toString();
+const socialImage = new URL("/og-sift.png", site.origin).toString();
+const fullTitle = title.includes("Sift") ? title : `${title} | Sift`;
+const schema =
+  schemaType === "WebSite"
+    ? {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: site.name,
+        url: site.origin,
+        description
+      }
+    : {
+        "@context": "https://schema.org",
+        "@type": schemaType,
+        name: fullTitle,
+        url: canonical,
+        description,
+        isPartOf: { "@type": "WebSite", name: site.name, url: site.origin }
+      };
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#18746E" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/brand/sift-favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/source-serif-4-regular.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="/fonts/inter-600.ttf" as="font" type="font/ttf" crossorigin />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Sift" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={socialImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={socialImageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImage} />
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(schema)} />
+  </head>
+  <body class={bodyClass}>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <Header />
+    <main id="main-content" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

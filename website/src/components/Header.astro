@@ -1,0 +1,70 @@
+---
+import { Menu, X } from "@lucide/astro";
+import { canonicalPath, primaryNavigation } from "../config/site";
+import DownloadAction from "./DownloadAction.astro";
+import Logo from "./Logo.astro";
+
+const currentPath = canonicalPath(Astro.url.pathname);
+const isCurrent = (href: string) => {
+  if (href.includes("#")) return false;
+  const path = href.split("#")[0] || "/";
+  return currentPath === path;
+};
+---
+
+<header class="site-header" data-site-header>
+  <div class="site-header__inner shell">
+    <Logo />
+
+    <button
+      class="nav-toggle"
+      type="button"
+      aria-label="Open navigation"
+      aria-controls="primary-navigation"
+      aria-expanded="false"
+      data-nav-toggle
+    >
+      <Menu class="nav-toggle__open" aria-hidden="true" size={22} stroke-width={2} />
+      <X class="nav-toggle__close" aria-hidden="true" size={22} stroke-width={2} />
+    </button>
+
+    <div class="nav-panel" id="primary-navigation" data-nav-panel>
+      <nav class="primary-nav" aria-label="Primary navigation">
+        {
+          primaryNavigation.map((item) => (
+            <a href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>
+              {item.label}
+            </a>
+          ))
+        }
+      </nav>
+      <DownloadAction className="button button--primary button--small" />
+    </div>
+  </div>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>("[data-site-header]");
+  const toggle = document.querySelector<HTMLButtonElement>("[data-nav-toggle]");
+  const panel = document.querySelector<HTMLElement>("[data-nav-panel]");
+
+  const setOpen = (open: boolean) => {
+    if (!header || !toggle || !panel) return;
+    header.dataset.open = open ? "true" : "false";
+    toggle.setAttribute("aria-expanded", String(open));
+    toggle.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+    if (open) panel.querySelector<HTMLAnchorElement>("a")?.focus();
+  };
+
+  toggle?.addEventListener("click", () => setOpen(toggle.getAttribute("aria-expanded") !== "true"));
+  panel?.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => setOpen(false)));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && toggle?.getAttribute("aria-expanded") === "true") {
+      setOpen(false);
+      toggle.focus();
+    }
+  });
+  window.addEventListener("resize", () => {
+    if (window.innerWidth >= 920) setOpen(false);
+  });
+</script>

@@ -35,7 +35,8 @@ import { createDefaultProfile } from "./src/services/mockAnalysisService";
 import {
   analyzeMenuImage,
   createUnclearScanResult,
-  ScanQuotaExceededError
+  ScanQuotaExceededError,
+  ScanRateLimitExceededError
 } from "./src/services/aiAnalysisService";
 import { loadAuthSession, signInWithApple, signOut } from "./src/services/authService";
 import { captureMenuImage, ImageAccessError, pickMenuImage } from "./src/services/imageService";
@@ -389,13 +390,23 @@ export default function App() {
               <AnalysisLoadingScreen
                 imageUri={pendingImage?.uri}
                 onAnalyze={async () => {
-                  const scanResult = await analyzePendingImage();
-                  if (!scanResult) {
-                    showScanLimitAlert(navigation.navigate);
-                    setMainTab("home");
-                    navigation.replace("Home");
-                    return;
+                  let scanResult: ScanResult;
+                  try {
+                    scanResult = await analyzePendingImage();
+                  } catch (error) {
+                    if (error instanceof ScanRateLimitExceededError) {
+                      showScanRateLimitAlert(error.retryAfterSeconds);
+                      navigation.replace("ImagePreview");
+                      return;
+                    } else if (error instanceof ScanQuotaExceededError) {
+                      showScanLimitAlert(navigation.navigate);
+                      setMainTab("home");
+                      navigation.replace("Home");
+                      return;
+                    }
+                    throw error;
                   }
+
                   const nextHistory = addScanToHistory(scanHistory, scanResult, subscriptionPlan.historyLimit);
                   await persistScanHistory(nextHistory);
                   navigation.replace("Results", { scanId: scanResult.id });
@@ -657,21 +668,36 @@ export default function App() {
       return createUnclearScanResult(profile);
     }
 
+    const selectedImage = pendingImage;
+
     try {
-      return await analyzeMenuImage({
+      const scanResult = await analyzeMenuImage({
         profile,
-        image: pendingImage,
+        image: selectedImage,
         restaurantLanguage: profile.restaurantLanguage
       });
+      setPendingImage(null);
+      return scanResult;
     } catch (error) {
-      if (error instanceof ScanQuotaExceededError) {
-        return null;
+      if (error instanceof ScanRateLimitExceededError) {
+        throw error;
       }
 
-      return createUnclearScanResult(profile, pendingImage.uri);
-    } finally {
       setPendingImage(null);
+      if (error instanceof ScanQuotaExceededError) {
+        throw error;
+      }
+
+      return createUnclearScanResult(profile, selectedImage.uri);
     }
+  }
+
+  function showScanRateLimitAlert(retryAfterSeconds: number) {
+    const waitSeconds = Math.max(1, Math.ceil(retryAfterSeconds));
+    Alert.alert(
+      "Please wait before scanning again",
+      `Sift limits scans to protect reliability and prevent unexpected AI usage. Try again in about ${waitSeconds} seconds.`
+    );
   }
 
   function showScanLimitAlert(

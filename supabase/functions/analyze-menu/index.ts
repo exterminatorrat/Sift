@@ -148,6 +148,9 @@ const defaultMaxImageBase64Length = 3_000_000;
 const defaultBodyReadTimeoutMs = 8_000;
 const defaultInternalRequestTimeoutMs = 5_000;
 const defaultProviderTimeoutMs = 22_000;
+const defaultPerUserRequestRateLimit = 12;
+const defaultPerUserScanRateLimit = 4;
+const defaultGlobalScanRateLimit = 4;
 const promptVersion = "2026-07-12.3";
 const schemaVersion = "5";
 const retryableProviderStatuses = new Set([429, 500, 502, 503, 504]);
@@ -496,6 +499,19 @@ Deno.serve(async (request) => {
       return jsonResponse({ error: "Authentication required." }, 401);
     }
 
+    const requestRate = await claimMenuRequestMinuteRate(auth.userId);
+    if (!requestRate.allowed) {
+      return jsonResponse(
+        {
+          error: "Scan rate limit reached.",
+          code: "scan_rate_limited",
+          retryAfterSeconds: requestRate.retryAfterSeconds
+        },
+        429,
+        { "Retry-After": String(requestRate.retryAfterSeconds) }
+      );
+    }
+
     const parsedBody = await readBoundedJsonBody<Partial<AnalyzeMenuRequest>>(request);
     if (!parsedBody.ok) {
       return jsonResponse({ error: "Invalid analysis request." }, parsedBody.status);
@@ -507,14 +523,15 @@ Deno.serve(async (request) => {
     }
 
     const entitlement = await resolveEntitlement(auth.userId);
-    const quota = await claimMenuScanQuota(auth.userId, entitlement.planId, entitlement.scanLimit);
+    const quota = await claimMenuScanLimits(auth.userId, entitlement.planId, entitlement.scanLimit);
     if (!quota.allowed) {
+      const isMonthlyLimit = quota.rejectionReason === "monthly_quota_reached";
       await recordAnalysisEvent({
         requestId,
         provider: null,
         model: null,
         outcome: "quota_rejected",
-        failureCode: "monthly_quota_reached",
+        failureCode: quota.rejectionReason ?? "scan_limit_reached",
         latencyMs: Date.now() - requestStartedAt,
         imageBytes: estimateBase64Bytes(body.imageBase64),
         dishCount: null,
@@ -522,13 +539,21 @@ Deno.serve(async (request) => {
         planId: entitlement.planId
       });
       return jsonResponse(
-        {
-          error: "Monthly scan limit reached.",
-          scanCount: quota.scanCount,
-          scanLimit: quota.scanLimit,
-          monthStart: quota.monthStart
-        },
-        429
+        isMonthlyLimit
+          ? {
+              error: "Monthly scan limit reached.",
+              code: "monthly_scan_limit",
+              scanCount: quota.monthlyScanCount,
+              scanLimit: quota.monthlyScanLimit,
+              monthStart: quota.monthStart
+            }
+          : {
+              error: "Scan rate limit reached.",
+              code: "scan_rate_limited",
+              retryAfterSeconds: quota.retryAfterSeconds
+            },
+        429,
+        isMonthlyLimit ? {} : { "Retry-After": String(quota.retryAfterSeconds) }
       );
     }
 
@@ -630,11 +655,18 @@ type EntitlementResult = {
   scanLimit: number;
 };
 
-type QuotaResult = {
+type RequestRateResult = {
   allowed: boolean;
-  scanCount: number;
-  scanLimit: number;
+  retryAfterSeconds: number;
+};
+
+type ScanLimitResult = {
+  allowed: boolean;
+  rejectionReason: string | null;
+  monthlyScanCount: number;
+  monthlyScanLimit: number;
   monthStart: string;
+  retryAfterSeconds: number;
 };
 
 async function authenticateRequest(request: Request): Promise<AuthResult> {
@@ -683,28 +715,82 @@ async function resolveEntitlement(userId: string): Promise<EntitlementResult> {
   };
 }
 
-async function claimMenuScanQuota(
+async function claimMenuRequestMinuteRate(userId: string): Promise<RequestRateResult> {
+  const requestLimit = readBoundedEnvironmentInteger(
+    "PER_USER_REQUEST_RATE_LIMIT",
+    defaultPerUserRequestRateLimit,
+    1,
+    120
+  );
+  const rate = await callSupabaseRpc<{
+    allowed?: boolean;
+    retry_after_seconds?: number;
+  }>("sift_claim_menu_request_minute", {
+    p_user_id: userId,
+    p_request_limit: requestLimit
+  });
+
+  return {
+    allowed: rate?.allowed === true,
+    retryAfterSeconds: readPositiveInteger(rate?.retry_after_seconds, 60)
+  };
+}
+
+async function claimMenuScanLimits(
   userId: string,
   planId: SubscriptionPlanId,
   scanLimit: number
-): Promise<QuotaResult> {
+): Promise<ScanLimitResult> {
+  const userLimit = readBoundedEnvironmentInteger(
+    "PER_USER_SCAN_RATE_LIMIT",
+    defaultPerUserScanRateLimit,
+    1,
+    60
+  );
+  const globalLimit = readBoundedEnvironmentInteger(
+    "GLOBAL_SCAN_RATE_LIMIT",
+    defaultGlobalScanRateLimit,
+    1,
+    600
+  );
   const quota = await callSupabaseRpc<{
     allowed?: boolean;
-    scan_count?: number;
-    scan_limit?: number;
+    rejection_reason?: string | null;
+    monthly_scan_count?: number;
+    monthly_scan_limit?: number;
     month_start?: string;
-  }>("sift_claim_menu_scan", {
+    retry_after_seconds?: number;
+  }>("sift_claim_menu_scan_limits", {
     p_user_id: userId,
     p_plan_id: planId,
-    p_scan_limit: scanLimit
+    p_scan_limit: scanLimit,
+    p_user_limit: userLimit,
+    p_global_limit: globalLimit
   });
 
   return {
     allowed: quota?.allowed === true,
-    scanCount: Number(quota?.scan_count ?? 0),
-    scanLimit: Number(quota?.scan_limit ?? scanLimit),
-    monthStart: readString(quota?.month_start)
+    rejectionReason: readString(quota?.rejection_reason) || null,
+    monthlyScanCount: Number(quota?.monthly_scan_count ?? 0),
+    monthlyScanLimit: Number(quota?.monthly_scan_limit ?? scanLimit),
+    monthStart: readString(quota?.month_start),
+    retryAfterSeconds: readPositiveInteger(quota?.retry_after_seconds, 60)
   };
+}
+
+function readPositiveInteger(value: unknown, fallback: number) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(1, Math.ceil(parsed)) : fallback;
+}
+
+function readBoundedEnvironmentInteger(
+  name: string,
+  fallback: number,
+  minimum: number,
+  maximum: number
+) {
+  const value = Number(Deno.env.get(name) ?? fallback);
+  return Number.isInteger(value) && value >= minimum && value <= maximum ? value : fallback;
 }
 
 async function callSupabaseRpc<T>(functionName: string, params: Record<string, unknown>): Promise<T | null> {
