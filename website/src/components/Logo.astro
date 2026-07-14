@@ -1,0 +1,13 @@
+---
+type Props = {
+  href?: string;
+  compact?: boolean;
+};
+
+const { href = "/", compact = false } = Astro.props;
+---
+
+<a class:list={["brand", compact && "brand--compact"]} href={href} aria-label="Sift home">
+  <img class="brand__mark" src="/brand/sift-mark.svg" alt="" width="34" height="34" aria-hidden="true" />
+  <span class="brand__wordmark">Sift</span>
+</a>

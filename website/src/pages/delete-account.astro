@@ -1,0 +1,92 @@
+---
+import PageHero from "../components/PageHero.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../config/site";
+
+const title = "Delete Your Sift Account";
+const description =
+  "How to remove local Sift profiles and scan history, request deletion of account data, and understand what may be retained.";
+const deleteSubject = encodeURIComponent("Delete my Sift account");
+const deleteMailto = `mailto:${site.supportEmail}?subject=${deleteSubject}`;
+---
+
+<BaseLayout title={title} description={description} path="/delete-account">
+  <PageHero
+    eyebrow="Privacy control"
+    title="Delete your Sift data."
+    description="Local app records and server-side account records are handled differently. Follow both parts below when you want a complete deletion request."
+    compact
+  />
+
+  <section class="content-section">
+    <article class="shell prose">
+      <div class="legal-meta" aria-label="Deletion page details">
+        <span><strong>{site.legalEffectiveDate ? "Effective" : "Last updated"}:</strong> {site.legalEffectiveDate ?? "July 10, 2026"}</span>
+        <span><strong>Support:</strong> {site.supportEmail}</span>
+      </div>
+
+      <div class="callout">
+        <strong>Protect your privacy when asking for help.</strong> Do not email menu photos, medical records, or the details of your allergy profile. We need only enough account information to locate and verify the request.
+      </div>
+
+      <h2>1. Remove information stored on your device</h2>
+      <p>
+        Sift stores allergy profiles, language preferences, onboarding state, subscription-state settings, and scan history in app storage on your device. To remove information you can control immediately:
+      </p>
+      <ol>
+        <li>Open the <strong>Profile</strong> tab and delete saved profiles you no longer want. If your version of Sift requires an active profile, replace its values with non-identifying defaults before leaving the app.</li>
+        <li>Open <strong>Settings</strong> and choose <strong>Clear Scan History</strong> to remove saved scan results from the device.</li>
+        <li>Sign out if you use an account, then remove the app and its data using your device settings if you no longer plan to use it.</li>
+      </ol>
+      <p>
+        <strong>Signing out alone does not delete profiles or scan history.</strong> Device backups, platform storage, and restored installations may also affect whether a local copy persists, so use the in-app controls before removing Sift.
+      </p>
+
+      <h2>2. Request account and server-data deletion</h2>
+      <p>
+        This website does not ask you to enter account credentials. To request deletion, email <a href={deleteMailto}>{site.supportEmail}</a> with the subject <strong>Delete my Sift account</strong>.
+      </p>
+      <p>In the message:</p>
+      <ul>
+        <li>send from the email address or Apple private relay address associated with the account, when available;</li>
+        <li>state clearly that you want the Sift account and associated server data deleted; and</li>
+        <li>if the account has no visible email address, explain how you signed in without adding sensitive allergy or medical details.</li>
+      </ul>
+      <p>
+        We may ask for limited additional information to verify that you control the account. We will not ask for your password, Apple ID password, device passcode, or full allergy profile.
+      </p>
+
+      <p>
+        <a class="button button--primary" href={deleteMailto}>Email a deletion request</a>
+      </p>
+
+      <h2>3. What the request covers</h2>
+      <p>
+        After verification, a deletion request covers the Sift account identifiers and account information under our control, along with cloud-stored profile or scan data associated with that account if those features are enabled. We will also delete or de-identify support-linked personal information when it is no longer needed to document and complete the request.
+      </p>
+      <p>
+        Information stored only on your device cannot be removed remotely by this website or support. Follow the local-deletion steps above on every device where you used Sift.
+      </p>
+
+      <h2>4. Information that may remain temporarily</h2>
+      <p>
+        Some limited information may remain after a deletion request when reasonably necessary for security, fraud and abuse prevention, legal compliance, dispute handling, or financial recordkeeping. Data may also remain for a period in restricted backups, provider queues, and security logs before it is deleted or overwritten under the applicable process. De-identified information that can no longer reasonably be linked to you may be retained for reliability and service improvement.
+      </p>
+
+      <h2>5. Subscriptions and platform records</h2>
+      <p>
+        Account deletion does not necessarily cancel a subscription managed by your device's app marketplace. If you have a paid subscription, cancel it separately in your device's subscription settings. Apple or another platform may retain purchase and account records under its own policies. You can also manage Sign in with Apple access in your Apple ID settings.
+      </p>
+
+      <h2>6. Confirmation and follow-up</h2>
+      <p>
+        We will acknowledge the request, complete any necessary verification, and send confirmation when deletion under our control is complete. Timing can vary based on the type of account, provider processing, backup cycles, and legal requirements. You can reply to the same email thread at any time to ask for status.
+      </p>
+
+      <h2>7. Questions</h2>
+      <p>
+        For help with deletion or another privacy request, email <a href={`mailto:${site.supportEmail}`}>{site.supportEmail}</a>. Read the <a href="/privacy">Privacy Policy</a> for more detail about Sift's data practices.
+      </p>
+    </article>
+  </section>
+</BaseLayout>

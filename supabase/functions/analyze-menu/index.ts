@@ -1,3 +1,26 @@
+import { createConfigurationProvenance } from "../_shared/ai/configuration.mjs";
+import {
+  createFallbackScanResult as createSharedFallbackScanResult,
+  mergeAnalysisSources as mergeSharedAnalysisSources,
+  normalizeModelScanResult,
+  sanitizeScanResult as sanitizeSharedScanResult,
+  withAnalysisMetadata as withSharedAnalysisMetadata
+} from "../_shared/ai/normalization.mjs";
+import {
+  buildMenuPageLabel,
+  buildSystemPrompt,
+  buildUserPrompt,
+  promptVersion
+} from "../_shared/ai/prompts.mjs";
+import { validateModelScanResult } from "../_shared/ai/provider-validation.mjs";
+import { validatePublicScanResult } from "../_shared/ai/public-validation.mjs";
+import { applyRiskPolicy } from "../_shared/ai/risk-policy.mjs";
+import {
+  modelScanResultSchema,
+  schemaVersion,
+  toGeminiOpenApiSchema
+} from "../_shared/ai/schemas.mjs";
+
 type AllergySeverity = "mild" | "moderate" | "severe";
 type RiskLevel = "low_risk" | "ask_staff" | "high_risk" | "avoid_unless_confirmed" | "unclear";
 type ImageReadability = "clear" | "partially_clear" | "poor";
@@ -27,12 +50,23 @@ type UserProfile = {
   restaurantLanguage?: string;
 };
 
-type AnalyzeMenuRequest = {
-  profile: UserProfile;
+type MenuImagePayload = {
   imageBase64: string;
   mimeType: "image/jpeg" | "image/png" | "image/webp";
+};
+
+type AnalyzeMenuRequestPayload = {
+  profile?: UserProfile;
+  images?: MenuImagePayload[];
+  imageBase64?: string;
+  mimeType?: MenuImagePayload["mimeType"];
   restaurantLanguage?: string;
-  testPlanId?: SubscriptionPlanId;
+};
+
+type AnalyzeMenuRequest = {
+  profile: UserProfile;
+  images: MenuImagePayload[];
+  restaurantLanguage?: string;
 };
 
 type AnalysisProvider = "openai" | "nvidia" | "gemini";
@@ -81,6 +115,11 @@ type ScanResult = {
   analysisSource?: "ai" | "fallback";
   analysisModel?: string | null;
   analysisRequestId?: string | null;
+  pageAssessments: Array<{
+    pageNumber: number;
+    readability: ImageReadability;
+    issues: string[];
+  }>;
   scanSummary: {
     overallRisk: RiskLevel;
     summary: string;
@@ -90,6 +129,7 @@ type ScanResult = {
     id: string;
     dishName: string;
     menuDescription?: string | null;
+    sourcePageNumbers: number[];
     riskLevel: RiskLevel;
     possibleAllergens: string[];
     hiddenRiskIngredients: string[];
@@ -127,15 +167,6 @@ type ScanResult = {
   };
 };
 
-const riskLevels = new Set<RiskLevel>([
-  "low_risk",
-  "ask_staff",
-  "high_risk",
-  "avoid_unless_confirmed",
-  "unclear"
-]);
-
-const readabilityValues = new Set<ImageReadability>(["clear", "partially_clear", "poor"]);
 const evidenceConfidenceValues = new Set<EvidenceConfidence>(["high", "medium", "low"]);
 const riskBasisValues = new Set<RiskBasis>([
   "visible_text",
@@ -146,11 +177,14 @@ const riskBasisValues = new Set<RiskBasis>([
   "image_uncertain"
 ]);
 const defaultMaxImageBase64Length = 3_000_000;
+const defaultMaxTotalImageBase64Length = 12_000_000;
+const defaultMaxMenuImageCount = 4;
+const defaultBodyReadTimeoutMs = 20_000;
+const defaultInternalRequestTimeoutMs = 5_000;
 const defaultProviderTimeoutMs = 22_000;
-const promptVersion = "2026-07-10.4";
-const schemaVersion = "5";
-const retryableProviderStatuses = new Set([429, 500, 502, 503, 504]);
-const maxImmediateRetryElapsedMs = 5_000;
+const defaultPerUserRequestRateLimit = 12;
+const defaultPerUserScanRateLimit = 4;
+const defaultGlobalScanRateLimit = 4;
 const maxProfileNameLength = 80;
 const maxAllergyNameLength = 80;
 const maxAllergyNotesLength = 500;
@@ -162,316 +196,13 @@ const planScanLimits: Record<SubscriptionPlanId, number> = {
   family: 500
 };
 
-const riskRank: Record<RiskLevel, number> = {
-  low_risk: 0,
-  ask_staff: 1,
-  unclear: 1,
-  high_risk: 2,
-  avoid_unless_confirmed: 3
-};
-
-const allergenRiskPatterns: Record<string, string[]> = {
-  sesame: ["sesame", "sesame oil", "tahini", "goma", "furikake", "za'atar", "benne"],
-  peanut: ["peanut", "groundnut", "satay", "mole", "arachide", "peanut oil"],
-  dairy: ["dairy", "milk", "cream", "butter", "ghee", "whey", "casein", "cheese", "queso", "paneer"],
-  egg: ["egg", "mayo", "mayonnaise", "aioli", "custard"],
-  soy: ["soy", "soy sauce", "tofu", "miso", "tamari", "edamame"],
-  "wheat/gluten": ["wheat", "gluten", "flour", "batter", "breadcrumbs", "soy sauce", "noodles", "seitan"],
-  shellfish: ["shellfish", "shrimp", "prawn", "crab", "lobster", "clam", "mussel", "oyster", "scallop"],
-  "tree nuts": ["tree nut", "tree nuts", "almond", "walnut", "cashew", "pistachio", "hazelnut", "pecan", "macadamia"],
-  fish: ["fish", "fish sauce", "anchovy", "bacalhau", "pescado", "poisson", "fisch", "pesce", "peixe"],
-  mustard: ["mustard", "mostaza", "moutarde", "senf", "senfsauce", "senape", "mostarda"],
-  sulfites: ["sulfite", "sulfites", "sulphite", "sulphites", "sulfit", "sulfito", "sulfitos", "wine", "wein", "vino", "vin"],
-  mango: ["mango", "mangue", "manga"]
-};
-
-const directAllergenPatterns: Record<string, string[]> = {
-  sesame: ["sesame", "sesame oil", "tahini", "goma", "benne", "sesamo", "ajonjoli", "sésame", "sesam", "gergelim", "ごま", "ゴマ", "胡麻", "참깨", "참기름", "芝麻", "芝麻酱", "香油", "งา", "น้ำมันงา"],
-  peanut: ["peanut", "groundnut", "arachide", "peanut oil", "cacahuate", "cacahuete", "mani", "maní", "erdnuss", "amendoim", "ピーナッツ", "落花生", "땅콩", "花生", "ถั่วลิสง"],
-  dairy: ["dairy", "milk", "cream", "butter", "ghee", "whey", "casein", "cheese", "queso", "paneer", "lait", "beurre", "creme", "crème", "fromage", "milch", "sahne", "käse", "burro", "panna", "formaggio", "parmigiano", "leite", "manteiga", "queijo", "牛乳", "乳製品", "버터", "우유", "牛奶", "奶", "นม", "เนย"],
-  egg: ["egg", "mayo", "mayonnaise", "aioli", "custard", "huevo", "oeuf", "œuf", "ei", "uovo", "ovo", "卵", "玉子", "계란", "달걀", "鸡蛋", "蛋", "ไข่"],
-  soy: ["soy", "soy sauce", "tofu", "miso", "tamari", "edamame", "soja", "しょうゆ", "醤油", "大豆", "豆腐", "味噌", "간장", "대두", "두부", "酱油", "ซีอิ๊ว", "ถั่วเหลือง"],
-  "wheat/gluten": ["wheat", "gluten", "flour", "breadcrumbs", "seitan"],
-  shellfish: ["shellfish", "shrimp", "prawn", "crab", "lobster", "clam", "mussel", "oyster", "scallop", "marisco", "camarón", "crevette", "gambero", "gamberi", "garnele", "camarão", "えび", "エビ", "かに", "カニ", "새우", "게", "虾", "蝦", "蟹", "กุ้ง", "ปู"],
-  "tree nuts": ["tree nut", "tree nuts", "almond", "walnut", "cashew", "pistachio", "hazelnut", "pecan", "macadamia"],
-  fish: ["fish", "pescado", "poisson", "fisch", "pesce", "peixe", "bacalhau", "魚", "鱼", "생선", "ปลา"],
-  mustard: ["mustard", "mostaza", "moutarde", "senf", "senfsauce", "senape", "mostarda", "マスタード", "겨자", "芥末", "มัสตาร์ด"],
-  sulfites: ["sulfite", "sulfites", "sulphite", "sulphites", "sulfit", "sulfito", "sulfitos", "亜硫酸塩", "아황산염", "亚硫酸盐", "ซัลไฟต์"],
-  mango: ["mango", "mangue", "manga", "マンゴー", "망고", "芒果", "มะม่วง"]
-};
-
-const vaguePrepPatterns = [
-  "house sauce",
-  "signature sauce",
-  "dressing",
-  "marinade",
-  "broth",
-  "batter",
-  "fried",
-  "shared fryer",
-  "shared grill",
-  "wok-tossed",
-  "spice mix",
-  "garnish"
-];
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Expose-Headers": "X-Sift-Analysis-Failure"
+  "Access-Control-Expose-Headers": "X-Sift-Analysis-Failure, X-Sift-Analysis-Provider, X-Sift-Analysis-Model, X-Sift-Analysis-Configuration, X-Sift-Input-Tokens, X-Sift-Output-Tokens, X-Sift-Thinking-Tokens"
 };
 
-const scanResultSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: [
-    "id",
-    "createdAt",
-    "imageUri",
-    "restaurantName",
-    "profileId",
-    "scanSummary",
-    "dishes",
-    "restaurantMessage",
-    "imageQuality",
-    "transparency"
-  ],
-  properties: {
-    id: { type: "string" },
-    createdAt: { type: "string" },
-    imageUri: { type: ["string", "null"] },
-    restaurantName: { type: ["string", "null"] },
-    profileId: { type: "string" },
-    scanSummary: {
-      type: "object",
-      additionalProperties: false,
-      required: ["overallRisk", "summary", "limitations"],
-      properties: {
-        overallRisk: {
-          type: "string",
-          enum: ["low_risk", "ask_staff", "high_risk", "avoid_unless_confirmed", "unclear"]
-        },
-        summary: { type: "string" },
-        limitations: { type: "string" }
-      }
-    },
-    dishes: {
-      type: "array",
-      minItems: 1,
-      maxItems: 30,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: [
-          "id",
-          "dishName",
-          "menuDescription",
-          "riskLevel",
-          "possibleAllergens",
-          "hiddenRiskIngredients",
-          "crossContactConcerns",
-          "evidenceConfidence",
-          "riskBasis",
-          "reason",
-          "questionsToAsk",
-          "questionsToAskUserLanguage",
-          "conservativeLanguage",
-          "transparency"
-        ],
-        properties: {
-          id: { type: "string" },
-          dishName: { type: "string" },
-          menuDescription: { type: ["string", "null"] },
-          riskLevel: {
-            type: "string",
-            enum: ["low_risk", "ask_staff", "high_risk", "avoid_unless_confirmed", "unclear"]
-          },
-          possibleAllergens: { type: "array", items: { type: "string" } },
-          hiddenRiskIngredients: { type: "array", items: { type: "string" } },
-          crossContactConcerns: { type: "array", items: { type: "string" } },
-          evidenceConfidence: { type: "string", enum: ["high", "medium", "low"] },
-          riskBasis: {
-            type: "array",
-            minItems: 1,
-            items: {
-              type: "string",
-              enum: [
-                "visible_text",
-                "common_pattern",
-                "unknown_ingredient",
-                "cross_contact",
-                "translation_uncertain",
-                "image_uncertain"
-              ]
-            }
-          },
-          reason: { type: "string" },
-          questionsToAsk: { type: "array", minItems: 1, maxItems: 6, items: { type: "string" } },
-          questionsToAskUserLanguage: { type: "array", minItems: 1, maxItems: 6, items: { type: "string" } },
-          conservativeLanguage: { type: "string" },
-          transparency: {
-            type: "object",
-            additionalProperties: false,
-            required: ["visibleMenuText", "profileFactors", "commonRiskPatterns", "uncertainty"],
-            properties: {
-              visibleMenuText: { type: "array", maxItems: 5, items: { type: "string" } },
-              profileFactors: { type: "array", maxItems: 5, items: { type: "string" } },
-              commonRiskPatterns: { type: "array", maxItems: 5, items: { type: "string" } },
-              uncertainty: { type: "array", maxItems: 5, items: { type: "string" } }
-            }
-          }
-        }
-      }
-    },
-    restaurantMessage: {
-      type: ["object", "null"],
-      additionalProperties: false,
-      required: ["english", "translated", "language", "userLanguageText", "userLanguage"],
-      properties: {
-        english: { type: "string" },
-        translated: { type: ["string", "null"] },
-        language: { type: ["string", "null"] },
-        userLanguageText: { type: ["string", "null"] },
-        userLanguage: { type: ["string", "null"] }
-      }
-    },
-    imageQuality: {
-      type: "object",
-      additionalProperties: false,
-      required: ["readability", "issues", "needsRetake"],
-      properties: {
-        readability: { type: "string", enum: ["clear", "partially_clear", "poor"] },
-        issues: { type: "array", items: { type: "string" } },
-        needsRetake: { type: "boolean" }
-      }
-    },
-    transparency: {
-      type: "object",
-      additionalProperties: false,
-      required: ["checked", "limitations", "sourceReferences", "webSearchQueries"],
-      properties: {
-        checked: { type: "array", maxItems: 6, items: { type: "string" } },
-        limitations: { type: "array", maxItems: 6, items: { type: "string" } },
-        sourceReferences: {
-          type: "array",
-          items: {
-            type: "object",
-            additionalProperties: false,
-            required: ["title", "uri", "source"],
-            properties: {
-              title: { type: "string" },
-              uri: { type: "string" },
-              source: { type: ["string", "null"] }
-            }
-          }
-        },
-        webSearchQueries: { type: "array", items: { type: "string" } }
-      }
-    }
-  }
-};
-
-// Provider-facing schema. Server-owned identity and transparency fields are
-// normalized and validated after inference to keep Gemini's schema tractable.
-const modelScanResultSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["restaurantName", "scanSummary", "dishes", "restaurantMessage", "imageQuality"],
-  properties: {
-    restaurantName: { type: "string" },
-    scanSummary: {
-      type: "object",
-      additionalProperties: false,
-      required: ["overallRisk", "summary", "limitations"],
-      properties: {
-        overallRisk: {
-          type: "string",
-          enum: ["low_risk", "ask_staff", "high_risk", "avoid_unless_confirmed", "unclear"]
-        },
-        summary: { type: "string" },
-        limitations: { type: "string" }
-      }
-    },
-    dishes: {
-      type: "array",
-      minItems: 1,
-      maxItems: 30,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: [
-          "dishName",
-          "menuDescription",
-          "riskLevel",
-          "possibleAllergens",
-          "hiddenRiskIngredients",
-          "crossContactConcerns",
-          "evidenceConfidence",
-          "riskBasis",
-          "reason",
-          "questionsToAsk",
-          "questionsToAskUserLanguage",
-          "conservativeLanguage"
-        ],
-        properties: {
-          dishName: { type: "string" },
-          menuDescription: { type: "string" },
-          riskLevel: {
-            type: "string",
-            enum: ["low_risk", "ask_staff", "high_risk", "avoid_unless_confirmed", "unclear"]
-          },
-          possibleAllergens: { type: "array", maxItems: 12, items: { type: "string" } },
-          hiddenRiskIngredients: { type: "array", maxItems: 12, items: { type: "string" } },
-          crossContactConcerns: { type: "array", maxItems: 8, items: { type: "string" } },
-          evidenceConfidence: { type: "string", enum: ["high", "medium", "low"] },
-          riskBasis: {
-            type: "array",
-            minItems: 1,
-            maxItems: 6,
-            items: {
-              type: "string",
-              enum: [
-                "visible_text",
-                "common_pattern",
-                "unknown_ingredient",
-                "cross_contact",
-                "translation_uncertain",
-                "image_uncertain"
-              ]
-            }
-          },
-          reason: { type: "string" },
-          questionsToAsk: { type: "array", minItems: 1, maxItems: 6, items: { type: "string" } },
-          questionsToAskUserLanguage: { type: "array", minItems: 1, maxItems: 6, items: { type: "string" } },
-          conservativeLanguage: { type: "string" }
-        }
-      }
-    },
-    restaurantMessage: {
-      type: "object",
-      additionalProperties: false,
-      required: ["english", "translated", "language", "userLanguageText", "userLanguage"],
-      properties: {
-        english: { type: "string" },
-        translated: { type: "string" },
-        language: { type: "string" },
-        userLanguageText: { type: "string" },
-        userLanguage: { type: "string" }
-      }
-    },
-    imageQuality: {
-      type: "object",
-      additionalProperties: false,
-      required: ["readability", "issues", "needsRetake"],
-      properties: {
-        readability: { type: "string", enum: ["clear", "partially_clear", "poor"] },
-        issues: { type: "array", maxItems: 8, items: { type: "string" } },
-        needsRetake: { type: "boolean" }
-      }
-    }
-  }
-};
 
 Deno.serve(async (request) => {
   const requestId = crypto.randomUUID();
@@ -492,62 +223,97 @@ Deno.serve(async (request) => {
 
     const auth = await authenticateRequest(request);
     if (!auth.ok) {
-      return jsonResponse({ error: "Authentication required." }, 401);
+      return auth.reason === "account_required"
+        ? jsonResponse({ error: "A signed-in account is required.", code: "account_required" }, 403)
+        : jsonResponse({ error: "Authentication required." }, 401);
     }
 
-    const parsedBody = await readBoundedJsonBody<Partial<AnalyzeMenuRequest>>(request);
+    const requestRate = await claimMenuRequestMinuteRate(auth.userId);
+    if (!requestRate.allowed) {
+      return jsonResponse(
+        {
+          error: "Scan rate limit reached.",
+          code: "scan_rate_limited",
+          retryAfterSeconds: requestRate.retryAfterSeconds
+        },
+        429,
+        { "Retry-After": String(requestRate.retryAfterSeconds) }
+      );
+    }
+
+    const parsedBody = await readBoundedJsonBody<AnalyzeMenuRequestPayload>(request);
     if (!parsedBody.ok) {
       return jsonResponse({ error: "Invalid analysis request." }, parsedBody.status);
     }
 
-    const body = parsedBody.value;
-    if (!isValidRequest(body)) {
+    const body = normalizeAnalyzeMenuRequest(parsedBody.value);
+    if (!body) {
       return jsonResponse({ error: "Invalid analysis request." }, 400);
     }
 
-    const entitlement = await resolveEntitlement(auth.userId, body.testPlanId);
-    const quota = await claimMenuScanQuota(auth.userId, entitlement.planId, entitlement.scanLimit);
+    const entitlement = await resolveEntitlement(auth.userId);
+    const quota = await claimMenuScanLimits(auth.userId, entitlement.planId, entitlement.scanLimit);
     if (!quota.allowed) {
+      const isMonthlyLimit = quota.rejectionReason === "monthly_quota_reached";
       await recordAnalysisEvent({
         requestId,
         provider: null,
         model: null,
         outcome: "quota_rejected",
-        failureCode: "monthly_quota_reached",
+        failureCode: quota.rejectionReason ?? "scan_limit_reached",
         latencyMs: Date.now() - requestStartedAt,
-        imageBytes: estimateBase64Bytes(body.imageBase64),
+        imageBytes: estimateImagesBytes(body.images),
         dishCount: null,
         imageReadability: null,
         planId: entitlement.planId
       });
       return jsonResponse(
-        {
-          error: "Monthly scan limit reached.",
-          scanCount: quota.scanCount,
-          scanLimit: quota.scanLimit,
-          monthStart: quota.monthStart
-        },
-        429
+        isMonthlyLimit
+          ? {
+              error: "Monthly scan limit reached.",
+              code: "monthly_scan_limit",
+              scanCount: quota.monthlyScanCount,
+              scanLimit: quota.monthlyScanLimit,
+              monthStart: quota.monthStart
+            }
+          : {
+              error: "Scan rate limit reached.",
+              code: "scan_rate_limited",
+              retryAfterSeconds: quota.retryAfterSeconds
+            },
+        429,
+        isMonthlyLimit ? {} : { "Retry-After": String(quota.retryAfterSeconds) }
       );
     }
 
-    const provider = getAnalysisProvider();
-    const configuredModel = getConfiguredModel(provider);
+    let provider: AnalysisProvider | null = null;
+    let configuredModel: string | null = null;
 
     try {
-      const analysis = await analyzeMenuWithRetry(body);
-      const scanResult = verifyScanResultRisk(sanitizeScanResult(
-        mergeAnalysisSources(
-          normalizeScanResult(parseModelJson(analysis.text), body.profile.id),
-          analysis
-        )
-      ), body.profile);
-      const validationError = validateScanResult(scanResult);
+      provider = getAnalysisProvider();
+      configuredModel = getConfiguredModel(provider);
+      const analysis = await analyzeMenu(body, provider);
+      const parsedModelResult = parseModelJson(analysis.text);
+      const providerValidationError = validateModelScanResult(parsedModelResult, {
+        profile: body.profile,
+        imageCount: body.images.length,
+        userLanguage: body.profile.preferredLanguage,
+        restaurantLanguage: body.restaurantLanguage ?? body.profile.restaurantLanguage ?? null
+      });
+      const scanResult = providerValidationError
+        ? null
+        : applyRiskPolicy(sanitizeSharedScanResult(
+            mergeSharedAnalysisSources(
+              normalizeModelScanResult(parsedModelResult, body.profile.id, { imageCount: body.images.length }),
+              analysis
+            )
+          ), body.profile) as ScanResult;
+      const validationError = providerValidationError ?? (scanResult ? validatePublicScanResult(scanResult) : "missing_scan_result");
 
-      if (validationError) {
+      if (validationError || !scanResult) {
         console.error("Invalid model response", requestId, validationError, analysis.provider, analysis.model);
-        const fallback = withAnalysisMetadata(
-          createFallbackScanResult(body.profile.id, analysis.model),
+        const fallback = withSharedAnalysisMetadata(
+          createSharedFallbackScanResult(body.profile.id, analysis.model, { imageCount: body.images.length }),
           requestId
         );
         await recordAnalysisEvent({
@@ -557,13 +323,14 @@ Deno.serve(async (request) => {
           outcome: "fallback",
           failureCode: `invalid_model_response:${validationError}`.slice(0, 80),
           latencyMs: Date.now() - requestStartedAt,
-          imageBytes: estimateBase64Bytes(body.imageBase64),
+          imageBytes: estimateImagesBytes(body.images),
           usage: analysis.usage,
           dishCount: fallback.dishes.length,
           imageReadability: fallback.imageQuality.readability,
           planId: entitlement.planId
         });
         return jsonResponse(fallback, 200, {
+          ...await analysisResponseHeaders(analysis.provider, analysis.model, analysis.usage),
           "X-Sift-Analysis-Failure": "model_output_invalid"
         });
       }
@@ -582,18 +349,22 @@ Deno.serve(async (request) => {
         outcome: "success",
         failureCode: null,
         latencyMs: Date.now() - requestStartedAt,
-        imageBytes: estimateBase64Bytes(body.imageBase64),
+        imageBytes: estimateImagesBytes(body.images),
         usage: analysis.usage,
         dishCount: responseResult.dishes.length,
         imageReadability: responseResult.imageQuality.readability,
         planId: entitlement.planId
       });
-      return jsonResponse(responseResult);
+      return jsonResponse(
+        responseResult,
+        200,
+        await analysisResponseHeaders(analysis.provider, analysis.model, analysis.usage)
+      );
     } catch (error) {
       const failureCode = getProviderFailureCode(error);
       console.error("Menu analysis provider failure", requestId, failureCode);
-      const fallback = withAnalysisMetadata(
-        createFallbackScanResult(body.profile.id, configuredModel),
+      const fallback = withSharedAnalysisMetadata(
+        createSharedFallbackScanResult(body.profile.id, configuredModel, { imageCount: body.images.length }),
         requestId
       );
       await recordAnalysisEvent({
@@ -603,12 +374,16 @@ Deno.serve(async (request) => {
         outcome: "fallback",
         failureCode,
         latencyMs: Date.now() - requestStartedAt,
-        imageBytes: estimateBase64Bytes(body.imageBase64),
+        imageBytes: estimateImagesBytes(body.images),
         dishCount: fallback.dishes.length,
         imageReadability: fallback.imageQuality.readability,
         planId: entitlement.planId
       });
+      const failureHeaders = provider && configuredModel
+        ? await analysisResponseHeaders(provider, configuredModel)
+        : {};
       return jsonResponse(fallback, 200, {
+        ...failureHeaders,
         "X-Sift-Analysis-Failure": publicAnalysisFailureCategory(failureCode)
       });
     }
@@ -620,59 +395,73 @@ Deno.serve(async (request) => {
 
 type AuthResult =
   | { ok: true; userId: string }
-  | { ok: false };
+  | { ok: false; reason: "account_required" | "authentication_required" };
 
 type EntitlementResult = {
   planId: SubscriptionPlanId;
   scanLimit: number;
 };
 
-type QuotaResult = {
+type RequestRateResult = {
   allowed: boolean;
-  scanCount: number;
-  scanLimit: number;
+  retryAfterSeconds: number;
+};
+
+type ScanLimitResult = {
+  allowed: boolean;
+  rejectionReason: string | null;
+  monthlyScanCount: number;
+  monthlyScanLimit: number;
   monthStart: string;
+  retryAfterSeconds: number;
 };
 
 async function authenticateRequest(request: Request): Promise<AuthResult> {
   const accessToken = readBearerToken(request);
   if (!accessToken) {
-    return { ok: false };
+    return { ok: false, reason: "authentication_required" };
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   if (!supabaseUrl || !anonKey) {
     console.error("Supabase auth environment is not configured.");
-    return { ok: false };
+    return { ok: false, reason: "authentication_required" };
   }
 
-  const response = await fetch(`${trimTrailingSlash(supabaseUrl)}/auth/v1/user`, {
-    headers: {
-      "apikey": anonKey,
-      "Authorization": `Bearer ${accessToken}`
-    }
-  });
+  const response = await fetchWithTimeout(
+    `${trimTrailingSlash(supabaseUrl)}/auth/v1/user`,
+    {
+      headers: {
+        "apikey": anonKey,
+        "Authorization": `Bearer ${accessToken}`
+      }
+    },
+    defaultInternalRequestTimeoutMs
+  );
 
   if (!response.ok) {
-    return { ok: false };
+    return { ok: false, reason: "authentication_required" };
   }
 
   const user = await response.json();
   const userId = readString(user?.id);
-  return userId ? { ok: true, userId } : { ok: false };
+  if (!userId) {
+    return { ok: false, reason: "authentication_required" };
+  }
+
+  if (Deno.env.get("REQUIRE_DURABLE_AUTH") === "true" && user?.is_anonymous === true) {
+    return { ok: false, reason: "account_required" };
+  }
+
+  return { ok: true, userId };
 }
 
-async function resolveEntitlement(
-  userId: string,
-  testPlanId?: SubscriptionPlanId
-): Promise<EntitlementResult> {
-  const requestedTestPlan = isTestEntitlementSyncEnabled() && isPlanId(testPlanId) ? testPlanId : null;
-  const rpcName = requestedTestPlan ? "sift_set_test_entitlement" : "sift_get_or_create_entitlement";
-  const params = requestedTestPlan
-    ? { p_user_id: userId, p_plan_id: requestedTestPlan }
-    : { p_user_id: userId };
-  const entitlement = await callSupabaseRpc<{ plan_id?: string }>(rpcName, params);
+async function resolveEntitlement(userId: string): Promise<EntitlementResult> {
+  const entitlement = await callSupabaseRpc<{ plan_id?: string }>(
+    "sift_get_or_create_entitlement",
+    { p_user_id: userId }
+  );
   const planId = isPlanId(entitlement?.plan_id) ? entitlement.plan_id : "free";
 
   return {
@@ -681,28 +470,82 @@ async function resolveEntitlement(
   };
 }
 
-async function claimMenuScanQuota(
+async function claimMenuRequestMinuteRate(userId: string): Promise<RequestRateResult> {
+  const requestLimit = readBoundedEnvironmentInteger(
+    "PER_USER_REQUEST_RATE_LIMIT",
+    defaultPerUserRequestRateLimit,
+    1,
+    120
+  );
+  const rate = await callSupabaseRpc<{
+    allowed?: boolean;
+    retry_after_seconds?: number;
+  }>("sift_claim_menu_request_minute", {
+    p_user_id: userId,
+    p_request_limit: requestLimit
+  });
+
+  return {
+    allowed: rate?.allowed === true,
+    retryAfterSeconds: readPositiveInteger(rate?.retry_after_seconds, 60)
+  };
+}
+
+async function claimMenuScanLimits(
   userId: string,
   planId: SubscriptionPlanId,
   scanLimit: number
-): Promise<QuotaResult> {
+): Promise<ScanLimitResult> {
+  const userLimit = readBoundedEnvironmentInteger(
+    "PER_USER_SCAN_RATE_LIMIT",
+    defaultPerUserScanRateLimit,
+    1,
+    60
+  );
+  const globalLimit = readBoundedEnvironmentInteger(
+    "GLOBAL_SCAN_RATE_LIMIT",
+    defaultGlobalScanRateLimit,
+    1,
+    600
+  );
   const quota = await callSupabaseRpc<{
     allowed?: boolean;
-    scan_count?: number;
-    scan_limit?: number;
+    rejection_reason?: string | null;
+    monthly_scan_count?: number;
+    monthly_scan_limit?: number;
     month_start?: string;
-  }>("sift_claim_menu_scan", {
+    retry_after_seconds?: number;
+  }>("sift_claim_menu_scan_limits", {
     p_user_id: userId,
     p_plan_id: planId,
-    p_scan_limit: scanLimit
+    p_scan_limit: scanLimit,
+    p_user_limit: userLimit,
+    p_global_limit: globalLimit
   });
 
   return {
     allowed: quota?.allowed === true,
-    scanCount: Number(quota?.scan_count ?? 0),
-    scanLimit: Number(quota?.scan_limit ?? scanLimit),
-    monthStart: readString(quota?.month_start)
+    rejectionReason: readString(quota?.rejection_reason) || null,
+    monthlyScanCount: Number(quota?.monthly_scan_count ?? 0),
+    monthlyScanLimit: Number(quota?.monthly_scan_limit ?? scanLimit),
+    monthStart: readString(quota?.month_start),
+    retryAfterSeconds: readPositiveInteger(quota?.retry_after_seconds, 60)
   };
+}
+
+function readPositiveInteger(value: unknown, fallback: number) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(1, Math.ceil(parsed)) : fallback;
+}
+
+function readBoundedEnvironmentInteger(
+  name: string,
+  fallback: number,
+  minimum: number,
+  maximum: number
+) {
+  const value = Number(Deno.env.get(name) ?? fallback);
+  return Number.isInteger(value) && value >= minimum && value <= maximum ? value : fallback;
 }
 
 async function callSupabaseRpc<T>(functionName: string, params: Record<string, unknown>): Promise<T | null> {
@@ -713,16 +556,20 @@ async function callSupabaseRpc<T>(functionName: string, params: Record<string, u
     throw new Error("Supabase service role environment is not configured.");
   }
 
-  const response = await fetch(`${trimTrailingSlash(supabaseUrl)}/rest/v1/rpc/${functionName}`, {
-    method: "POST",
-    headers: {
-      "apikey": serviceRoleKey,
-      "Authorization": `Bearer ${serviceRoleKey}`,
-      "Content-Type": "application/json",
-      "Accept": "application/json"
+  const response = await fetchWithTimeout(
+    `${trimTrailingSlash(supabaseUrl)}/rest/v1/rpc/${functionName}`,
+    {
+      method: "POST",
+      headers: {
+        "apikey": serviceRoleKey,
+        "Authorization": `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(params)
     },
-    body: JSON.stringify(params)
-  });
+    defaultInternalRequestTimeoutMs
+  );
 
   if (!response.ok) {
     throw new Error(`Supabase RPC failed: ${JSON.stringify(await readErrorPreview(response))}`);
@@ -742,75 +589,67 @@ function isPlanId(value: unknown): value is SubscriptionPlanId {
   return value === "free" || value === "plus" || value === "pro" || value === "family";
 }
 
-function isTestEntitlementSyncEnabled() {
-  return Deno.env.get("ALLOW_TEST_ENTITLEMENT_SYNC") === "true";
-}
-
 class ProviderRequestError extends Error {
   constructor(
     readonly provider: AnalysisProvider,
     readonly status: number | null,
-    readonly failureCode: string,
-    readonly retryAfterMs = 250
+    readonly failureCode: string
   ) {
     super(failureCode);
   }
 }
 
-async function analyzeMenuWithRetry(request: AnalyzeMenuRequest): Promise<AnalysisOutput> {
-  const startedAt = Date.now();
+class ProviderConfigurationError extends Error {
+  readonly failureCode = "provider_configuration_invalid";
 
-  try {
-    return await analyzeMenu(request);
-  } catch (error) {
-    const elapsedMs = Date.now() - startedAt;
-    if (
-      !(error instanceof ProviderRequestError) ||
-      error.status === null ||
-      !retryableProviderStatuses.has(error.status) ||
-      elapsedMs > maxImmediateRetryElapsedMs
-    ) {
-      throw error;
-    }
-
-    await delay(Math.min(Math.max(error.retryAfterMs, 0), 1_000));
-    return analyzeMenu(request);
+  constructor() {
+    super("AI provider configuration is missing or unsupported.");
+    this.name = "ProviderConfigurationError";
   }
 }
 
-async function analyzeMenu(request: AnalyzeMenuRequest): Promise<AnalysisOutput> {
-  const provider = getAnalysisProvider();
-
-  if (provider === "nvidia") {
-    return analyzeWithNvidia(request);
+async function analyzeMenu(
+  request: AnalyzeMenuRequest,
+  provider: AnalysisProvider
+): Promise<AnalysisOutput> {
+  switch (provider) {
+    case "openai":
+      return analyzeWithOpenAi(request);
+    case "nvidia":
+      return analyzeWithNvidia(request);
+    case "gemini":
+      return analyzeWithGemini(request);
   }
 
-  if (provider === "gemini") {
-    return analyzeWithGemini(request);
-  }
-
-  return analyzeWithOpenAi(request);
+  return rejectUnsupportedProvider(provider);
 }
 
 function getAnalysisProvider(): AnalysisProvider {
   const provider = Deno.env.get("AI_PROVIDER")?.trim().toLowerCase();
-  if (provider === "gemini") {
-    return "gemini";
-  }
 
-  return provider === "nvidia" ? "nvidia" : "openai";
+  switch (provider) {
+    case "openai":
+      return "openai";
+    case "nvidia":
+      return "nvidia";
+    case "gemini":
+      return "gemini";
+    default:
+      throw new ProviderConfigurationError();
+  }
 }
 
 function getConfiguredModel(provider: AnalysisProvider) {
-  if (provider === "gemini") {
-    return Deno.env.get("GEMINI_MODEL") ?? "gemini-3.5-flash";
+  switch (provider) {
+    case "openai":
+      return Deno.env.get("OPENAI_MODEL") ?? "gpt-5.4-mini";
+    case "nvidia":
+      return Deno.env.get("NVIDIA_MODEL") ?? "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning";
+    case "gemini":
+      return Deno.env.get("GEMINI_MODEL") ?? "gemini-3.5-flash";
   }
 
-  if (provider === "nvidia") {
-    return Deno.env.get("NVIDIA_MODEL") ?? "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning";
-  }
-
-  return Deno.env.get("OPENAI_MODEL") ?? "gpt-5.4-mini";
+  return rejectUnsupportedProvider(provider);
 }
 
 async function analyzeWithOpenAi(request: AnalyzeMenuRequest): Promise<AnalysisOutput> {
@@ -828,8 +667,8 @@ async function analyzeWithOpenAi(request: AnalyzeMenuRequest): Promise<AnalysisO
     },
     body: JSON.stringify({
       model,
-      reasoning: { effort: Deno.env.get("OPENAI_REASONING_EFFORT") ?? "low" },
-      max_output_tokens: Number(Deno.env.get("OPENAI_MAX_OUTPUT_TOKENS") ?? 3500),
+      reasoning: { effort: getOpenAiReasoningEffort() },
+      max_output_tokens: getProviderMaxOutputTokens("openai"),
       text: {
         verbosity: "low",
         format: {
@@ -856,10 +695,16 @@ async function analyzeWithOpenAi(request: AnalyzeMenuRequest): Promise<AnalysisO
               type: "input_text",
               text: buildUserPrompt(request)
             },
-            {
-              type: "input_image",
-              image_url: `data:${request.mimeType};base64,${request.imageBase64}`
-            }
+            ...request.images.flatMap((image, index) => [
+              {
+                type: "input_text",
+                text: buildMenuPageLabel(index, request.images.length)
+              },
+              {
+                type: "input_image",
+                image_url: `data:${image.mimeType};base64,${image.imageBase64}`
+              }
+            ])
           ]
         }
       ]
@@ -871,8 +716,7 @@ async function analyzeWithOpenAi(request: AnalyzeMenuRequest): Promise<AnalysisO
     throw new ProviderRequestError(
       "openai",
       response.status,
-      `openai_http_${response.status}`,
-      readRetryAfterMs(response)
+      `openai_http_${response.status}`
     );
   }
 
@@ -891,7 +735,7 @@ async function analyzeWithNvidia(request: AnalyzeMenuRequest): Promise<AnalysisO
     throw new Error("NVIDIA analysis service is not configured.");
   }
 
-  const baseUrl = trimTrailingSlash(Deno.env.get("NVIDIA_BASE_URL") ?? "https://integrate.api.nvidia.com/v1");
+  const baseUrl = getNvidiaBaseUrl();
   const model = Deno.env.get("NVIDIA_MODEL") ?? "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning";
   const response = await fetchWithTimeout(`${baseUrl}/chat/completions`, {
     method: "POST",
@@ -901,8 +745,15 @@ async function analyzeWithNvidia(request: AnalyzeMenuRequest): Promise<AnalysisO
     },
     body: JSON.stringify({
       model,
-      temperature: Number(Deno.env.get("NVIDIA_TEMPERATURE") ?? 0.1),
-      max_tokens: Number(Deno.env.get("NVIDIA_MAX_TOKENS") ?? 3500),
+      temperature: getNvidiaTemperature(),
+      max_tokens: getProviderMaxOutputTokens("nvidia"),
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "sift_menu_scan_result",
+          schema: modelScanResultSchema
+        }
+      },
       messages: [
         {
           role: "system",
@@ -915,12 +766,18 @@ async function analyzeWithNvidia(request: AnalyzeMenuRequest): Promise<AnalysisO
               type: "text",
               text: buildUserPrompt(request)
             },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:${request.mimeType};base64,${request.imageBase64}`
+            ...request.images.flatMap((image, index) => [
+              {
+                type: "text",
+                text: buildMenuPageLabel(index, request.images.length)
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:${image.mimeType};base64,${image.imageBase64}`
+                }
               }
-            }
+            ])
           ]
         }
       ]
@@ -932,8 +789,7 @@ async function analyzeWithNvidia(request: AnalyzeMenuRequest): Promise<AnalysisO
     throw new ProviderRequestError(
       "nvidia",
       response.status,
-      `nvidia_http_${response.status}`,
-      readRetryAfterMs(response)
+      `nvidia_http_${response.status}`
     );
   }
 
@@ -971,21 +827,11 @@ async function analyzeWithGemini(request: AnalyzeMenuRequest): Promise<AnalysisO
         contents: [
           {
             role: "user",
-            parts: [
-              {
-                text: buildUserPrompt(request)
-              },
-              {
-                inlineData: {
-                  mimeType: request.mimeType,
-                  data: request.imageBase64
-                }
-              }
-            ]
+            parts: buildGeminiUserParts(request)
           }
         ],
         generationConfig: buildGeminiGenerationConfig(),
-        ...(Deno.env.get("GEMINI_ENABLE_GROUNDING") === "true"
+        ...(isGeminiGroundingEnabled()
           ? {
               tools: [
                 {
@@ -1004,8 +850,7 @@ async function analyzeWithGemini(request: AnalyzeMenuRequest): Promise<AnalysisO
     throw new ProviderRequestError(
       "gemini",
       response.status,
-      [`gemini_http_${response.status}`, errorPreview.classification].filter(Boolean).join(":").slice(0, 80),
-      readRetryAfterMs(response)
+      [`gemini_http_${response.status}`, errorPreview.classification].filter(Boolean).join(":").slice(0, 80)
     );
   }
 
@@ -1021,14 +866,18 @@ async function analyzeWithGemini(request: AnalyzeMenuRequest): Promise<AnalysisO
 }
 
 function buildGeminiGenerationConfig() {
+  const mediaResolution = getGeminiMediaResolution();
   const baseConfig = {
-    maxOutputTokens: Number(Deno.env.get("GEMINI_MAX_OUTPUT_TOKENS") ?? 6000),
+    maxOutputTokens: getProviderMaxOutputTokens("gemini"),
     thinkingConfig: {
       thinkingLevel: getGeminiThinkingLevel()
-    }
+    },
+    ...(mediaResolution === "MEDIA_RESOLUTION_UNSPECIFIED"
+      ? {}
+      : { mediaResolution })
   };
 
-  if (Deno.env.get("GEMINI_USE_RESPONSE_SCHEMA") === "false") {
+  if (!isGeminiResponseSchemaEnabled()) {
     return {
       ...baseConfig,
       responseMimeType: "application/json"
@@ -1042,27 +891,39 @@ function buildGeminiGenerationConfig() {
   };
 }
 
-function toGeminiOpenApiSchema(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map(toGeminiOpenApiSchema);
+function buildGeminiUserParts(request: AnalyzeMenuRequest) {
+  const promptPart = { text: buildUserPrompt(request) };
+  if (getGeminiPromptContentOrder() === "image_first") {
+    return [
+      ...request.images.flatMap((image, index) => [
+        {
+          inlineData: {
+            mimeType: image.mimeType,
+            data: image.imageBase64
+          }
+        },
+        {
+          text: buildMenuPageLabel(index, request.images.length)
+        }
+      ]),
+      promptPart
+    ];
   }
 
-  if (!isRecord(value)) {
-    return value;
-  }
-
-  const converted: Record<string, unknown> = {};
-  for (const [key, entry] of Object.entries(value)) {
-    if (key === "additionalProperties" || key === "minItems" || key === "maxItems") {
-      continue;
-    }
-
-    converted[key] = key === "type" && typeof entry === "string"
-      ? entry.toUpperCase()
-      : toGeminiOpenApiSchema(entry);
-  }
-
-  return converted;
+  return [
+    promptPart,
+    ...request.images.flatMap((image, index) => [
+      {
+        text: buildMenuPageLabel(index, request.images.length)
+      },
+      {
+        inlineData: {
+          mimeType: image.mimeType,
+          data: image.imageBase64
+        }
+      }
+    ])
+  ];
 }
 
 function getGeminiThinkingLevel() {
@@ -1070,116 +931,153 @@ function getGeminiThinkingLevel() {
   return value === "minimal" || value === "low" || value === "high" ? value : "medium";
 }
 
-function buildSystemPrompt() {
-  return [
-    "You are Sift, an allergy-aware restaurant menu risk assistant.",
-    "Your job is to analyze visible menu text from an image and identify possible allergen risks for the provided user profile.",
-    "You are not a doctor, restaurant, kitchen worker, or food safety certifier.",
-    "You cannot verify ingredients, preparation, staff practices, suppliers, substitutions, or cross-contact.",
-    "Never write: safe to eat, safe for you, you can eat this, probably fine, guarantee, guaranteed, completely safe, allergen-free, safe option, safe choice, safe meal, safe dish, ok to eat, no risk, zero risk, riskless, nothing to worry about, definitely safe, or risk-free.",
-    "Use conservative wording such as: low risk based on visible menu text, ask staff before ordering, avoid unless staff can clearly confirm, or not enough information.",
-    "For severe allergies, escalate any reasonable hidden ingredient or cross-contact concern.",
-    "For a severe allergy, if the visible dish name or description directly lists that allergen or an unmistakable derivative such as tahini for sesame, use avoid_unless_confirmed.",
-    "Do not label an otherwise benign dish high_risk or avoid_unless_confirmed solely because a different dish on the same menu contains the allergen; use ask_staff for plausible shared-kitchen uncertainty unless the benign dish has its own direct evidence.",
-    "Treat sauces, broths, marinades, dressings, oils, spice mixes, garnishes, batters, coatings, desserts, shared fryers, shared woks, shared grills, and vague descriptions as risk signals.",
-    "If text is blurry, materially cut off, too small or distant to read confidently, translated poorly, unreadable, or ingredients are not listed, mark affected dishes unclear or ask_staff.",
-    "Set imageQuality.readability to poor and needsRetake to true whenever multiple dish names or descriptions are cropped, the menu is distant enough that text must be guessed, glare or blur obscures ingredients, or only fragments are readable. Do this even if a few words can still be inferred.",
-    "For low_risk, still include confirmation language when allergies are severe.",
-    "Questions must be specific, short, and usable with restaurant staff.",
-    "Preserve each dish name exactly as printed on the menu whenever it is readable, even when the explanatory text is translated into another language.",
-    "For each dish, write questionsToAsk in the target restaurant language when provided. If no target restaurant language is provided, use the user's preferred language.",
-    "For each dish, write questionsToAskUserLanguage in the user's preferred language as a direct translation/reference for the user.",
-    "If a concrete target restaurant language is requested, restaurantMessage.translated must be a simple polite restaurant-facing message in that language.",
-    "Only set restaurantMessage.translated to null when no restaurant language is requested, the restaurant language is explicitly unknown/not sure, or the requested restaurant language is English.",
-    "Set restaurantMessage.userLanguageText to the same restaurant-facing allergy message translated into the user's preferred language. If the user's preferred language is English, this may match english.",
-    "Set restaurantMessage.language to the restaurant language name and restaurantMessage.userLanguage to the user's preferred language name when known.",
-    "For each dish, set evidenceConfidence to high, medium, or low based on visible text clarity and ingredient specificity.",
-    "For each dish, set riskBasis to one or more of: visible_text, common_pattern, unknown_ingredient, cross_contact, translation_uncertain, image_uncertain.",
-    "Set imageQuality.needsRetake to true when readability is poor or the image is too blurry/cut off to analyze reliably.",
-    "Do not expose hidden chain-of-thought and do not invent citations, URLs, or web-search claims.",
-    "Use restaurantName as a short 1-4 word saved-scan title, not necessarily a literal restaurant name. Summarize the whole menu theme, not individual dishes. Examples: Japanese menu, Mexican menu, Steak and seafood, Cafe breakfast.",
-    "If no useful menu theme is visible, set restaurantName to Menu scan.",
-    "Return only JSON matching the provided schema.",
-    "Use camelCase keys exactly as specified: restaurantName, scanSummary, overallRisk, dishName, riskLevel, possibleAllergens, hiddenRiskIngredients, crossContactConcerns, evidenceConfidence, riskBasis, questionsToAsk, questionsToAskUserLanguage, conservativeLanguage, restaurantMessage, imageQuality, needsRetake.",
-    `Required JSON schema: ${JSON.stringify(modelScanResultSchema)}`
-  ].join("\n");
+function getGeminiMediaResolution() {
+  const value = Deno.env.get("GEMINI_MEDIA_RESOLUTION")?.trim().toUpperCase();
+  return value === "MEDIA_RESOLUTION_LOW" ||
+      value === "MEDIA_RESOLUTION_MEDIUM" ||
+      value === "MEDIA_RESOLUTION_HIGH"
+    ? value
+    : "MEDIA_RESOLUTION_UNSPECIFIED";
 }
 
-function buildUserPrompt(request: AnalyzeMenuRequest) {
-  return JSON.stringify({
-    task: "Analyze this menu image for possible allergen risk.",
-    appName: "Sift",
-    userProfile: request.profile,
-    userLanguage: request.profile.preferredLanguage,
-    restaurantLanguage: request.restaurantLanguage ?? request.profile.restaurantLanguage ?? null,
-    outputRequirements: {
-      oneCardPerVisibleDishWhenPossible: true,
-      keepSummariesShort: true,
-      keepReasonsUnderTwoSentences: true,
-      createShortScanTitleInRestaurantName: true,
-      includeCommonHiddenIngredientPatterns: true,
-      includeCrossContactWhenRelevant: true,
-      includeEvidenceConfidence: true,
-      includeRiskBasis: true,
-      includeRestaurantFacingMessage: true,
-      includeUserFacingEvidence: true,
-      doNotExposeHiddenChainOfThought: true,
-      questionsToAskLanguage: "restaurant language when known; otherwise user language",
-      questionsToAskUserLanguage: "translate each staff question into the user's preferred language",
-      restaurantMessageTranslatedLanguage: "restaurant language when known",
-      restaurantMessageTranslatedRequired: true,
-      restaurantMessageUserLanguageText: "user preferred language",
-      limitationsText: "Visible menu text and common ingredient patterns only.",
-      evidenceConfidenceValues: ["high", "medium", "low"],
-      riskBasisValues: ["visible_text", "common_pattern", "unknown_ingredient", "cross_contact", "translation_uncertain", "image_uncertain"],
-      riskLevels: ["low_risk", "ask_staff", "high_risk", "avoid_unless_confirmed", "unclear"]
-    }
-  });
+function getGeminiPromptContentOrder() {
+  return Deno.env.get("GEMINI_PROMPT_CONTENT_ORDER")?.trim().toLowerCase() === "image_first"
+    ? "image_first"
+    : "instruction_first";
 }
 
-function isValidRequest(value: Partial<AnalyzeMenuRequest>): value is AnalyzeMenuRequest {
+function getOpenAiReasoningEffort() {
+  const value = Deno.env.get("OPENAI_REASONING_EFFORT")?.trim().toLowerCase();
+  return value === "minimal" || value === "low" || value === "medium" || value === "high"
+    ? value
+    : "low";
+}
+
+function getNvidiaTemperature() {
+  const value = Number(Deno.env.get("NVIDIA_TEMPERATURE") ?? 0.1);
+  return Number.isFinite(value) && value >= 0 && value <= 2 ? value : 0.1;
+}
+
+function getNvidiaBaseUrl() {
+  return trimTrailingSlash(Deno.env.get("NVIDIA_BASE_URL") ?? "https://integrate.api.nvidia.com/v1");
+}
+
+function getProviderTimeoutMs() {
+  const value = Number(Deno.env.get("AI_PROVIDER_TIMEOUT_MS") ?? defaultProviderTimeoutMs);
+  return Number.isFinite(value) && value >= 1_000 && value <= 120_000
+    ? Math.round(value)
+    : defaultProviderTimeoutMs;
+}
+
+function isGeminiResponseSchemaEnabled() {
+  return Deno.env.get("GEMINI_USE_RESPONSE_SCHEMA") !== "false";
+}
+
+function isGeminiGroundingEnabled() {
+  return Deno.env.get("GEMINI_ENABLE_GROUNDING") === "true";
+}
+
+function normalizeAnalyzeMenuRequest(
+  value: AnalyzeMenuRequestPayload
+): AnalyzeMenuRequest | null {
   const maxImageBase64Length = Number(Deno.env.get("MAX_IMAGE_BASE64_LENGTH") ?? defaultMaxImageBase64Length);
-
-  if (!Number.isFinite(maxImageBase64Length) || maxImageBase64Length <= 100) {
-    return false;
-  }
+  const maxTotalImageBase64Length = Number(
+    Deno.env.get("MAX_TOTAL_IMAGE_BASE64_LENGTH") ?? defaultMaxTotalImageBase64Length
+  );
+  const maxMenuImageCount = Number(
+    Deno.env.get("MAX_MENU_IMAGE_COUNT") ?? defaultMaxMenuImageCount
+  );
 
   if (
-    !value ||
-    !isValidProfile(value.profile) ||
-    !isAllowedMimeType(value.mimeType) ||
-    typeof value.imageBase64 !== "string" ||
-    value.imageBase64.length <= 100 ||
-    value.imageBase64.length > maxImageBase64Length ||
-    !isBase64ImagePayload(value.imageBase64)
+    !Number.isFinite(maxImageBase64Length) ||
+    maxImageBase64Length <= 100 ||
+    !Number.isFinite(maxTotalImageBase64Length) ||
+    maxTotalImageBase64Length <= 100 ||
+    !Number.isInteger(maxMenuImageCount) ||
+    maxMenuImageCount < 1
   ) {
-    return false;
+    return null;
   }
 
+  if (!value || !isValidProfile(value.profile)) {
+    return null;
+  }
+
+  let rawImages: unknown[];
+  if (Array.isArray(value.images)) {
+    if (value.imageBase64 !== undefined || value.mimeType !== undefined) {
+      return null;
+    }
+    rawImages = value.images;
+  } else if (value.images !== undefined) {
+    return null;
+  } else {
+    rawImages = [
+      {
+        imageBase64: value.imageBase64,
+        mimeType: value.mimeType
+      }
+    ];
+  }
+
+  if (rawImages.length === 0 || rawImages.length > maxMenuImageCount) {
+    return null;
+  }
+
+  const images: MenuImagePayload[] = [];
+  let totalBase64Length = 0;
+  for (const image of rawImages) {
+    if (
+      !isRecord(image) ||
+      !isAllowedMimeType(image.mimeType) ||
+      typeof image.imageBase64 !== "string" ||
+      image.imageBase64.length <= 100 ||
+      image.imageBase64.length > maxImageBase64Length ||
+      !isBase64ImagePayload(image.imageBase64)
+    ) {
+      return null;
+    }
+
+    totalBase64Length += image.imageBase64.length;
+    if (totalBase64Length > maxTotalImageBase64Length) {
+      return null;
+    }
+
+    images.push({
+      imageBase64: image.imageBase64,
+      mimeType: image.mimeType
+    });
+  }
+
+  let restaurantLanguage: string | undefined;
   if (
     value.restaurantLanguage !== undefined &&
     (!readString(value.restaurantLanguage) || readString(value.restaurantLanguage).length > maxLanguageLength)
   ) {
-    return false;
+    return null;
+  } else if (value.restaurantLanguage !== undefined) {
+    restaurantLanguage = readString(value.restaurantLanguage);
   }
 
-  if (value.testPlanId !== undefined && !isPlanId(value.testPlanId)) {
-    return false;
-  }
-
-  return true;
+  return {
+    profile: value.profile,
+    images,
+    ...(restaurantLanguage ? { restaurantLanguage } : {})
+  };
 }
 
 type BoundedJsonBody<T> =
   | { ok: true; value: T }
-  | { ok: false; status: 400 | 413 };
+  | { ok: false; status: 400 | 408 | 413 };
 
 async function readBoundedJsonBody<T>(request: Request): Promise<BoundedJsonBody<T>> {
-  const maxImageBase64Length = Number(Deno.env.get("MAX_IMAGE_BASE64_LENGTH") ?? defaultMaxImageBase64Length);
-  const maxRequestBytes = maxImageBase64Length + 50_000;
+  const maxTotalImageBase64Length = Number(
+    Deno.env.get("MAX_TOTAL_IMAGE_BASE64_LENGTH") ?? defaultMaxTotalImageBase64Length
+  );
+  const maxRequestBytes = maxTotalImageBase64Length + 100_000;
   const contentLength = request.headers.get("content-length");
 
-  if (!Number.isFinite(maxImageBase64Length) || maxImageBase64Length <= 100) {
+  if (!Number.isFinite(maxTotalImageBase64Length) || maxTotalImageBase64Length <= 100) {
     return { ok: false, status: 413 };
   }
 
@@ -1197,20 +1095,29 @@ async function readBoundedJsonBody<T>(request: Request): Promise<BoundedJsonBody
 
   const chunks: Uint8Array[] = [];
   let receivedBytes = 0;
+  const deadline = Date.now() + defaultBodyReadTimeoutMs;
 
   while (true) {
-    const { done, value } = await reader.read();
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) {
+      await cancelReader(reader);
+      return { ok: false, status: 408 };
+    }
+
+    const chunk = await readChunkWithTimeout(reader, remainingMs);
+    if (!chunk) {
+      await cancelReader(reader);
+      return { ok: false, status: 408 };
+    }
+
+    const { done, value } = chunk;
     if (done) {
       break;
     }
 
     receivedBytes += value.byteLength;
     if (receivedBytes > maxRequestBytes) {
-      try {
-        await reader.cancel();
-      } catch {
-        // Ignore cancellation errors; the request is already rejected.
-      }
+      await cancelReader(reader);
       return { ok: false, status: 413 };
     }
     chunks.push(value);
@@ -1224,8 +1131,37 @@ async function readBoundedJsonBody<T>(request: Request): Promise<BoundedJsonBody
   }
 }
 
+async function readChunkWithTimeout(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  timeoutMs: number
+) {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  try {
+    return await Promise.race([
+      reader.read(),
+      new Promise<null>((resolve) => {
+        timeout = setTimeout(() => resolve(null), timeoutMs);
+      })
+    ]);
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  }
+}
+
+async function cancelReader(reader: ReadableStreamDefaultReader<Uint8Array>) {
+  try {
+    await reader.cancel();
+  } catch {
+    // The request is already being rejected.
+  }
+}
+
 function isDeclaredRequestTooLarge(request: Request) {
-  const maxImageBase64Length = Number(Deno.env.get("MAX_IMAGE_BASE64_LENGTH") ?? defaultMaxImageBase64Length);
+  const maxTotalImageBase64Length = Number(
+    Deno.env.get("MAX_TOTAL_IMAGE_BASE64_LENGTH") ?? defaultMaxTotalImageBase64Length
+  );
   const contentLength = request.headers.get("content-length");
   if (!contentLength) {
     return false;
@@ -1233,11 +1169,11 @@ function isDeclaredRequestTooLarge(request: Request) {
 
   const parsedLength = Number(contentLength);
   return (
-    !Number.isFinite(maxImageBase64Length) ||
-    maxImageBase64Length <= 100 ||
+    !Number.isFinite(maxTotalImageBase64Length) ||
+    maxTotalImageBase64Length <= 100 ||
     !Number.isFinite(parsedLength) ||
     parsedLength < 0 ||
-    parsedLength > maxImageBase64Length + 50_000
+    parsedLength > maxTotalImageBase64Length + 100_000
   );
 }
 
@@ -1251,127 +1187,6 @@ function concatUint8Arrays(chunks: Uint8Array[], totalLength: number) {
   }
 
   return output;
-}
-
-function validateScanResult(value: ScanResult): string | null {
-  if (!isRecord(value)) {
-    return "result_not_object";
-  }
-
-  if (containsBannedSafetyLanguage(value)) {
-    return "banned_safety_language";
-  }
-
-  if (!readString(value.id) || !isValidDateString(value.createdAt) || !readString(value.profileId)) {
-    return "missing_result_identity";
-  }
-
-  if (!isRecord(value.scanSummary) || !riskLevels.has(value.scanSummary.overallRisk)) {
-    return "invalid_summary";
-  }
-
-  if (!readString(value.scanSummary.summary) || !readString(value.scanSummary.limitations)) {
-    return "incomplete_summary";
-  }
-
-  if (!hasConservativeUncertaintyText(value.scanSummary.limitations)) {
-    return "summary_missing_uncertainty";
-  }
-
-  if (!Array.isArray(value.dishes) || value.dishes.length === 0) {
-    return "missing_dishes";
-  }
-
-  for (const dish of value.dishes) {
-    const error = validateDish(dish);
-    if (error) {
-      return error;
-    }
-  }
-
-  if (!isRecord(value.imageQuality) || !readabilityValues.has(value.imageQuality.readability)) {
-    return "invalid_image_quality";
-  }
-
-  if (!Array.isArray(value.imageQuality.issues) || typeof value.imageQuality.needsRetake !== "boolean") {
-    return "invalid_image_quality_issues";
-  }
-
-  if (!isRecord(value.transparency) || !isStringArray(value.transparency.checked) || !isStringArray(value.transparency.limitations)) {
-    return "invalid_transparency";
-  }
-
-  if (!Array.isArray(value.transparency.sourceReferences)) {
-    return "invalid_transparency_sources";
-  }
-
-  if (value.transparency.sourceReferences.some((source) => !isRecord(source) || !isHttpsUrl(source.uri))) {
-    return "invalid_transparency_source_uri";
-  }
-
-  if (value.restaurantMessage && !readString(value.restaurantMessage.english)) {
-    return "invalid_restaurant_message";
-  }
-
-  if (
-    value.restaurantMessage &&
-    value.restaurantMessage.translated &&
-    !readString(value.restaurantMessage.userLanguageText)
-  ) {
-    return "missing_user_language_restaurant_message";
-  }
-
-  return null;
-}
-
-function validateDish(dish: unknown): string | null {
-  if (!isRecord(dish)) {
-    return "dish_not_object";
-  }
-
-  if (!readString(dish.id) || !readString(dish.dishName) || !riskLevels.has(dish.riskLevel as RiskLevel)) {
-    return "dish_missing_identity";
-  }
-
-  if (!readString(dish.reason) || !readString(dish.conservativeLanguage)) {
-    return "dish_missing_reason";
-  }
-
-  if (
-    dish.riskLevel === "low_risk" &&
-    !hasConservativeUncertaintyText(`${readString(dish.reason)} ${readString(dish.conservativeLanguage)}`)
-  ) {
-    return "low_risk_missing_confirmation_language";
-  }
-
-  if (
-    !isStringArray(dish.possibleAllergens) ||
-    !isStringArray(dish.hiddenRiskIngredients) ||
-    !isStringArray(dish.crossContactConcerns) ||
-    !evidenceConfidenceValues.has(dish.evidenceConfidence as EvidenceConfidence) ||
-    !isRiskBasisArray(dish.riskBasis) ||
-    !isStringArray(dish.questionsToAsk) ||
-    !isStringArray(dish.questionsToAskUserLanguage) ||
-    dish.questionsToAsk.length === 0 ||
-    !isRecord(dish.transparency)
-  ) {
-    return "dish_invalid_arrays";
-  }
-
-  if (dish.questionsToAskUserLanguage.length === 0) {
-    return "dish_missing_user_language_questions";
-  }
-
-  if (
-    !isStringArray(dish.transparency.visibleMenuText) ||
-    !isStringArray(dish.transparency.profileFactors) ||
-    !isStringArray(dish.transparency.commonRiskPatterns) ||
-    !isStringArray(dish.transparency.uncertainty)
-  ) {
-    return "dish_invalid_transparency";
-  }
-
-  return null;
 }
 
 function extractOpenAiOutputText(data: any): string {
@@ -1528,562 +1343,6 @@ function parseModelJson(text: string): Record<string, unknown> {
   throw new Error("Model JSON output was not an object.");
 }
 
-function normalizeScanResult(value: Record<string, unknown>, profileId: string): ScanResult {
-  const scanSummary = readRecord(value.scanSummary) ?? readRecord(value.scan_summary);
-  const restaurantMessage = readRecord(value.restaurantMessage) ?? readRecord(value.restaurant_message);
-  const imageQuality = readRecord(value.imageQuality) ?? readRecord(value.image_quality);
-  const transparency = readRecord(value.transparency);
-
-  return {
-    id: readString(value.id) || `scan-${Date.now()}`,
-    createdAt: readString(value.createdAt ?? value.created_at) || new Date().toISOString(),
-    imageUri: null,
-    restaurantName: readString(value.restaurantName ?? value.restaurant_name) || null,
-    profileId,
-    scanSummary: {
-      overallRisk: riskLevels.has(readString(scanSummary?.overallRisk ?? scanSummary?.overall_risk) as RiskLevel)
-        ? readString(scanSummary?.overallRisk ?? scanSummary?.overall_risk) as RiskLevel
-        : "unclear",
-      summary: readString(scanSummary?.summary) || "We could not analyze this menu clearly.",
-      limitations:
-        readString(scanSummary?.limitations) ||
-        "Visible menu text and common ingredient patterns only."
-    },
-    dishes: Array.isArray(value.dishes)
-      ? ensureUniqueDishIds(value.dishes.map((dish, index) => normalizeDish(dish, index)))
-      : [createUnclearDish()],
-    restaurantMessage: restaurantMessage
-      ? {
-          english: readString(restaurantMessage.english),
-          translated:
-            typeof restaurantMessage.translated === "string"
-              ? restaurantMessage.translated
-              : null,
-          language:
-            typeof restaurantMessage.language === "string"
-              ? restaurantMessage.language
-              : null,
-          userLanguageText:
-            typeof restaurantMessage.userLanguageText === "string"
-              ? restaurantMessage.userLanguageText
-              : typeof restaurantMessage.user_language_text === "string"
-                ? restaurantMessage.user_language_text
-                : readString(restaurantMessage.english) || null,
-          userLanguage:
-            typeof restaurantMessage.userLanguage === "string"
-              ? restaurantMessage.userLanguage
-              : typeof restaurantMessage.user_language === "string"
-                ? restaurantMessage.user_language
-                : null
-        }
-      : null,
-    imageQuality: {
-      readability: readabilityValues.has(imageQuality?.readability as ImageReadability)
-        ? imageQuality!.readability as ImageReadability
-        : "poor",
-      issues: isStringArray(imageQuality?.issues) ? imageQuality!.issues : [],
-      needsRetake:
-        typeof imageQuality?.needsRetake === "boolean"
-          ? imageQuality.needsRetake
-          : !readabilityValues.has(imageQuality?.readability as ImageReadability) || imageQuality?.readability === "poor"
-    },
-    transparency: {
-      checked: readStringArray(transparency?.checked).length > 0
-        ? readStringArray(transparency?.checked)
-        : ["Menu photo", "Allergy profile", "Common ingredient and preparation patterns"],
-      limitations: readStringArray(transparency?.limitations).length > 0
-        ? readStringArray(transparency?.limitations)
-        : ["Sift cannot verify full ingredients, staff practices, or kitchen cross-contact."],
-      sourceReferences: readSourceReferences(transparency?.sourceReferences),
-      webSearchQueries: readStringArray(transparency?.webSearchQueries)
-    }
-  };
-}
-
-function normalizeDish(value: unknown, index: number): ScanResult["dishes"][number] {
-  const dish: Record<string, unknown> = isRecord(value) ? value : {};
-  const questionsToAsk =
-    readStringArray(dish.questionsToAsk ?? dish.questions_to_ask).length > 0
-      ? readStringArray(dish.questionsToAsk ?? dish.questions_to_ask)
-      : ["Can you confirm whether this dish contains any of my listed allergens?"];
-  const questionsToAskUserLanguage =
-    readStringArray(dish.questionsToAskUserLanguage ?? dish.questions_to_ask_user_language).length > 0
-      ? readStringArray(dish.questionsToAskUserLanguage ?? dish.questions_to_ask_user_language)
-      : questionsToAsk;
-
-  return {
-    id: readString(dish.id) || `dish-${index + 1}`,
-    dishName: readString(dish.dishName) || readString(dish.dish_name) || `Dish ${index + 1}`,
-    menuDescription:
-      typeof dish.menuDescription === "string"
-        ? dish.menuDescription
-        : typeof dish.menu_description === "string"
-          ? dish.menu_description
-          : null,
-    riskLevel: riskLevels.has(dish.riskLevel as RiskLevel)
-      ? dish.riskLevel as RiskLevel
-      : riskLevels.has(dish.risk_level as RiskLevel)
-        ? dish.risk_level as RiskLevel
-        : "unclear",
-    possibleAllergens: readStringArray(dish.possibleAllergens ?? dish.possible_allergens),
-    hiddenRiskIngredients: readStringArray(dish.hiddenRiskIngredients ?? dish.hidden_risk_ingredients),
-    crossContactConcerns: readStringArray(dish.crossContactConcerns ?? dish.cross_contact_concerns),
-    evidenceConfidence: readEvidenceConfidence(dish.evidenceConfidence ?? dish.evidence_confidence),
-    riskBasis: readRiskBasisArray(dish.riskBasis ?? dish.risk_basis),
-    reason: readString(dish.reason) || "The model did not provide enough reliable detail.",
-    questionsToAsk,
-    questionsToAskUserLanguage,
-    conservativeLanguage:
-      readString(dish.conservativeLanguage ?? dish.safe_language) ||
-      "Not enough information. Ask staff before ordering.",
-    transparency: normalizeDishTransparency(dish)
-  };
-}
-
-function ensureUniqueDishIds(dishes: ScanResult["dishes"]): ScanResult["dishes"] {
-  const seen = new Map<string, number>();
-
-  return dishes.map((dish, index) => {
-    const baseId = dish.id || `dish-${index + 1}`;
-    const seenCount = seen.get(baseId) ?? 0;
-    seen.set(baseId, seenCount + 1);
-
-    return {
-      ...dish,
-      id: seenCount === 0 ? baseId : `${baseId}-${seenCount + 1}`
-    };
-  });
-}
-
-function normalizeDishTransparency(dish: Record<string, unknown>): ScanResult["dishes"][number]["transparency"] {
-  const transparency = readRecord(dish.transparency);
-  return {
-    visibleMenuText: readStringArray(transparency?.visibleMenuText).length > 0
-      ? readStringArray(transparency?.visibleMenuText)
-      : [readString(dish.dishName), readString(dish.menuDescription)].filter(Boolean),
-    profileFactors: readStringArray(transparency?.profileFactors),
-    commonRiskPatterns: readStringArray(transparency?.commonRiskPatterns),
-    uncertainty: readStringArray(transparency?.uncertainty).length > 0
-      ? readStringArray(transparency?.uncertainty)
-      : ["Menu descriptions may omit sauces, oils, marinades, garnishes, and kitchen preparation details."]
-  };
-}
-
-function createUnclearDish(): ScanResult["dishes"][number] {
-  return {
-    id: "unclear-menu",
-    dishName: "Menu image unclear",
-    menuDescription: null,
-    riskLevel: "unclear",
-    possibleAllergens: [],
-    hiddenRiskIngredients: [],
-    crossContactConcerns: [],
-    evidenceConfidence: "low",
-    riskBasis: ["image_uncertain", "unknown_ingredient"],
-    reason: "The image or model response did not provide enough reliable menu detail.",
-    questionsToAsk: [
-      "Can you confirm whether this dish contains any of my listed allergens?"
-    ],
-    questionsToAskUserLanguage: [
-      "Can you confirm whether this dish contains any of my listed allergens?"
-    ],
-    conservativeLanguage: "Not enough information. Retake the photo or ask staff directly.",
-    transparency: {
-      visibleMenuText: ["Menu image unclear"],
-      profileFactors: [],
-      commonRiskPatterns: ["Ingredients, sauces, oils, and preparation details could not be read."],
-      uncertainty: ["The image or model response did not provide enough reliable menu detail."]
-    }
-  };
-}
-
-function createFallbackScanResult(profileId: string, analysisModel: string | null = null): ScanResult {
-  return {
-    id: `scan-unclear-${Date.now()}`,
-    createdAt: new Date().toISOString(),
-    imageUri: null,
-    restaurantName: null,
-    profileId,
-    analysisSource: "fallback",
-    analysisModel,
-    scanSummary: {
-      overallRisk: "unclear",
-      summary: "We could not analyze this menu clearly. Please retake the photo or ask staff directly.",
-      limitations: "Visible menu text and common ingredient patterns only."
-    },
-    dishes: [createUnclearDish()],
-    restaurantMessage: null,
-    imageQuality: {
-      readability: "poor",
-      issues: ["analysis_failed"],
-      needsRetake: true
-    },
-    transparency: {
-      checked: ["Menu photo", "Allergy profile"],
-      limitations: ["Sift could not extract enough reliable menu detail from this scan."],
-      sourceReferences: [],
-      webSearchQueries: []
-    }
-  };
-}
-
-function withAnalysisMetadata(scanResult: ScanResult, requestId: string): ScanResult {
-  return {
-    ...scanResult,
-    analysisRequestId: requestId
-  };
-}
-
-function mergeAnalysisSources(scanResult: ScanResult, analysis: AnalysisOutput): ScanResult {
-  const transparency = scanResult.transparency ?? {
-    checked: ["Menu photo", "Allergy profile", "Common ingredient and preparation patterns"],
-    limitations: ["Sift cannot verify full ingredients, staff practices, or kitchen cross-contact."],
-    sourceReferences: [],
-    webSearchQueries: []
-  };
-
-  return {
-    ...scanResult,
-    transparency: {
-      ...transparency,
-      sourceReferences:
-        analysis.provider === "gemini" && analysis.sourceReferences
-          ? analysis.sourceReferences
-          : transparency.sourceReferences,
-      webSearchQueries:
-        analysis.provider === "gemini" && analysis.webSearchQueries
-          ? analysis.webSearchQueries
-          : transparency.webSearchQueries
-    }
-  };
-}
-
-function sanitizeScanResult(scanResult: ScanResult): ScanResult {
-  return rewriteBannedSafetyLanguage(scanResult) as ScanResult;
-}
-
-function verifyScanResultRisk(scanResult: ScanResult, profile: UserProfile): ScanResult {
-  const poorImage = scanResult.imageQuality.readability === "poor";
-  const hasSevereAllergy = profile.allergies.some((allergy) => allergy.severity === "severe");
-
-  const dishes = scanResult.dishes.map((dish) => {
-    let nextDish = {
-      ...dish,
-      possibleAllergens: uniqueStrings(dish.possibleAllergens),
-      hiddenRiskIngredients: uniqueStrings(dish.hiddenRiskIngredients),
-      crossContactConcerns: uniqueStrings(dish.crossContactConcerns),
-      riskBasis: uniqueRiskBasis(dish.riskBasis),
-      evidenceConfidence: evidenceConfidenceValues.has(dish.evidenceConfidence)
-        ? dish.evidenceConfidence
-        : "low"
-    };
-    const dishText = buildDishSearchText(nextDish);
-    const vaguePrepMatches = matchPatterns(dishText, vaguePrepPatterns);
-
-    for (const allergy of profile.allergies) {
-      const patterns = patternsForAllergy(allergy);
-      if (patterns.length === 0) {
-        continue;
-      }
-
-      const matchedPatterns = matchPatterns(dishText, patterns);
-      if (matchedPatterns.length === 0) {
-        continue;
-      }
-
-      const sensitive = allergy.severity === "severe" || allergy.avoidCrossContact;
-      const directMatches = matchedPatterns.filter((pattern) => isDirectAllergenPattern(allergy, pattern));
-      const targetRisk: RiskLevel =
-        directMatches.length > 0
-          ? sensitive
-            ? "avoid_unless_confirmed"
-            : "high_risk"
-          : sensitive
-            ? "ask_staff"
-            : "ask_staff";
-
-      nextDish = {
-        ...nextDish,
-        riskLevel: escalateRisk(nextDish.riskLevel, targetRisk),
-        possibleAllergens: uniqueStrings([...nextDish.possibleAllergens, allergy.name]),
-        hiddenRiskIngredients: uniqueStrings([...nextDish.hiddenRiskIngredients, ...matchedPatterns]),
-        riskBasis: uniqueRiskBasis([
-          ...nextDish.riskBasis,
-          directMatches.length > 0 ? "visible_text" : "common_pattern"
-        ]),
-        transparency: appendDishTransparency(nextDish.transparency, {
-          visibleMenuText: matchedPatterns,
-          profileFactors: [`${allergy.name}: ${allergy.severity}${allergy.avoidCrossContact ? ", cross-contact sensitive" : ""}`],
-          commonRiskPatterns: matchedPatterns,
-          uncertainty: ["Sift escalated this result with deterministic allergen pattern checks."]
-        })
-      };
-    }
-
-    if (vaguePrepMatches.length > 0 && (hasSevereAllergy || profile.allergies.some((allergy) => allergy.avoidCrossContact))) {
-      nextDish = {
-        ...nextDish,
-        riskLevel: escalateRisk(nextDish.riskLevel, "ask_staff"),
-        hiddenRiskIngredients: uniqueStrings([...nextDish.hiddenRiskIngredients, ...vaguePrepMatches]),
-        crossContactConcerns: uniqueStrings([...nextDish.crossContactConcerns, ...vaguePrepMatches]),
-        riskBasis: uniqueRiskBasis([...nextDish.riskBasis, "unknown_ingredient", "cross_contact"]),
-        transparency: appendDishTransparency(nextDish.transparency, {
-          visibleMenuText: vaguePrepMatches,
-          profileFactors: profile.allergies
-            .filter((allergy) => allergy.severity === "severe" || allergy.avoidCrossContact)
-            .map((allergy) => `${allergy.name}: ${allergy.severity}${allergy.avoidCrossContact ? ", cross-contact sensitive" : ""}`),
-          commonRiskPatterns: vaguePrepMatches,
-          uncertainty: ["Vague preparation terms can hide sauces, oils, shared equipment, or omitted ingredients."]
-        })
-      };
-    }
-
-    if ((poorImage || (hasSevereAllergy && nextDish.evidenceConfidence === "low")) && nextDish.riskLevel === "low_risk") {
-      nextDish = {
-        ...nextDish,
-        riskLevel: poorImage ? "unclear" : "ask_staff",
-        riskBasis: uniqueRiskBasis([...nextDish.riskBasis, poorImage ? "image_uncertain" : "unknown_ingredient"]),
-        transparency: appendDishTransparency(nextDish.transparency, {
-          uncertainty: [
-            poorImage
-              ? "Image quality is too poor to support a low-risk result."
-              : "Low confidence is not enough to support low-risk language for a severe allergy profile."
-          ]
-        })
-      };
-    }
-
-    return nextDish;
-  });
-
-  const materiallyTruncatedDishCount = dishes.filter((dish) =>
-    /(^|\s)(?:\.{3}|…)/u.test(`${dish.dishName} ${dish.menuDescription ?? ""}`)
-  ).length;
-  const inferredPoorImage = poorImage || materiallyTruncatedDishCount >= 2;
-  const imageQuality = {
-    ...scanResult.imageQuality,
-    readability: inferredPoorImage ? "poor" as const : scanResult.imageQuality.readability,
-    issues: materiallyTruncatedDishCount >= 2
-      ? uniqueStrings([...scanResult.imageQuality.issues, "Multiple menu entries are cut off."])
-      : scanResult.imageQuality.issues,
-    needsRetake: scanResult.imageQuality.needsRetake === true || inferredPoorImage
-  };
-  const overallRisk = inferredPoorImage ? "unclear" : recomputeOverallRisk(dishes);
-
-  return {
-    ...scanResult,
-    dishes,
-    imageQuality,
-    scanSummary: {
-      ...scanResult.scanSummary,
-      overallRisk
-    },
-    transparency: {
-      checked: scanResult.transparency?.checked ?? ["Menu photo", "Allergy profile", "Common ingredient and preparation patterns"],
-      limitations: scanResult.transparency?.limitations ?? ["Sift cannot verify full ingredients, staff practices, or kitchen cross-contact."],
-      sourceReferences: scanResult.transparency?.sourceReferences ?? [],
-      webSearchQueries: scanResult.transparency?.webSearchQueries ?? []
-    }
-  };
-}
-
-function buildDishSearchText(dish: ScanResult["dishes"][number]) {
-  return [
-    dish.dishName,
-    dish.menuDescription,
-    ...(dish.transparency?.visibleMenuText ?? [])
-  ]
-    .filter(Boolean)
-    .join(" ");
-}
-
-function patternsForAllergy(allergy: Allergy) {
-  const allergyText = normalizeForMatch(`${allergy.name} ${allergy.notes ?? ""}`);
-  const patternGroups = Array.from(new Set([
-    ...Object.keys(allergenRiskPatterns),
-    ...Object.keys(directAllergenPatterns)
-  ])).map((key) => [
-    key,
-    uniqueStrings([
-      ...(allergenRiskPatterns[key] ?? []),
-      ...(directAllergenPatterns[key] ?? [])
-    ])
-  ] as const);
-  const patterns = patternGroups
-    .filter(([key, values]) => {
-      const normalizedKey = normalizeForMatch(key);
-      return (
-        allergyText.includes(normalizedKey) ||
-        normalizedKey.includes(allergyText) ||
-        values.some((pattern) => allergyText.includes(normalizeForMatch(pattern)))
-      );
-    })
-    .flatMap(([, values]) => values);
-
-  return uniqueStrings([allergy.name, ...patterns]);
-}
-
-function matchPatterns(text: string, patterns: string[]) {
-  const normalizedText = normalizeForMatch(text);
-  const paddedText = ` ${normalizedText} `;
-  return uniqueStrings(
-    patterns.filter((pattern) => {
-      const normalizedPattern = normalizeForMatch(pattern);
-      if (!normalizedPattern) {
-        return false;
-      }
-
-      return /[^a-z0-9 ]/u.test(normalizedPattern)
-        ? normalizedText.includes(normalizedPattern)
-        : paddedText.includes(` ${normalizedPattern} `);
-    })
-  );
-}
-
-function isDirectAllergenPattern(allergy: Allergy, pattern: string) {
-  const allergyName = normalizeForMatch(allergy.name);
-  const normalizedPattern = normalizeForMatch(pattern);
-  const allergyText = normalizeForMatch(`${allergy.name} ${allergy.notes ?? ""}`);
-  const matchingGroups = Object.entries(directAllergenPatterns)
-    .filter(([key]) => {
-      const normalizedKey = normalizeForMatch(key);
-      return allergyText.includes(normalizedKey) || normalizedKey.includes(allergyName);
-    })
-    .flatMap(([, values]) => values.map(normalizeForMatch));
-
-  return (
-    allergyName === normalizedPattern ||
-    allergyName.includes(normalizedPattern) ||
-    normalizedPattern.includes(allergyName) ||
-    matchingGroups.includes(normalizedPattern)
-  );
-}
-
-function appendDishTransparency(
-  transparency: ScanResult["dishes"][number]["transparency"],
-  patch: Partial<NonNullable<ScanResult["dishes"][number]["transparency"]>>
-) {
-  return {
-    visibleMenuText: uniqueStrings([...(transparency?.visibleMenuText ?? []), ...(patch.visibleMenuText ?? [])]).slice(0, 5),
-    profileFactors: uniqueStrings([...(transparency?.profileFactors ?? []), ...(patch.profileFactors ?? [])]).slice(0, 5),
-    commonRiskPatterns: uniqueStrings([...(transparency?.commonRiskPatterns ?? []), ...(patch.commonRiskPatterns ?? [])]).slice(0, 5),
-    uncertainty: uniqueStrings([...(transparency?.uncertainty ?? []), ...(patch.uncertainty ?? [])]).slice(0, 5)
-  };
-}
-
-function recomputeOverallRisk(dishes: ScanResult["dishes"]) {
-  return dishes.reduce<RiskLevel>(
-    (highest, dish) => (riskRank[dish.riskLevel] > riskRank[highest] ? dish.riskLevel : highest),
-    "low_risk"
-  );
-}
-
-function escalateRisk(current: RiskLevel, target: RiskLevel) {
-  return riskRank[target] > riskRank[current] ? target : current;
-}
-
-function rewriteBannedSafetyLanguage(value: unknown): unknown {
-  if (typeof value === "string") {
-    return value
-      .replace(/safe to eat/gi, "low risk based on visible menu text")
-      .replace(/safe option/gi, "lower concern option based on visible menu text")
-      .replace(/safe choice/gi, "lower concern choice based on visible menu text")
-      .replace(/safe meal/gi, "lower concern meal based on visible menu text")
-      .replace(/safe dish/gi, "lower concern dish based on visible menu text")
-      .replace(/safe for (you|the user|this allergy)/gi, "low risk based on visible menu text")
-      .replace(/you can eat/gi, "ask staff to confirm before ordering")
-      .replace(/ok to eat/gi, "ask staff to confirm before ordering")
-      .replace(/probably fine/gi, "low risk based on visible menu text, but confirm with staff")
-      .replace(/\bguarantee(?:d|s|ing)?\b/gi, "confirm")
-      .replace(/completely safe/gi, "low risk based on visible menu text")
-      .replace(/definitely safe/gi, "low risk based on visible menu text")
-      .replace(/no risk/gi, "no obvious risk based on visible menu text")
-      .replace(/zero risk/gi, "no obvious risk based on visible menu text")
-      .replace(/riskless/gi, "lower risk based on visible menu text")
-      .replace(/risk[- ]free/gi, "lower risk based on visible menu text")
-      .replace(/nothing to worry about/gi, "confirm details with staff before ordering")
-      .replace(/allergen[- ]free/gi, "without the listed allergen based on available information");
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(rewriteBannedSafetyLanguage);
-  }
-
-  if (isRecord(value)) {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, item]) => [
-        key,
-        key === "uri" ? item : rewriteBannedSafetyLanguage(item)
-      ])
-    );
-  }
-
-  return value;
-}
-
-function containsBannedSafetyLanguage(value: unknown): boolean {
-  const bannedPatterns = [
-    /safe to eat/i,
-    /safe option/i,
-    /safe choice/i,
-    /safe meal/i,
-    /safe dish/i,
-    /safe for (you|the user|this allergy)/i,
-    /you can eat/i,
-    /ok to eat/i,
-    /probably fine/i,
-    /\bguarantee(?:d|s|ing)?\b/i,
-    /completely safe/i,
-    /definitely safe/i,
-    /no risk/i,
-    /zero risk/i,
-    /riskless/i,
-    /nothing to worry about/i,
-    /risk[- ]free/i,
-    /allergen[- ]free/i
-  ];
-
-  if (typeof value === "string") {
-    return bannedPatterns.some((pattern) => pattern.test(value));
-  }
-
-  if (Array.isArray(value)) {
-    return value.some(containsBannedSafetyLanguage);
-  }
-
-  if (isRecord(value)) {
-    return Object.entries(value).some(([key, item]) => key !== "uri" && containsBannedSafetyLanguage(item));
-  }
-
-  return false;
-}
-
-function hasConservativeUncertaintyText(value: unknown): boolean {
-  const text = readString(value).toLowerCase();
-  return [
-    "visible menu",
-    "visible text",
-    "confirm",
-    "ask staff",
-    "cannot verify",
-    "cannot confirm",
-    "not confirmed",
-    "unclear",
-    "uncertain",
-    "cross-contact",
-    "kitchen"
-  ].some((phrase) => text.includes(phrase));
-}
-
-function isValidDateString(value: unknown): boolean {
-  const text = readString(value);
-  if (!text) {
-    return false;
-  }
-
-  return Number.isFinite(Date.parse(text));
-}
-
 function isHttpsUrl(value: unknown): boolean {
   const text = readString(value);
   if (!text) {
@@ -2097,7 +1356,7 @@ function isHttpsUrl(value: unknown): boolean {
   }
 }
 
-function isAllowedMimeType(value: unknown): value is AnalyzeMenuRequest["mimeType"] {
+function isAllowedMimeType(value: unknown): value is MenuImagePayload["mimeType"] {
   return value === "image/jpeg" || value === "image/png" || value === "image/webp";
 }
 
@@ -2164,14 +1423,6 @@ function readString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((item) => typeof item === "string");
-}
-
-function isRiskBasisArray(value: unknown): value is RiskBasis[] {
-  return Array.isArray(value) && value.length > 0 && value.every((item) => riskBasisValues.has(item as RiskBasis));
-}
-
 function readStringArray(value: unknown): string[] {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
@@ -2199,19 +1450,6 @@ function uniqueRiskBasis(values: unknown[]): RiskBasis[] {
   );
 
   return riskBasis.length > 0 ? Array.from(new Set(riskBasis)) : ["unknown_ingredient"];
-}
-
-function uniqueStrings(values: string[]) {
-  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
-}
-
-function normalizeForMatch(value: string) {
-  return value
-    .normalize("NFKD")
-    .toLowerCase()
-    .replace(/\p{M}+/gu, "")
-    .replace(/[^\p{L}\p{N}]+/gu, " ")
-    .trim();
 }
 
 function readSourceReferences(value: unknown): SourceReference[] {
@@ -2294,7 +1532,15 @@ function estimateBase64Bytes(value: string) {
   return Math.max(0, Math.floor((value.length * 3) / 4) - padding);
 }
 
+function estimateImagesBytes(images: MenuImagePayload[]) {
+  return images.reduce((total, image) => total + estimateBase64Bytes(image.imageBase64), 0);
+}
+
 function getProviderFailureCode(error: unknown) {
+  if (error instanceof ProviderConfigurationError) {
+    return error.failureCode;
+  }
+
   if (error instanceof ProviderRequestError) {
     return error.failureCode;
   }
@@ -2334,27 +1580,159 @@ function publicAnalysisFailureCategory(failureCode: string) {
   return "provider_unavailable";
 }
 
-function readRetryAfterMs(response: Response) {
-  const value = response.headers.get("retry-after");
-  if (!value) {
-    return 250;
-  }
-
-  const seconds = Number(value);
-  if (Number.isFinite(seconds)) {
-    return Math.max(0, seconds * 1_000);
-  }
-
-  const retryAt = Date.parse(value);
-  return Number.isFinite(retryAt) ? Math.max(0, retryAt - Date.now()) : 250;
-}
-
-function delay(milliseconds: number) {
-  return new Promise((resolve) => setTimeout(resolve, milliseconds));
-}
-
 function trimTrailingSlash(value: string) {
   return value.replace(/\/+$/, "");
+}
+
+async function analysisResponseHeaders(
+  provider: AnalysisProvider,
+  model: string,
+  usage?: AnalysisUsage
+) {
+  const wireConfiguration = getProviderWireConfiguration(provider);
+  const provenance = await createConfigurationProvenance({
+    provider,
+    model,
+    thinkingLevel: wireConfiguration.thinkingLevel,
+    maxOutputTokens: getProviderMaxOutputTokens(provider),
+    providerSettings: wireConfiguration.providerSettings,
+    wireSchema: wireConfiguration.wireSchema,
+    gitCommitSha: readHeaderIdentity("SIFT_GIT_COMMIT_SHA"),
+    edgeDeploymentId: readHeaderIdentity("SIFT_EDGE_DEPLOYMENT_ID")
+  });
+
+  return {
+    "X-Sift-Analysis-Provider": provider,
+    "X-Sift-Analysis-Model": model,
+    "X-Sift-Analysis-Configuration": [
+      `configuration_sha256=${provenance.configurationSha256}`,
+      `prompt=${provenance.promptVersion}`,
+      `prompt_sha256=${provenance.systemPromptSha256}`,
+      `system_prompt_sha256=${provenance.systemPromptSha256}`,
+      `user_prompt_sha256=${provenance.userPromptSha256}`,
+      `schema=${provenance.schemaVersion}`,
+      `provider_schema_sha256=${provenance.providerSchemaSha256}`,
+      `wire_schema_sha256=${provenance.wireSchemaSha256 ?? "none"}`,
+      `public_schema_sha256=${provenance.publicSchemaSha256}`,
+      `policy=${provenance.riskPolicyVersion}`,
+      `policy_sha256=${provenance.riskPolicySha256}`,
+      `ontology=${provenance.ontologyVersion}`,
+      `ontology_sha256=${provenance.ontologySha256}`,
+      `normalization=${provenance.normalizationVersion}`,
+      `normalization_sha256=${provenance.normalizationSha256}`,
+      `safety_language=${provenance.safetyLanguageVersion}`,
+      `safety_language_sha256=${provenance.safetyLanguageSha256}`,
+      `provider_validation=${provenance.providerValidationVersion}`,
+      `provider_validation_sha256=${provenance.providerValidationSha256}`,
+      `public_validation=${provenance.publicValidationVersion}`,
+      `public_validation_sha256=${provenance.publicValidationSha256}`,
+      `preprocessing=${provenance.imagePreprocessingVersion}`,
+      `preprocessing_sha256=${provenance.imagePreprocessingSha256}`,
+      `thinking=${wireConfiguration.thinkingLevel}`,
+      `max_output_tokens=${provenance.maxOutputTokens}`,
+      `git_commit=${provenance.gitCommitSha ?? "unknown"}`,
+      `edge_deployment_id=${provenance.edgeDeploymentId ?? "unknown"}`
+    ].join(";"),
+    ...analysisUsageHeaders(usage)
+  };
+}
+
+function analysisUsageHeaders(usage?: AnalysisUsage) {
+  const headers: Record<string, string> = {};
+  const entries: Array<[string, number | undefined]> = [
+    ["X-Sift-Input-Tokens", usage?.inputTokens],
+    ["X-Sift-Output-Tokens", usage?.outputTokens],
+    ["X-Sift-Thinking-Tokens", usage?.thinkingTokens]
+  ];
+
+  for (const [name, value] of entries) {
+    if (Number.isSafeInteger(value) && (value as number) >= 0) {
+      headers[name] = String(value);
+    }
+  }
+
+  return headers;
+}
+
+function readHeaderIdentity(name: string) {
+  const value = Deno.env.get(name)?.trim();
+  if (!value) return null;
+  return value.replace(/[^A-Za-z0-9._:@/-]/g, "_").slice(0, 160);
+}
+
+function getProviderWireConfiguration(provider: AnalysisProvider) {
+  const transportSettings = {
+    timeoutMs: getProviderTimeoutMs(),
+    maximumAttempts: 1
+  };
+
+  if (provider === "openai") {
+    const reasoningEffort = getOpenAiReasoningEffort();
+    return {
+      thinkingLevel: reasoningEffort,
+      providerSettings: {
+        endpoint: "https://api.openai.com/v1/responses",
+        ...transportSettings,
+        reasoningEffort,
+        verbosity: "low",
+        responseFormat: "json_schema",
+        strict: true
+      },
+      wireSchema: modelScanResultSchema
+    };
+  }
+
+  if (provider === "nvidia") {
+    return {
+      thinkingLevel: "not_applicable",
+      providerSettings: {
+        endpoint: `${getNvidiaBaseUrl()}/chat/completions`,
+        ...transportSettings,
+        temperature: getNvidiaTemperature(),
+        responseFormat: "json_schema",
+        strict: false
+      },
+      wireSchema: modelScanResultSchema
+    };
+  }
+
+  if (provider === "gemini") {
+    const responseSchemaEnabled = isGeminiResponseSchemaEnabled();
+    return {
+      thinkingLevel: getGeminiThinkingLevel(),
+      providerSettings: {
+        endpoint: "generativelanguage.googleapis.com/v1beta:generateContent",
+        ...transportSettings,
+        responseMimeType: "application/json",
+        responseSchemaEnabled,
+        groundingEnabled: isGeminiGroundingEnabled(),
+        mediaResolution: getGeminiMediaResolution(),
+        promptContentOrder: getGeminiPromptContentOrder(),
+        temperature: "provider_default"
+      },
+      wireSchema: responseSchemaEnabled ? toGeminiOpenApiSchema(modelScanResultSchema) : null
+    };
+  }
+
+  return rejectUnsupportedProvider(provider);
+}
+
+function getProviderMaxOutputTokens(provider: AnalysisProvider) {
+  if (provider === "openai") {
+    return Number(Deno.env.get("OPENAI_MAX_OUTPUT_TOKENS") ?? 3500);
+  }
+  if (provider === "nvidia") {
+    return Number(Deno.env.get("NVIDIA_MAX_TOKENS") ?? 3500);
+  }
+  if (provider === "gemini") {
+    return Number(Deno.env.get("GEMINI_MAX_OUTPUT_TOKENS") ?? 6000);
+  }
+  return rejectUnsupportedProvider(provider);
+}
+
+function rejectUnsupportedProvider(provider: never): never {
+  void provider;
+  throw new ProviderConfigurationError();
 }
 
 function getSafeErrorMessage(error: unknown) {
@@ -2366,8 +1744,7 @@ async function readErrorPreview(response: Response) {
   return {
     status: response.status,
     statusText: response.statusText,
-    classification: classifyProviderError(text),
-    bodyPreview: redactSensitiveText(text).slice(0, 500)
+    classification: classifyProviderError(text)
   };
 }
 
@@ -2405,7 +1782,7 @@ function redactSensitiveText(value: string) {
 async function fetchWithTimeout(
   url: string,
   init: RequestInit,
-  timeoutMs = Number(Deno.env.get("AI_PROVIDER_TIMEOUT_MS") ?? defaultProviderTimeoutMs)
+  timeoutMs = getProviderTimeoutMs()
 ) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);

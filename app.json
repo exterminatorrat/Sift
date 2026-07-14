@@ -26,6 +26,14 @@
       "bundler": "metro"
     },
     "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Sift uses your camera when you choose to photograph a menu for analysis.",
+          "recordAudioAndroid": false
+        }
+      ],
+      "expo-apple-authentication",
       "expo-secure-store"
     ]
   }

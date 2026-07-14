@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "1.0.0",
+  "planId": "sift-gemini-factor-experiments",
+  "version": "experiments-v1",
+  "status": "planned_unexecuted",
+  "sourceManifest": "docs/ai-evals/benchmark-v1/development-v1.json",
+  "model": "gemini-3.5-flash",
+  "cases": [
+    "I-002",
+    "I-006",
+    "I-028",
+    "I-036",
+    "I-040",
+    "L-003"
+  ],
+  "callBudget": {
+    "experiments": 4,
+    "armsPerExperiment": 2,
+    "casesPerArm": 6,
+    "maximumCalls": 48
+  },
+  "decisionPolicy": {
+    "purpose": "Exploratory factor isolation before a frozen full-development confirmation run.",
+    "requiredForEveryTreatment": [
+      "zero severe directly listed allergen misses",
+      "zero forbidden safety claims",
+      "zero invalid client-visible results",
+      "no poor-image retake regression",
+      "no directional critical-risk downgrade"
+    ],
+    "shipRule": "A treatment is only eligible for confirmation when it passes every safety invariant and improves at least one predeclared quality, availability, latency, or token metric without worsening another safety-critical metric. No six-case experiment alone can authorize shipment; the selected treatment must pass the full development, holdout, repeat, and deployed-canary gates."
+  },
+  "experiments": [
+    {
+      "id": "preprocessing-long-edge",
+      "factor": "preprocessing.maxLongEdge",
+      "question": "Does a 2048-pixel long edge improve small-text and difficult-menu evidence extraction over the app-parity 1600-pixel baseline?",
+      "arms": [
+        {
+          "id": "control-1600",
+          "preprocessing": {
+            "maxLongEdge": 1600,
+            "jpegQuality": 72
+          },
+          "generation": {
+            "thinkingLevel": "low",
+            "mediaResolution": "MEDIA_RESOLUTION_UNSPECIFIED",
+            "promptContentOrder": "instruction_first"
+          }
+        },
+        {
+          "id": "treatment-2048",
+          "preprocessing": {
+            "maxLongEdge": 2048,
+            "jpegQuality": 72
+          },
+          "generation": {
+            "thinkingLevel": "low",
+            "mediaResolution": "MEDIA_RESOLUTION_UNSPECIFIED",
+            "promptContentOrder": "instruction_first"
+          }
+        }
+      ]
+    },
+    {
+      "id": "gemini-media-resolution",
+      "factor": "generation.mediaResolution",
+      "question": "Does Gemini high media resolution improve dense and degraded menu reading enough to justify any latency or token increase?",
+      "arms": [
+        {
+          "id": "control-unspecified",
+          "preprocessing": {
+            "maxLongEdge": 1600,
+            "jpegQuality": 72
+          },
+          "generation": {
+            "thinkingLevel": "low",
+            "mediaResolution": "MEDIA_RESOLUTION_UNSPECIFIED",
+            "promptContentOrder": "instruction_first"
+          }
+        },
+        {
+          "id": "treatment-high",
+          "preprocessing": {
+            "maxLongEdge": 1600,
+            "jpegQuality": 72
+          },
+          "generation": {
+            "thinkingLevel": "low",
+            "mediaResolution": "MEDIA_RESOLUTION_HIGH",
+            "promptContentOrder": "instruction_first"
+          }
+        }
+      ]
+    },
+    {
+      "id": "gemini-thinking-level",
+      "factor": "generation.thinkingLevel",
+      "question": "Does medium thinking improve evidence and risk consistency over low thinking without violating the latency gates?",
+      "arms": [
+        {
+          "id": "control-low",
+          "preprocessing": {
+            "maxLongEdge": 1600,
+            "jpegQuality": 72
+          },
+          "generation": {
+            "thinkingLevel": "low",
+            "mediaResolution": "MEDIA_RESOLUTION_UNSPECIFIED",
+            "promptContentOrder": "instruction_first"
+          }
+        },
+        {
+          "id": "treatment-medium",
+          "preprocessing": {
+            "maxLongEdge": 1600,
+            "jpegQuality": 72
+          },
+          "generation": {
+            "thinkingLevel": "medium",
+            "mediaResolution": "MEDIA_RESOLUTION_UNSPECIFIED",
+            "promptContentOrder": "instruction_first"
+          }
+        }
+      ]
+    },
+    {
+      "id": "prompt-content-order",
+      "factor": "generation.promptContentOrder",
+      "question": "Does placing the menu image before the user instructions improve multimodal grounding over the current instruction-first order?",
+      "arms": [
+        {
+          "id": "control-instruction-first",
+          "preprocessing": {
+            "maxLongEdge": 1600,
+            "jpegQuality": 72
+          },
+          "generation": {
+            "thinkingLevel": "low",
+            "mediaResolution": "MEDIA_RESOLUTION_UNSPECIFIED",
+            "promptContentOrder": "instruction_first"
+          }
+        },
+        {
+          "id": "treatment-image-first",
+          "preprocessing": {
+            "maxLongEdge": 1600,
+            "jpegQuality": 72
+          },
+          "generation": {
+            "thinkingLevel": "low",
+            "mediaResolution": "MEDIA_RESOLUTION_UNSPECIFIED",
+            "promptContentOrder": "image_first"
+          }
+        }
+      ]
+    }
+  ]
+}

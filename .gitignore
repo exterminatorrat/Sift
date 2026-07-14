@@ -15,3 +15,5 @@ yarn-error.log*
 
 expo.log
 expo.err
+expo-web.log
+.playwright-cli/

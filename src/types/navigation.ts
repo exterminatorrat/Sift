@@ -3,6 +3,8 @@ export type RootStackParamList = {
   Onboarding: undefined;
   Home: undefined;
   ScanCapture: undefined;
+  CameraGuide: { continueSession?: boolean; replay?: boolean } | undefined;
+  MenuCamera: undefined;
   ImagePreview: undefined;
   AnalysisLoading: undefined;
   Results: { scanId: string; from?: "history" };

@@ -1,0 +1,121 @@
+---
+type Props = {
+  text: string;
+  direction?: "left" | "right" | "up-right";
+  variant?: 1 | 2 | 3;
+  tone?: "paper" | "dark";
+  className?: string;
+};
+
+const {
+  text,
+  direction = "left",
+  variant = 1,
+  tone = "paper",
+  className = ""
+} = Astro.props;
+
+const paths = {
+  1: {
+    line: "M116 10 C92 13 70 20 48 28 C36 32 25 36 14 40",
+    head: "M29 26 C23 31 18 36 14 40 C21 41 29 44 36 48"
+  },
+  2: {
+    line: "M116 27 C88 25 61 27 15 31",
+    head: "M29 20 C24 24 19 28 15 31 C22 34 29 38 35 43"
+  },
+  3: {
+    line: "M116 42 C92 34 67 31 44 33 C32 34 22 35 14 37",
+    head: "M28 23 C23 28 18 33 14 37 C21 39 28 43 34 47"
+  }
+} as const;
+
+const arrow = paths[variant];
+---
+
+<div class:list={["hand-annotation", `hand-annotation--${direction}`, `hand-annotation--${tone}`, className]}>
+  <svg viewBox="0 0 120 54" aria-hidden="true" focusable="false">
+    <path d={arrow.line} />
+    <path d={arrow.head} />
+  </svg>
+  <span>{text}</span>
+</div>
+
+<style>
+  .hand-annotation {
+    --hand-annotation-color: #b84f00;
+    --hand-arrow-color: var(--tangerine, #f2a65a);
+    --hand-arrow-width: 220px;
+    --hand-label-width: 112px;
+    --hand-note-size: clamp(1.08rem, 1.45vw, 1.32rem);
+    align-items: center;
+    color: var(--hand-annotation-color);
+    display: flex;
+    font-family: var(--font-hand);
+    font-size: var(--hand-note-size);
+    font-weight: 400;
+    gap: 7px;
+    line-height: 1.18;
+    position: absolute;
+    width: max-content;
+  }
+
+  .hand-annotation--dark {
+    --hand-annotation-color: var(--tangerine, #f2a65a);
+    --hand-arrow-color: var(--tangerine, #f2a65a);
+  }
+
+  .hand-annotation--right {
+    flex-direction: row-reverse;
+  }
+
+  .hand-annotation--right svg {
+    transform: scaleX(-1);
+  }
+
+  .hand-annotation--up-right {
+    flex-direction: row-reverse;
+  }
+
+  .hand-annotation--up-right svg {
+    transform: scale(-1);
+  }
+
+  svg {
+    flex: 0 0 var(--hand-arrow-width);
+    height: auto;
+    overflow: visible;
+    width: var(--hand-arrow-width);
+  }
+
+  path {
+    fill: none;
+    stroke: var(--hand-arrow-color);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2.9;
+    vector-effect: non-scaling-stroke;
+  }
+
+  span {
+    display: block;
+    max-width: var(--hand-label-width);
+    text-wrap: balance;
+  }
+
+  @media (max-width: 1400px) {
+    .hand-annotation {
+      --hand-arrow-width: 180px;
+      --hand-label-width: 82px;
+      --hand-note-size: 1.12rem;
+      gap: 5px;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .hand-annotation {
+      --hand-annotation-color: CanvasText;
+      --hand-arrow-color: CanvasText;
+    }
+  }
+</style>

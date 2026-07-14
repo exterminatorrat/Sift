@@ -105,23 +105,82 @@ export type TranslationKey =
   | "scanCapture.body"
   | "scanCapture.takePhoto"
   | "scanCapture.uploadPhoto"
+  | "cameraGuide.skip"
+  | "cameraGuide.openCamera"
+  | "cameraGuide.visibleOnly"
+  | "cameraGuide.stepOneStatus"
+  | "cameraGuide.stepOneTitle"
+  | "cameraGuide.stepOneTipOne"
+  | "cameraGuide.stepOneTipTwo"
+  | "cameraGuide.stepOneTipThree"
+  | "cameraGuide.stepTwoStatus"
+  | "cameraGuide.stepTwoTitle"
+  | "cameraGuide.stepTwoTipOne"
+  | "cameraGuide.stepTwoTipTwo"
+  | "cameraGuide.stepTwoTipThree"
+  | "cameraGuide.stepThreeStatus"
+  | "cameraGuide.stepThreeTitle"
+  | "cameraGuide.stepThreeTipOne"
+  | "cameraGuide.stepThreeTipTwo"
+  | "cameraGuide.stepThreeTipThree"
+  | "cameraGuide.permissionTitle"
+  | "cameraGuide.permissionBody"
+  | "cameraGuide.allowCamera"
+  | "cameraGuide.cameraTitle"
+  | "cameraGuide.frameInstruction"
+  | "cameraGuide.steadyHint"
+  | "cameraGuide.turnFlashOff"
+  | "cameraGuide.turnFlashOn"
+  | "cameraGuide.photoLibrary"
+  | "cameraGuide.takePhoto"
+  | "cameraGuide.photoTips"
+  | "cameraGuide.captureError"
+  | "cameraGuide.cameraError"
+  | "cameraGuide.sessionTooLarge"
+  | "cameraGuide.maxPagesReached"
+  | "cameraGuide.pageAdded"
+  | "cameraGuide.pagesCaptured"
+  | "cameraGuide.removePage"
+  | "cameraGuide.reviewPages"
+  | "cameraGuide.addPageSlot"
+  | "cameraGuide.previewPage"
+  | "cameraGuide.fullscreenPage"
+  | "cameraGuide.previousPage"
+  | "cameraGuide.nextPage"
   | "imagePreview.title"
   | "imagePreview.body"
   | "imagePreview.noImage"
   | "imagePreview.usePhoto"
   | "imagePreview.retake"
   | "imagePreview.rechoose"
+  | "imagePreview.pagesTitle"
+  | "imagePreview.pagesBody"
+  | "imagePreview.pageCount"
+  | "imagePreview.removePage"
+  | "imagePreview.selectPage"
+  | "imagePreview.noPages"
+  | "imagePreview.analyzePages"
+  | "imagePreview.addPage"
   | "analysis.title"
   | "analysis.subtitle"
+  | "analysis.pageCount"
   | "results.title"
   | "results.heroSubtitle"
   | "results.imageReadability"
   | "results.viewPhoto"
+  | "results.viewPhotos"
   | "results.menuPhoto"
+  | "results.menuPhotos"
+  | "results.previousPhoto"
+  | "results.nextPhoto"
+  | "results.photoCount"
   | "results.readability.clear"
   | "results.readability.partiallyClear"
   | "results.readability.poor"
   | "results.dishesFound"
+  | "results.needsAttention"
+  | "results.lowerConcern"
+  | "results.lowerConcernBody"
   | "results.restaurantMessage"
   | "results.userLanguageReference"
   | "results.restaurantMessageMissing"
@@ -181,6 +240,7 @@ export type TranslationKey =
   | "profile.customDetailsLongPlaceholder"
   | "profile.saveProfile"
   | "profile.savedToast"
+  | "profile.allergenAddedToast"
   | "severity.mild"
   | "severity.moderate"
   | "severity.severe"
@@ -236,6 +296,7 @@ export type TranslationKey =
   | "subscription.testMode"
   | "subscription.switchPlan"
   | "subscription.currentPlanAction"
+  | "subscription.planChangedToast"
   | "subscription.comingSoon"
   | "subscription.scansThisMonth"
   | "subscription.profileSlots"
@@ -417,13 +478,12 @@ const en = {
   "onboarding.stepProgress": "{current} of {total}",
   "onboarding.welcomeTitle": "Know what to ask before you eat.",
   "onboarding.welcomeBody":
-    "Sift scans menu photos for possible allergen risks, hidden ingredients, and staff questions.",
-  "onboarding.safetyBoundaryTitle": "Sift does not guarantee food safety.",
+    "Scan a menu against your allergy profile. Sift surfaces possible concerns and prepares questions for restaurant staff.",
+  "onboarding.safetyBoundaryTitle": "The menu is only part of the answer.",
   "onboarding.safetyBoundaryBody":
-    "Sift analyzes visible menu text and common ingredient patterns. Always confirm ingredients and preparation with restaurant staff.",
-  "onboarding.profileSetupTitle": "Create your allergy profile.",
-  "onboarding.profileSetupBody":
-    "Choose the allergies Sift should check for first. You can edit details later in your profile.",
+    "Sift can read visible menu text. It cannot confirm recipes, substitutions, kitchen preparation, or cross-contact. Always confirm with restaurant staff.",
+  "onboarding.profileSetupTitle": "Build your allergy profile.",
+  "onboarding.profileSetupBody": "Choose what Sift should check for.",
   "onboarding.scanTipsTitle": "Photograph the menu from above.",
   "onboarding.scanTipsBody":
     "Keep the page vertical, flat, and readable. Include dish descriptions when possible.",
@@ -477,34 +537,99 @@ const en = {
     "Sift needs your allergies and severity before it can structure menu risks.",
   "home.editProfile": "Edit profile",
   "home.scanMenu": "Scan Menu",
-  "home.scanBody": "Analyze ingredients instantly",
-  "home.scanHint": "For best results, photograph the menu vertically from above.",
-  "home.uploadPhoto": "Upload Photo",
+  "home.scanBody": "Analyze up to four menu pages",
+  "home.scanHint": "Photograph one clear page at a time and include dish descriptions.",
+  "home.uploadPhoto": "Upload Photos",
   "home.recentScans": "Recent Scans",
   "home.viewAll": "View All",
   "home.menuScan": "Menu scan",
   "home.emptyRecent": "Scans you save on this device will appear here.",
-  "scanCapture.title": "Capture one clear menu page.",
-  "scanCapture.body": "Keep the page flat, include dish descriptions when possible, and avoid glare.",
-  "scanCapture.takePhoto": "Take photo",
-  "scanCapture.uploadPhoto": "Upload photo",
+  "scanCapture.title": "Capture clear menu pages.",
+  "scanCapture.body":
+    "Photograph each page separately. Keep dish descriptions visible and avoid glare.",
+  "scanCapture.takePhoto": "Take photos",
+  "scanCapture.uploadPhoto": "Upload photos",
+  "cameraGuide.skip": "Skip",
+  "cameraGuide.openCamera": "Open camera",
+  "cameraGuide.visibleOnly":
+    "Sift can only assess menu text visible in the photo. Ingredients and preparation still need staff confirmation.",
+  "cameraGuide.stepOneStatus": "Whole section visible",
+  "cameraGuide.stepOneTitle": "Capture one menu section",
+  "cameraGuide.stepOneTipOne": "Fill the frame with one page or menu section.",
+  "cameraGuide.stepOneTipTwo": "Keep each dish name beside its description.",
+  "cameraGuide.stepOneTipThree": "Do not crop the first or last line.",
+  "cameraGuide.stepTwoStatus": "Text is sharp",
+  "cameraGuide.stepTwoTitle": "Make every word readable",
+  "cameraGuide.stepTwoTipOne": "Hold your phone parallel to the menu.",
+  "cameraGuide.stepTwoTipTwo": "Hold still until the smallest text looks sharp.",
+  "cameraGuide.stepTwoTipThree": "Move away from glare, shadows, and reflections.",
+  "cameraGuide.stepThreeStatus": "One page per photo",
+  "cameraGuide.stepThreeTitle": "Check before Sift reads it",
+  "cameraGuide.stepThreeTipOne": "Review the photo before starting analysis.",
+  "cameraGuide.stepThreeTipTwo": "Retake anything blurred, dim, or cut off.",
+  "cameraGuide.stepThreeTipThree": "Photograph each additional page separately.",
+  "cameraGuide.permissionTitle": "Use Sift's camera",
+  "cameraGuide.permissionBody":
+    "Sift only accesses the camera when you choose to photograph a menu.",
+  "cameraGuide.allowCamera": "Allow camera",
+  "cameraGuide.cameraTitle": "Menu pages",
+  "cameraGuide.frameInstruction": "Keep all menu text inside the frame",
+  "cameraGuide.steadyHint": "Hold steady and avoid glare",
+  "cameraGuide.turnFlashOff": "Turn flash off",
+  "cameraGuide.turnFlashOn": "Turn flash on",
+  "cameraGuide.photoLibrary": "Choose menu photos",
+  "cameraGuide.takePhoto": "Take menu page",
+  "cameraGuide.photoTips": "Open photo tips",
+  "cameraGuide.captureError": "Photo failed. Hold steady and try again.",
+  "cameraGuide.cameraError": "Camera preview unavailable.",
+  "cameraGuide.sessionTooLarge":
+    "This scan is too large. Review or remove a page before continuing.",
+  "cameraGuide.maxPagesReached": "All {max} pages are ready. Review to continue.",
+  "cameraGuide.pageAdded": "Page {count} added. Capture the next page or review.",
+  "cameraGuide.pagesCaptured": "{count} of {max} pages",
+  "cameraGuide.removePage": "Remove page {page}",
+  "cameraGuide.reviewPages": "Review captured menu pages",
+  "cameraGuide.addPageSlot": "Add menu page {page}",
+  "cameraGuide.previewPage": "Preview menu page {page}",
+  "cameraGuide.fullscreenPage": "Menu page {current} of {count}",
+  "cameraGuide.previousPage": "Previous menu page",
+  "cameraGuide.nextPage": "Next menu page",
   "imagePreview.title": "Use this menu photo?",
   "imagePreview.body": "If text is cut off or blurry, retake it before analysis.",
   "imagePreview.noImage": "No image selected.",
   "imagePreview.usePhoto": "Use photo",
   "imagePreview.retake": "Retake",
   "imagePreview.rechoose": "Rechoose",
+  "imagePreview.pagesTitle": "Review menu pages",
+  "imagePreview.pagesBody":
+    "Check every page for sharp text, complete descriptions, and minimal glare before analysis.",
+  "imagePreview.pageCount": "Page {current} of {count}",
+  "imagePreview.removePage": "Remove page {page}",
+  "imagePreview.selectPage": "View page {page}",
+  "imagePreview.noPages": "Add at least one clear menu page before analysis.",
+  "imagePreview.analyzePages": "Analyze {count} pages",
+  "imagePreview.addPage": "Add another page",
+  "analysis.pageCount": "{count} pages",
   "analysis.title": "Reading menu\ningredients...",
   "analysis.subtitle": "Scanning for traces and hidden\naliases",
   "results.title": "Scan Results",
   "results.heroSubtitle": "{restaurantName} for {profileName}",
   "results.imageReadability": "Image readability: {readability}",
   "results.viewPhoto": "View photo",
+  "results.viewPhotos": "View photos",
   "results.menuPhoto": "Menu photo",
+  "results.menuPhotos": "Menu photos",
+  "results.previousPhoto": "Previous menu photo",
+  "results.nextPhoto": "Next menu photo",
+  "results.photoCount": "Photo {current} of {count}",
   "results.readability.clear": "clear",
   "results.readability.partiallyClear": "partially clear",
   "results.readability.poor": "poor",
   "results.dishesFound": "Dishes found",
+  "results.needsAttention": "Needs attention",
+  "results.lowerConcern": "Lower concern from visible text",
+  "results.lowerConcernBody":
+    "No obvious risk was found in the visible menu text. This does not confirm ingredients or cross-contact; ask staff.",
   "results.restaurantMessage": "Show this allergy message to staff",
   "results.userLanguageReference": "Translation for you",
   "results.restaurantMessageMissing": "Restaurant-language message was not generated for this scan. Re-scan with a restaurant language selected.",
@@ -564,6 +689,7 @@ const en = {
   "profile.customDetailsLongPlaceholder": "Custom details, such as oils, traces, or tolerated forms",
   "profile.saveProfile": "Save profile",
   "profile.savedToast": "Allergy profile saved",
+  "profile.allergenAddedToast": "Allergen added",
   "severity.mild": "Mild",
   "severity.moderate": "Moderate",
   "severity.severe": "Severe",
@@ -620,6 +746,7 @@ const en = {
   "subscription.testMode": "Test mode: switching plans does not start a purchase.",
   "subscription.switchPlan": "Switch to this plan",
   "subscription.currentPlanAction": "Current plan",
+  "subscription.planChangedToast": "Test plan updated",
   "subscription.comingSoon": "Coming soon",
   "subscription.scansThisMonth": "{count}/{limit} scans this month",
   "subscription.profileSlots": "{limit} profile slots",
@@ -708,6 +835,10 @@ const en = {
 
 const es = {
   ...en,
+  "results.needsAttention": "Necesita atención",
+  "results.lowerConcern": "Menor preocupación según el texto visible",
+  "results.lowerConcernBody":
+    "No se encontró un riesgo evidente en el texto visible del menú. Esto no confirma los ingredientes ni el contacto cruzado; pregunta al personal.",
   "common.back": "Volver",
   "common.close": "Cerrar",
   "common.sift": "Sift",
@@ -753,6 +884,7 @@ const es = {
   "profile.customDetailsLongPlaceholder": "Detalles personalizados, como aceites, trazas o formas toleradas",
   "profile.saveProfile": "Guardar perfil",
   "profile.savedToast": "Perfil de alergias guardado",
+  "profile.allergenAddedToast": "Alérgeno añadido",
   "severity.mild": "Leve",
   "severity.moderate": "Moderada",
   "severity.severe": "Grave",
@@ -867,6 +999,10 @@ const es = {
 
 const fr = {
   ...en,
+  "results.needsAttention": "À vérifier",
+  "results.lowerConcern": "Risque moindre selon le texte visible",
+  "results.lowerConcernBody":
+    "Aucun risque évident n'a été trouvé dans le texte visible du menu. Cela ne confirme pas les ingrédients ni le contact croisé ; demandez au personnel.",
   "common.back": "Retour",
   "common.close": "Fermer",
   "nav.home": "Accueil",
@@ -911,6 +1047,7 @@ const fr = {
   "profile.customDetailsLongPlaceholder": "Détails personnalisés, comme huiles, traces ou formes tolérées",
   "profile.saveProfile": "Enregistrer le profil",
   "profile.savedToast": "Profil d'allergies enregistré",
+  "profile.allergenAddedToast": "Allergène ajouté",
   "severity.mild": "Légère",
   "severity.moderate": "Modérée",
   "severity.severe": "Sévère",
@@ -1021,6 +1158,10 @@ const fr = {
 
 const it = {
   ...en,
+  "results.needsAttention": "Da verificare",
+  "results.lowerConcern": "Rischio minore dal testo visibile",
+  "results.lowerConcernBody":
+    "Non è stato trovato alcun rischio evidente nel testo visibile del menu. Questo non conferma gli ingredienti né il contatto incrociato; chiedi al personale.",
   "common.back": "Indietro",
   "common.close": "Chiudi",
   "nav.home": "Home",
@@ -1065,6 +1206,7 @@ const it = {
   "profile.customDetailsLongPlaceholder": "Dettagli personalizzati, come oli, tracce o forme tollerate",
   "profile.saveProfile": "Salva profilo",
   "profile.savedToast": "Profilo allergie salvato",
+  "profile.allergenAddedToast": "Allergene aggiunto",
   "severity.mild": "Lieve",
   "severity.moderate": "Moderata",
   "severity.severe": "Grave",
@@ -1175,6 +1317,10 @@ const it = {
 
 const ja = {
   ...en,
+  "results.needsAttention": "確認が必要",
+  "results.lowerConcern": "表示されているメニュー文からは懸念が低い",
+  "results.lowerConcernBody":
+    "表示されているメニュー文から明らかなリスクは見つかりませんでした。原材料や交差接触を確認したものではないため、スタッフに確認してください。",
   "common.back": "戻る",
   "common.close": "閉じる",
   "nav.home": "ホーム",
@@ -1219,6 +1365,7 @@ const ja = {
   "profile.customDetailsLongPlaceholder": "油、微量、許容できる形などの詳細",
   "profile.saveProfile": "プロフィールを保存",
   "profile.savedToast": "アレルギープロフィールを保存しました",
+  "profile.allergenAddedToast": "アレルゲンを追加しました",
   "severity.mild": "軽度",
   "severity.moderate": "中等度",
   "severity.severe": "重度",
@@ -1330,6 +1477,10 @@ const ja = {
 
 const de = {
   ...en,
+  "results.needsAttention": "Zu beachten",
+  "results.lowerConcern": "Geringeres Risiko laut sichtbarem Menütext",
+  "results.lowerConcernBody":
+    "Im sichtbaren Menütext wurde kein offensichtliches Risiko gefunden. Zutaten und Kreuzkontakt sind damit nicht bestätigt; frage das Personal.",
   "common.back": "Zurück",
   "common.close": "Schließen",
   "nav.home": "Start",
@@ -1374,6 +1525,7 @@ const de = {
   "profile.customDetailsLongPlaceholder": "Eigene Details, z. B. Öle, Spuren oder tolerierte Formen",
   "profile.saveProfile": "Profil speichern",
   "profile.savedToast": "Allergieprofil gespeichert",
+  "profile.allergenAddedToast": "Allergen hinzugefügt",
   "severity.mild": "Leicht",
   "severity.moderate": "Mittel",
   "severity.severe": "Schwer",
@@ -1484,6 +1636,10 @@ const de = {
 
 const ko = {
   ...en,
+  "results.needsAttention": "확인이 필요해요",
+  "results.lowerConcern": "보이는 메뉴 문구상 우려가 낮음",
+  "results.lowerConcernBody":
+    "보이는 메뉴 문구에서는 뚜렷한 위험을 찾지 못했습니다. 재료나 교차 접촉이 확인된 것은 아니므로 직원에게 문의하세요.",
   "common.back": "뒤로",
   "common.close": "닫기",
   "nav.home": "홈",
@@ -1528,6 +1684,7 @@ const ko = {
   "profile.customDetailsLongPlaceholder": "기름, 흔적, 허용 가능한 형태 등 사용자 지정 세부정보",
   "profile.saveProfile": "프로필 저장",
   "profile.savedToast": "알레르기 프로필이 저장되었습니다",
+  "profile.allergenAddedToast": "알레르기 유발 물질이 추가되었습니다",
   "severity.mild": "가벼움",
   "severity.moderate": "보통",
   "severity.severe": "심함",
@@ -1638,6 +1795,10 @@ const ko = {
 
 const zhHans = {
   ...en,
+  "results.needsAttention": "需要注意",
+  "results.lowerConcern": "根据可见菜单文字，风险较低",
+  "results.lowerConcernBody":
+    "在可见菜单文字中未发现明显风险。这并不代表已确认配料或交叉接触情况；请询问餐厅工作人员。",
   "common.back": "返回",
   "common.close": "关闭",
   "nav.home": "首页",
@@ -1682,6 +1843,7 @@ const zhHans = {
   "profile.customDetailsLongPlaceholder": "自定义详情，例如油、微量或可耐受形式",
   "profile.saveProfile": "保存档案",
   "profile.savedToast": "过敏档案已保存",
+  "profile.allergenAddedToast": "已添加过敏原",
   "severity.mild": "轻度",
   "severity.moderate": "中度",
   "severity.severe": "严重",
@@ -1792,6 +1954,10 @@ const zhHans = {
 
 const zhHant = {
   ...zhHans,
+  "results.needsAttention": "需要留意",
+  "results.lowerConcern": "根據可見菜單文字，風險較低",
+  "results.lowerConcernBody":
+    "在可見菜單文字中未發現明顯風險。這不代表已確認配料或交叉接觸情況；請詢問餐廳工作人員。",
   "nav.home": "首頁",
   "nav.history": "記錄",
   "nav.profile": "檔案",
@@ -1834,6 +2000,7 @@ const zhHant = {
   "profile.customDetailsLongPlaceholder": "自訂詳情，例如油、微量或可耐受形式",
   "profile.saveProfile": "儲存檔案",
   "profile.savedToast": "過敏檔案已儲存",
+  "profile.allergenAddedToast": "已新增過敏原",
   "severity.mild": "輕度",
   "severity.moderate": "中度",
   "severity.severe": "嚴重",
@@ -1941,6 +2108,10 @@ const zhHant = {
 
 const pt = {
   ...en,
+  "results.needsAttention": "Requer atenção",
+  "results.lowerConcern": "Menor preocupação segundo o texto visível",
+  "results.lowerConcernBody":
+    "Nenhum risco evidente foi encontrado no texto visível do cardápio. Isso não confirma os ingredientes nem o contato cruzado; pergunte à equipe.",
   "common.back": "Voltar",
   "common.close": "Fechar",
   "nav.home": "Início",
@@ -1985,6 +2156,7 @@ const pt = {
   "profile.customDetailsLongPlaceholder": "Detalhes personalizados, como óleos, traços ou formas toleradas",
   "profile.saveProfile": "Salvar perfil",
   "profile.savedToast": "Perfil de alergias salvo",
+  "profile.allergenAddedToast": "Alérgeno adicionado",
   "severity.mild": "Leve",
   "severity.moderate": "Moderada",
   "severity.severe": "Grave",
@@ -2095,6 +2267,10 @@ const pt = {
 
 const th = {
   ...en,
+  "results.needsAttention": "ควรตรวจสอบ",
+  "results.lowerConcern": "ความกังวลต่ำกว่าจากข้อความเมนูที่มองเห็น",
+  "results.lowerConcernBody":
+    "ไม่พบความเสี่ยงที่ชัดเจนจากข้อความเมนูที่มองเห็น แต่ไม่ได้ยืนยันส่วนผสมหรือการสัมผัสข้าม โปรดสอบถามพนักงาน",
   "common.back": "ย้อนกลับ",
   "common.close": "ปิด",
   "nav.home": "หน้าแรก",
@@ -2139,6 +2315,7 @@ const th = {
   "profile.customDetailsLongPlaceholder": "รายละเอียดเพิ่มเติม เช่น น้ำมัน ร่องรอย หรือรูปแบบที่ทนได้",
   "profile.saveProfile": "บันทึกโปรไฟล์",
   "profile.savedToast": "บันทึกโปรไฟล์การแพ้แล้ว",
+  "profile.allergenAddedToast": "เพิ่มสารก่อภูมิแพ้แล้ว",
   "severity.mild": "เล็กน้อย",
   "severity.moderate": "ปานกลาง",
   "severity.severe": "รุนแรง",

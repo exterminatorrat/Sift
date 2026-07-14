@@ -1,0 +1,177 @@
+---
+import PageHero from "../components/PageHero.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../config/site";
+
+const title = "Terms of Service";
+const description =
+  "The terms that govern use of Sift, including essential food-safety boundaries and responsibilities.";
+---
+
+<BaseLayout title={title} description={description} path="/terms">
+  <PageHero
+    eyebrow="Legal"
+    title="Terms built around a clear safety boundary."
+    description="These terms govern your use of Sift. The most important point is simple: Sift helps you prepare questions; it cannot tell you that a meal is safe."
+    compact
+  />
+
+  <section class="content-section">
+    <article class="shell prose">
+      <div class="legal-meta" aria-label="Terms details">
+        <span><strong>{site.legalEffectiveDate ? "Effective" : "Last updated"}:</strong> {site.legalEffectiveDate ?? "July 10, 2026"}</span>
+        <span><strong>Applies to:</strong> The Sift app and siftallergy.app</span>
+      </div>
+
+      <div class="callout callout--warning">
+        <strong>Questions, not guarantees.</strong> Never rely on Sift as your only source of food-allergy information. Confirm ingredients, preparation methods, and cross-contact risk directly with restaurant staff before ordering or eating, especially when an allergy is severe.
+      </div>
+
+      <h2>1. Agreement to these terms</h2>
+      <p>
+        These Terms of Service ("Terms") are an agreement between you and {site.legalEntity ?? "the operator of Sift"} ("Sift," "we," "us," or "our"). By accessing or using the Sift app, website, or related services, you agree to these Terms and our <a href="/privacy">Privacy Policy</a>. If you do not agree, do not use Sift.
+      </p>
+      <p>
+        If you use Sift for a child, family member, or another person in your care, you confirm that you are authorized to provide their information and to accept these Terms for that use.
+      </p>
+
+      <h2>2. What Sift provides</h2>
+      <p>
+        Sift reviews a menu image against allergy-profile information you provide. It may identify visible menu wording and common ingredient or preparation patterns, assign a conservative risk category, explain why an item was flagged, and prepare questions or translated messages for restaurant staff.
+      </p>
+      <p>
+        Sift is an informational decision-support tool. It is not a restaurant, allergist, clinician, laboratory, food-safety authority, emergency service, or certification service.
+      </p>
+
+      <h2>3. Food-safety and medical limitations</h2>
+      <p>
+        Sift cannot inspect a kitchen or verify complete recipes, ingredient labels, supplier changes, substitutions, sauces, marinades, broths, garnishes, frying oil, preparation surfaces, shared equipment, staff practices, or cross-contact. A menu may also be incomplete, outdated, mistranslated, or different from what is prepared.
+      </p>
+      <p>
+        Sift does not diagnose, treat, prevent, or manage a medical condition and is not a medical device. For diagnosis, treatment, emergency planning, medication, or other medical decisions, consult a qualified healthcare professional. If you may be experiencing an allergic reaction, follow your emergency plan and contact local emergency services; do not use Sift for emergency guidance.
+      </p>
+      <p>
+        No scan result, risk label, explanation, translation, or absence of a warning means that a food is safe. A lower-risk label means only that Sift found less visible evidence of concern in the information it could analyze.
+      </p>
+
+      <h2>4. Automated analysis and translations</h2>
+      <p>
+        Sift may use automated systems, including AI, to interpret menu images and generate structured results. Automated analysis can be incomplete, inaccurate, inconsistent, or unavailable. Image blur, glare, cropping, handwriting, unfamiliar dishes, missing ingredients, language differences, and changes in restaurant preparation can all affect a result.
+      </p>
+      <p>
+        Translations are provided for convenience and may omit nuance or use wording that restaurant staff interpret differently. Ask staff to repeat or clarify important information and, when possible, involve a fluent speaker. Sift may return an unclear result or ask you to retake a photo when there is not enough reliable information.
+      </p>
+
+      <h2>5. Your responsibilities</h2>
+      <p>When using Sift, you agree to:</p>
+      <ul>
+        <li>provide accurate and current allergy-profile information;</li>
+        <li>review the visible menu, the full scan result, and its limitations;</li>
+        <li>ask restaurant staff about ingredients, preparation, substitutions, and cross-contact;</li>
+        <li>make conservative decisions and follow advice from your healthcare professionals;</li>
+        <li>use appropriate emergency medication and plans as directed by those professionals;</li>
+        <li>avoid representing a Sift result as a restaurant or food-safety certification; and</li>
+        <li>use the service only for lawful, personal purposes.</li>
+      </ul>
+
+      <h2>6. Eligibility and family use</h2>
+      <p>
+        You must be legally able to enter into these Terms where you live. Sift is not intended for unsupervised use by children who cannot understand its limitations or legally consent to its use. Parents, guardians, and caregivers remain responsible for profiles they manage and for all dining and medical decisions made for a child or dependent.
+      </p>
+
+      <h2>7. Accounts and device security</h2>
+      <p>
+        Sift may provide anonymous access or account access, including Sign in with Apple. You are responsible for controlling your device, account credentials, and any private relay address connected to the account. Notify us if you believe an account has been used without authorization.
+      </p>
+      <p>
+        Signing out ends the current session but does not necessarily delete profiles, scan history, account records, or provider records. See <a href="/delete-account">Delete Account</a> for deletion steps.
+      </p>
+
+      <h2>8. Acceptable use</h2>
+      <p>You may not:</p>
+      <ul>
+        <li>use Sift to violate law, another person's privacy, or intellectual-property rights;</li>
+        <li>upload images you do not have the right to process;</li>
+        <li>attempt to access another person's account or non-public systems;</li>
+        <li>probe, disrupt, overload, scrape, automate, or bypass limits or security controls;</li>
+        <li>reverse engineer the service except where applicable law expressly permits it;</li>
+        <li>use Sift outputs to train or benchmark a competing system without written permission; or</li>
+        <li>misrepresent Sift results as verified medical, ingredient, restaurant, or food-safety facts.</li>
+      </ul>
+
+      <h2>9. Content you submit</h2>
+      <p>
+        You retain any rights you have in menu photos, profile details, support messages, and other content you submit. You give Sift and its service providers a limited, non-exclusive permission to host, transmit, reproduce, transform, and analyze that content only as needed to operate, secure, support, and improve the service as described in the Privacy Policy.
+      </p>
+      <p>
+        You confirm that you have the right to submit the content and that it does not unlawfully expose private information or infringe another person's rights. Do not include faces, payment information, medical records, or other unnecessary personal information in menu photos.
+      </p>
+
+      <h2>10. Feedback</h2>
+      <p>
+        If you choose to send ideas, corrections, or product feedback, you allow Sift to use that feedback without restriction or payment to improve its products and services. This does not give Sift ownership of the personal information contained in your message.
+      </p>
+
+      <h2>11. Paid features</h2>
+      <p>
+        If Sift offers a paid plan, the price, billing period, included features, trial terms, and renewal information will be shown before purchase. Purchases made through an app marketplace are also governed by that marketplace's payment, cancellation, refund, and subscription-management rules. Unless the purchase screen states otherwise, deleting Sift or deleting an account does not itself cancel a marketplace-managed subscription; manage the subscription through your device's subscription settings.
+      </p>
+
+      <h2>12. Third-party services</h2>
+      <p>
+        Sift depends on third-party services for functions such as authentication, hosting, automated analysis, and device-platform features. Their services may be unavailable, changed, or subject to separate terms. Sift is not responsible for a third party's independent products, restaurant information, kitchen practices, or decisions.
+      </p>
+
+      <h2>13. Sift materials and ownership</h2>
+      <p>
+        Sift and its software, design, brand, written content, and other materials are protected by intellectual-property laws and belong to Sift or its licensors. Subject to these Terms, Sift gives you a limited, personal, non-transferable, revocable right to use the service. No other rights are granted.
+      </p>
+
+      <h2>14. Service availability, changes, and suspension</h2>
+      <p>
+        We may update, limit, suspend, or discontinue any part of Sift to maintain security, comply with law, respond to abuse, improve the product, or address operational needs. We do not promise that every feature, language, restaurant, or analysis method will always be available. We may suspend or end access when we reasonably believe these Terms have been violated or the service or another person is at risk.
+      </p>
+
+      <h2>15. Disclaimers</h2>
+      <p>
+        To the fullest extent permitted by law, Sift is provided "as is" and "as available." Sift disclaims implied warranties of merchantability, fitness for a particular purpose, accuracy, non-infringement, and uninterrupted availability. We do not warrant that a scan will identify every allergen, ingredient, preparation risk, or translation issue, or that it will be free from errors.
+      </p>
+      <p>
+        Some jurisdictions do not allow certain warranty exclusions. In those places, these exclusions apply only to the extent the law permits.
+      </p>
+
+      <h2>16. Limitation of liability</h2>
+      <p>
+        To the fullest extent permitted by law, Sift and the people and providers involved in operating it will not be liable for indirect, incidental, special, consequential, exemplary, or punitive damages, or for loss arising from a food-allergy reaction, restaurant decision, ingredient or cross-contact issue, inaccurate scan, translation error, unavailable service, lost data, or unauthorized account access.
+      </p>
+      <p>
+        Nothing in these Terms excludes liability that cannot legally be excluded or limits rights you have under mandatory consumer-protection law.
+      </p>
+
+      <h2>17. Resolving concerns</h2>
+      <p>
+        If you have a concern about Sift, contact us first so we can try to understand and resolve it. These Terms do not prevent either you or Sift from using rights and remedies available under applicable law.
+      </p>
+
+      {site.legalJurisdiction && (
+        <>
+          <h2>Governing law</h2>
+          <p>
+            These Terms are governed by the laws of {site.legalJurisdiction}, without regard to its conflict-of-law rules, except where mandatory consumer law provides otherwise.
+          </p>
+        </>
+      )}
+
+      <h2>18. Changes to these terms</h2>
+      <p>
+        We may revise these Terms when Sift or applicable requirements change. We will post the revised Terms here and update the date above. If a material change requires notice or consent, we will provide it in a reasonable way before the change applies.
+      </p>
+
+      <h2>19. Contact</h2>
+      <p>
+        For questions about these Terms, email <a href={`mailto:${site.supportEmail}`}>{site.supportEmail}</a>.
+      </p>
+      {site.legalEntity && <p><strong>{site.legalEntity}</strong>{site.legalAddress && <><br />{site.legalAddress}</>}</p>}
+    </article>
+  </section>
+</BaseLayout>

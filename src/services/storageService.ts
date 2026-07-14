@@ -9,6 +9,7 @@ import { SubscriptionPlanId } from "../types/subscription";
 
 const keys = {
   onboardingComplete: "sift:onboardingComplete",
+  cameraGuideComplete: "sift:cameraGuideComplete",
   profile: "sift:profile",
   profiles: "sift:profiles",
   activeProfileId: "sift:activeProfileId",
@@ -19,6 +20,7 @@ const keys = {
 
 export type StoredAppState = {
   onboardingComplete: boolean;
+  cameraGuideComplete: boolean;
   profile: UserProfile | null;
   profiles: UserProfile[];
   activeProfileId: string | null;
@@ -30,6 +32,7 @@ export type StoredAppState = {
 export async function loadStoredAppState(): Promise<StoredAppState> {
   const [
     onboardingComplete,
+    cameraGuideComplete,
     profile,
     profiles,
     activeProfileId,
@@ -37,14 +40,15 @@ export async function loadStoredAppState(): Promise<StoredAppState> {
     restaurantLanguage,
     subscriptionPlan
   ] = await Promise.all([
-      AsyncStorage.getItem(keys.onboardingComplete),
-      AsyncStorage.getItem(keys.profile),
-      AsyncStorage.getItem(keys.profiles),
-      AsyncStorage.getItem(keys.activeProfileId),
-      AsyncStorage.getItem(keys.scanHistory),
-      AsyncStorage.getItem(keys.restaurantLanguage),
-      AsyncStorage.getItem(keys.subscriptionPlan)
-    ]);
+    AsyncStorage.getItem(keys.onboardingComplete),
+    AsyncStorage.getItem(keys.cameraGuideComplete),
+    AsyncStorage.getItem(keys.profile),
+    AsyncStorage.getItem(keys.profiles),
+    AsyncStorage.getItem(keys.activeProfileId),
+    AsyncStorage.getItem(keys.scanHistory),
+    AsyncStorage.getItem(keys.restaurantLanguage),
+    AsyncStorage.getItem(keys.subscriptionPlan)
+  ]);
 
   const legacyProfile = profile ? JSON.parse(profile) as UserProfile : null;
   const savedProfiles = profiles ? JSON.parse(profiles) as UserProfile[] : [];
@@ -52,6 +56,7 @@ export async function loadStoredAppState(): Promise<StoredAppState> {
 
   return {
     onboardingComplete: onboardingComplete === "true",
+    cameraGuideComplete: cameraGuideComplete === "true",
     profile: legacyProfile,
     profiles: normalizedProfiles,
     activeProfileId: activeProfileId ?? normalizedProfiles[0]?.id ?? null,
@@ -63,6 +68,10 @@ export async function loadStoredAppState(): Promise<StoredAppState> {
 
 export async function saveOnboardingComplete(value: boolean) {
   await AsyncStorage.setItem(keys.onboardingComplete, String(value));
+}
+
+export async function saveCameraGuideComplete(value: boolean) {
+  await AsyncStorage.setItem(keys.cameraGuideComplete, String(value));
 }
 
 export async function saveProfile(profile: UserProfile) {

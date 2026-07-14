@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 226 64" role="img" aria-labelledby="title desc">
+  <title id="title">Sift</title>
+  <desc id="desc">The Sift menu-reveal mark and wordmark.</desc>
+  <defs>
+    <linearGradient id="mint" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EFF9F6"/>
+      <stop offset="1" stop-color="#DDF1ED"/>
+    </linearGradient>
+    <linearGradient id="reveal" x1="30" y1="30" x2="48" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1F8A83"/>
+      <stop offset="1" stop-color="#18746E"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#mint)"/>
+  <rect x="17" y="10" width="30" height="44" rx="6" fill="#FFF8EF"/>
+  <path d="M47 31.5C45.3 40.8 38.2 49.1 27 54H41C44.3 54 47 51.3 47 48V31.5Z" fill="url(#reveal)"/>
+  <g fill="#176B66">
+    <rect x="22" y="19" width="20" height="2.5" rx="1.25"/>
+    <rect x="22" y="27" width="20" height="2.5" rx="1.25"/>
+    <rect x="22" y="35" width="17" height="2.5" rx="1.25"/>
+    <rect x="22" y="43" width="8" height="2.5" rx="1.25"/>
+  </g>
+  <text x="78" y="45" fill="#104C48" font-family="Source Serif 4, Georgia, serif" font-size="44" font-weight="600">Sift</text>
+</svg>

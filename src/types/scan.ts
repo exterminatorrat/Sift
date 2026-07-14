@@ -20,6 +20,12 @@ export type ImageQuality = {
   needsRetake?: boolean;
 };
 
+export type PageAssessment = {
+  pageNumber: number;
+  readability: ImageQuality["readability"];
+  issues: string[];
+};
+
 export type EvidenceConfidence = "high" | "medium" | "low";
 
 export type RiskBasis =
@@ -54,6 +60,7 @@ export type DishRisk = {
   id: string;
   dishName: string;
   menuDescription?: string | null;
+  sourcePageNumbers?: number[];
   riskLevel: RiskLevel;
   possibleAllergens: string[];
   hiddenRiskIngredients: string[];
@@ -71,12 +78,14 @@ export type ScanResult = {
   id: string;
   createdAt: string;
   imageUri?: string | null;
+  imageUris?: string[];
   restaurantName?: string | null;
   profileId: string;
   analysisLanguage?: string | null;
   analysisSource?: "mock" | "ai" | "fallback";
   analysisModel?: string | null;
   analysisRequestId?: string | null;
+  pageAssessments?: PageAssessment[];
   scanSummary: ScanSummary;
   dishes: DishRisk[];
   restaurantMessage?: RestaurantMessage;

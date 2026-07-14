@@ -1,0 +1,891 @@
+{
+  "schemaVersion": "1.0.0",
+  "updatedAt": "2026-07-14T08:00:00.000Z",
+  "categories": [
+    "vision",
+    "prompt",
+    "ontology",
+    "policy",
+    "contract",
+    "translation",
+    "provider_availability"
+  ],
+  "failures": [
+    {
+      "id": "FAIL-001",
+      "title": "Late provider evidence bypassed deterministic risk floors",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "repository requirement audit",
+      "caseIds": ["regression/late-severe-evidence"],
+      "responsibleLayer": "normalization",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Preserve all eight provider evidence items until policy evaluation.",
+        "fromVersion": "normalization-2026-07-14.1",
+        "toVersion": "normalization-2026-07-14.2",
+        "regressionPath": "scripts/ai-evals/configuration-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/configuration-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-002",
+      "title": "Inferred preparation text was relabeled as visible evidence",
+      "category": "policy",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "repository requirement audit",
+      "caseIds": ["regression/inferred-house-sauce"],
+      "responsibleLayer": "risk-policy",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Track observed, inferred, and explicit shared-preparation signals separately.",
+        "fromVersion": "risk-policy-2026-07-13.5",
+        "toVersion": "risk-policy-2026-07-14.2",
+        "regressionPath": "scripts/ai-evals/risk-policy-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/risk-policy-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-003",
+      "title": "Google AI Studio unavailable for the signed-in region",
+      "category": "provider_availability",
+      "status": "open",
+      "discoveredAt": "2026-07-13T00:00:00.000Z",
+      "discoveredIn": "candidate-2026-07-13-pilot-v5",
+      "caseIds": ["I-001", "I-028", "I-033"],
+      "responsibleLayer": "external-provider-access",
+      "holdoutRetirementRequired": false,
+      "resolution": null
+    },
+    {
+      "id": "FAIL-004",
+      "title": "Direct observed allergen evidence was discarded before deterministic policy",
+      "category": "policy",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent completion audit",
+      "caseIds": ["regression/direct-observed-allergen-evidence"],
+      "responsibleLayer": "normalization-and-risk-policy",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Carry direct allergen terms and derivatives through normalization as private policy evidence, apply deterministic floors, then remove the private evidence before returning the public result.",
+        "fromVersion": "normalization-2026-07-14.2",
+        "toVersion": "normalization-2026-07-14.3",
+        "regressionPath": "scripts/ai-evals/risk-policy-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/risk-policy-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-005",
+      "title": "Server-inferred poor images could retain low-risk dishes",
+      "category": "policy",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent completion audit",
+      "caseIds": ["regression/inferred-poor-image-low-risk"],
+      "responsibleLayer": "risk-policy",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Infer effective image quality before dish policy and prevent any low-risk dish from surviving when the server determines the image is poor.",
+        "fromVersion": "risk-policy-2026-07-14.2",
+        "toVersion": "risk-policy-2026-07-14.3",
+        "regressionPath": "scripts/ai-evals/risk-policy-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/risk-policy-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-006",
+      "title": "Holdout promotion and manual evidence were not bound to reviewed bytes",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent completion audit",
+      "caseIds": [
+        "benchmark/frozen-holdout-lineage",
+        "benchmark/manual-scoring-evidence"
+      ],
+      "responsibleLayer": "holdout-integrity-and-manual-evidence",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Require complete primary review, independent secondary review for critical cases, exact candidate and approval hashes, frozen lineage, and a scoring manifest bound to source bytes and expectations.",
+        "fromVersion": "holdout-review-policy-2026-07-14.1",
+        "toVersion": "holdout-review-policy-2026-07-14.2",
+        "regressionPath": "scripts/ai-evals/manual-preparation-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/manual-preparation-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-007",
+      "title": "Staff-question coverage pooled languages, channels, and dish targets",
+      "category": "translation",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent completion audit",
+      "caseIds": ["Q-001", "regression/staff-question-channel-isolation"],
+      "responsibleLayer": "benchmark-scoring",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Score every required question intent against its specified restaurant or user-language channel and dish scope instead of pooling all question text.",
+        "fromVersion": "question-intent-coverage-pooled-v1",
+        "toVersion": "question-intent-coverage-targeted-v2",
+        "regressionPath": "scripts/ai-evals/scoring-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/scoring-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-008",
+      "title": "Unclear risk was treated as an ordinal risk level",
+      "category": "policy",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent completion audit",
+      "caseIds": ["regression/unclear-non-ordinal"],
+      "responsibleLayer": "benchmark-scoring-and-stability",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Remove unclear from the ordinal ranking and track it as a non-ordinal outcome in threshold and repeat-stability comparisons.",
+        "fromVersion": "risk-ranking-unclear-ordinal-v1",
+        "toVersion": "risk-ranking-unclear-non-ordinal-v2",
+        "regressionPath": "scripts/ai-evals/scoring-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/scoring-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-009",
+      "title": "Critical repeat cases were hardcoded to development identifiers",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent completion audit",
+      "caseIds": [
+        "development/manifest-critical-set",
+        "holdout/manifest-critical-set"
+      ],
+      "responsibleLayer": "live-eval-harness",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Derive critical repeats from each supplied manifest's critical flags and fingerprint the exact critical case set in run evidence.",
+        "fromVersion": "live-critical-set-development-ids-v1",
+        "toVersion": "live-critical-set-manifest-fingerprint-v2",
+        "regressionPath": "scripts/run-live-ai-evals.mjs",
+        "targetedVerification": "node scripts/run-live-ai-evals.mjs self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-010",
+      "title": "Holdout had no cross-language translation denominator",
+      "category": "translation",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent completion audit",
+      "caseIds": [
+        "I-101",
+        "I-102",
+        "I-109",
+        "I-110",
+        "I-117",
+        "I-118",
+        "I-125",
+        "I-126",
+        "I-133",
+        "I-134",
+        "I-141",
+        "I-142"
+      ],
+      "responsibleLayer": "holdout-corpus",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Add one independent two-case user-language-to-restaurant-language group for each of the six holdout languages and enforce the 12-case denominator during manifest generation.",
+        "fromVersion": "holdout-cross-language-cases-0",
+        "toVersion": "holdout-cross-language-cases-12",
+        "regressionPath": "scripts/ai-evals/build-holdout-manifest.mjs",
+        "targetedVerification": "node scripts/ai-evals/build-holdout-manifest.mjs --check",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-011",
+      "title": "Public server and client result validation could drift",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent completion audit",
+      "caseIds": ["regression/public-wire-contract"],
+      "responsibleLayer": "public-result-validation",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Use the versioned shared public schema and server validator for the Edge Function wire contract, with compatibility-focused client rejection or normalization covered by one contract test.",
+        "fromVersion": "edge-public-validation-local-schema-9",
+        "toVersion": "shared-public-validation-2026-07-14.1-schema-10",
+        "regressionPath": "scripts/ai-evals/public-contract-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/public-contract-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-012",
+      "title": "Provider retries conflicted with the one-inference-call architecture",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent completion audit",
+      "caseIds": ["regression/one-provider-inference-call"],
+      "responsibleLayer": "edge-provider-transport",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Remove provider retry paths and lock the accepted scan path and runtime provenance to one provider inference attempt.",
+        "fromVersion": "provider-transport-retry-attempts-2",
+        "toVersion": "provider-transport-inference-attempts-1",
+        "regressionPath": "scripts/ai-evals/edge-function-wire-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/edge-function-wire-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-013",
+      "title": "Combined release reporting accepted human review from a different run",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "release-gate integration audit",
+      "caseIds": ["regression/human-review-source-identity"],
+      "responsibleLayer": "live-eval-release-gate",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Require the passed human review report to identify the same holdout input bytes and model configuration as a passed live gate phase before the combined report can make a release claim.",
+        "fromVersion": "combined-release-gate-unbound-v1",
+        "toVersion": "combined-release-gate-source-bound-v2",
+        "regressionPath": "scripts/run-live-ai-evals.mjs",
+        "targetedVerification": "node scripts/run-live-ai-evals.mjs self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-014",
+      "title": "Combined release reporting did not require same-lineage repeats and deployed canary telemetry",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "release-gate integration audit",
+      "caseIds": [
+        "regression/critical-repeat-holdout-lineage",
+        "regression/deployed-canary-telemetry",
+        "regression/release-configuration-identity"
+      ],
+      "responsibleLayer": "live-eval-release-gate",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Require critical repeats from the same frozen holdout lineage, a passed deployed canary with required persisted telemetry, and one identical model configuration across holdout, repeats, and canary before a release claim is possible.",
+        "fromVersion": "combined-release-gate-partial-v2",
+        "toVersion": "combined-release-gate-complete-v3",
+        "regressionPath": "scripts/run-live-ai-evals.mjs",
+        "targetedVerification": "node scripts/run-live-ai-evals.mjs self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-015",
+      "title": "Explicit model uncertainty could ship as low risk",
+      "category": "policy",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent runtime reliability audit",
+      "caseIds": ["regression/explicit-uncertainty-low-risk"],
+      "responsibleLayer": "provider-validation-and-risk-policy",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Require material uncertainty to carry an uncertainty basis and at least ask-staff risk, then preserve it through deterministic policy.",
+        "fromVersion": "provider-risk-uncertainty-v1",
+        "toVersion": "provider-risk-uncertainty-v2",
+        "regressionPath": "scripts/ai-evals/configuration-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/configuration-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-016",
+      "title": "Staff questions and restaurant messages were not bound to the allergy profile",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent runtime reliability audit",
+      "caseIds": ["regression/profile-bound-communication"],
+      "responsibleLayer": "prompt-and-provider-validation",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Require every question channel to name all supplied allergens and every restaurant-message channel to carry exact allergen and severity markers while rejecting unrelated allergens.",
+        "fromVersion": "profile-communication-unbound-v1",
+        "toVersion": "profile-communication-bound-v2",
+        "regressionPath": "scripts/ai-evals/configuration-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/configuration-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-017",
+      "title": "Deterministic allergen ontology did not cover every supported language",
+      "category": "ontology",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent runtime reliability audit",
+      "caseIds": ["regression/ontology-12-families-11-languages"],
+      "responsibleLayer": "allergen-ontology",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Curate and test 12 allergen families across all 11 currently supported languages with explicit relationship metadata.",
+        "fromVersion": "ontology-2026-07-14.2",
+        "toVersion": "ontology-2026-07-14.3",
+        "regressionPath": "scripts/ai-evals/ontology-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/ontology-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-018",
+      "title": "Multi-page scans had no page-level completeness contract",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent runtime reliability audit",
+      "caseIds": ["regression/multi-page-readable-page-coverage"],
+      "responsibleLayer": "provider-schema-and-validation",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Require one ordered page assessment per image, source page numbers on every dish, and dish coverage for every non-poor page.",
+        "fromVersion": "provider-schema-10",
+        "toVersion": "provider-schema-11",
+        "regressionPath": "scripts/ai-evals/configuration-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/configuration-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-019",
+      "title": "Overall risk changed with dish ordering when unclear and ask-staff were mixed",
+      "category": "policy",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent runtime reliability audit",
+      "caseIds": ["regression/overall-risk-order-independence"],
+      "responsibleLayer": "risk-policy",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Use an explicit deterministic precedence with unclear above ask-staff instead of reducing by input order.",
+        "fromVersion": "risk-policy-2026-07-14.3",
+        "toVersion": "risk-policy-2026-07-14.4",
+        "regressionPath": "scripts/ai-evals/risk-policy-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/risk-policy-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-020",
+      "title": "Free-form allergy notes could create unrelated allergen matches",
+      "category": "ontology",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent runtime reliability audit",
+      "caseIds": ["regression/allergy-notes-not-ontology-aliases"],
+      "responsibleLayer": "allergen-ontology",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Exclude free-form notes from deterministic ontology aliases; notes remain prompt context only.",
+        "fromVersion": "ontology-notes-as-aliases-v1",
+        "toVersion": "ontology-explicit-aliases-only-v2",
+        "regressionPath": "scripts/ai-evals/ontology-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/ontology-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-021",
+      "title": "Model-controlled derivative labels could be promoted as direct evidence",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent runtime reliability audit",
+      "caseIds": ["regression/derivative-evidence-ontology-bound"],
+      "responsibleLayer": "provider-validation",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Accept direct terms and derivatives only when they occur in observed menu text and match an allowed ontology relationship for the active profile.",
+        "fromVersion": "provider-evidence-trusted-v1",
+        "toVersion": "provider-evidence-observed-and-ontology-bound-v2",
+        "regressionPath": "scripts/ai-evals/configuration-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/configuration-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-022",
+      "title": "Missing or unknown AI provider configuration defaulted to a paid provider",
+      "category": "provider_availability",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent runtime reliability audit",
+      "caseIds": ["regression/explicit-ai-provider-selection"],
+      "responsibleLayer": "edge-provider-configuration",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Require an explicit supported AI_PROVIDER value and return a calm provider-unavailable fallback for missing or invalid configuration.",
+        "fromVersion": "provider-default-openai-v1",
+        "toVersion": "provider-explicit-fail-closed-v2",
+        "regressionPath": "scripts/ai-evals/edge-function-wire-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/edge-function-wire-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-023",
+      "title": "Combined release reporting trusted editable phase and review pass fields",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent benchmark governance audit",
+      "caseIds": ["regression/recompute-release-evidence"],
+      "responsibleLayer": "live-eval-release-reporter",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Recompute phase metrics from raw attempts, rebuild corpus identity from frozen bytes, re-query canary telemetry, and rescore the filled human-review template against its sealed key.",
+        "fromVersion": "release-report-stored-booleans-v3",
+        "toVersion": "release-report-recomputed-evidence-v4",
+        "regressionPath": "scripts/run-live-ai-evals.mjs",
+        "targetedVerification": "node scripts/run-live-ai-evals.mjs self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-024",
+      "title": "Caller-controlled counts could freeze an undersized holdout",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent benchmark governance audit",
+      "caseIds": ["regression/fixed-48-case-holdout"],
+      "responsibleLayer": "holdout-integrity",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Lock production promotion to 48 cases, 24 groups, and fixed distribution invariants; ignore caller-provided expected counts.",
+        "fromVersion": "holdout-promotion-configurable-count-v2",
+        "toVersion": "holdout-promotion-policy-2026-07-14.3",
+        "regressionPath": "scripts/ai-evals/promote-holdout.mjs",
+        "targetedVerification": "node scripts/ai-evals/promote-holdout.mjs self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-025",
+      "title": "Human release review omitted hallucination and translation judgments",
+      "category": "translation",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent benchmark governance audit",
+      "caseIds": ["regression/human-hallucination-translation-gates"],
+      "responsibleLayer": "human-review-workflow",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Fail human release review on any unsupported visible-text claim, material translation error, unreviewable required item, incomplete coverage, or question-intent miss.",
+        "fromVersion": "human-review-format-2",
+        "toVersion": "human-review-format-3",
+        "regressionPath": "scripts/ai-evals/human-review/self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/human-review/self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-026",
+      "title": "Human question judgments were not bound to frozen benchmark requirements",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent benchmark governance audit",
+      "caseIds": ["regression/question-requirements-fingerprint"],
+      "responsibleLayer": "human-review-lineage",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Fingerprint required question intents together with frozen manifest and holdout lineage, then verify the complete source identity during release reporting.",
+        "fromVersion": "human-question-requirements-unbound-v1",
+        "toVersion": "human-question-requirements-fingerprint-v2",
+        "regressionPath": "scripts/ai-evals/human-review/self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/human-review/self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-027",
+      "title": "Repeat stability ignored unclear transitions and risk label flips",
+      "category": "policy",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent benchmark governance audit",
+      "caseIds": ["regression/repeat-nonordinal-and-label-stability"],
+      "responsibleLayer": "live-eval-repeat-gate",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Treat unclear as non-ordinal and require zero non-ordinal critical comparisons, zero label flips, exact dish-set stability, and exact readability agreement across repeats.",
+        "fromVersion": "critical-repeat-downgrade-only-v1",
+        "toVersion": "critical-repeat-exact-stability-v2",
+        "regressionPath": "scripts/run-live-ai-evals.mjs",
+        "targetedVerification": "node scripts/run-live-ai-evals.mjs self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-028",
+      "title": "Deployed canary accepted an arbitrary undersized case set",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent benchmark governance audit",
+      "caseIds": ["regression/fixed-multilingual-deployed-canary"],
+      "responsibleLayer": "live-eval-canary-gate",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Require a fixed 12-case canary with clear and poor-image cases across all six holdout languages, exact lineage, one pass, and persisted telemetry.",
+        "fromVersion": "deployed-canary-arbitrary-selection-v1",
+        "toVersion": "deployed-canary-fixed-corpus-v2",
+        "regressionPath": "scripts/run-live-ai-evals.mjs",
+        "targetedVerification": "node scripts/run-live-ai-evals.mjs self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-029",
+      "title": "Multilingual slices were reported but not release-gated",
+      "category": "translation",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent benchmark governance audit",
+      "caseIds": ["regression/per-language-safety-gates"],
+      "responsibleLayer": "live-eval-release-gate",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Require every manifest language slice to have zero severe misses, forbidden claims, invalid schemas, fallbacks, and benign over-escalations plus complete question and poor-image behavior.",
+        "fromVersion": "multilingual-slices-report-only-v1",
+        "toVersion": "multilingual-slices-release-gated-v2",
+        "regressionPath": "scripts/run-live-ai-evals.mjs",
+        "targetedVerification": "node scripts/run-live-ai-evals.mjs self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-030",
+      "title": "Holdout promotion did not require real-world sources or perceptual duplicate review",
+      "category": "vision",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent benchmark governance audit",
+      "caseIds": ["regression/real-world-perceptual-holdout-audit"],
+      "responsibleLayer": "holdout-integrity",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Require exactly 12 reviewed licensed or user-captured cases and an externally completed perceptual-hash plus visual duplicate audit bound into frozen lineage.",
+        "fromVersion": "holdout-exact-hash-only-v2",
+        "toVersion": "holdout-promotion-policy-2026-07-14.3",
+        "regressionPath": "scripts/ai-evals/promote-holdout.mjs",
+        "targetedVerification": "node scripts/ai-evals/promote-holdout.mjs self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-031",
+      "title": "Candidate holdout still lacks the required real-world image subset",
+      "category": "vision",
+      "status": "open",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "holdout source-distribution audit",
+      "caseIds": ["holdout/replace-12-controlled-cases-with-reviewed-real-world-images"],
+      "responsibleLayer": "holdout-corpus",
+      "holdoutRetirementRequired": false,
+      "resolution": null
+    },
+    {
+      "id": "FAIL-032",
+      "title": "Non-Latin safety phrases were not consistently recognized as Unicode text",
+      "category": "translation",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "multilingual safety-language audit",
+      "caseIds": ["regression/non-latin-safety-language"],
+      "responsibleLayer": "safety-language",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Use correctly encoded Japanese, Korean, Chinese, Thai, Vietnamese, and Turkish assurance and uncertainty markers, then verify that unsafe reassurance is rewritten conservatively.",
+        "fromVersion": "safety-language-2026-07-13.2",
+        "toVersion": "safety-language-2026-07-14.3",
+        "regressionPath": "scripts/ai-evals/configuration-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/configuration-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-033",
+      "title": "Live benchmark does not yet measure multi-page menu completeness",
+      "category": "vision",
+      "status": "open",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "multi-page evaluation coverage audit",
+      "caseIds": ["benchmark/add-multi-page-live-cases"],
+      "responsibleLayer": "benchmark-corpus-and-live-harness",
+      "holdoutRetirementRequired": false,
+      "resolution": null
+    },
+    {
+      "id": "FAIL-034",
+      "title": "Combined release reporting trusted cached per-attempt validation",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent final reliability audit",
+      "caseIds": ["regression/recompute-raw-attempt-validation"],
+      "responsibleLayer": "live-eval-release-reporter",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Recompute validation, benchmark scoring, and metrics from raw status and output; ignore cached pass fields and bind the evaluator implementation hash to every release phase.",
+        "fromVersion": "release-report-cached-attempt-validation-v4",
+        "toVersion": "release-report-raw-attempt-revalidation-v5",
+        "regressionPath": "scripts/run-live-ai-evals.mjs",
+        "targetedVerification": "node scripts/run-live-ai-evals.mjs self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-035",
+      "title": "Holdout promotion trusted an unverified duplicate-audit report digest",
+      "category": "vision",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent final reliability audit",
+      "caseIds": ["regression/perceptual-report-byte-and-inventory-binding"],
+      "responsibleLayer": "holdout-integrity",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Read the declared audit report, verify its actual bytes and SHA-256, reconstruct every candidate-to-candidate and candidate-to-development comparison, and reject missing, duplicate, or unrelated inventory entries.",
+        "fromVersion": "holdout-promotion-policy-2026-07-14.3",
+        "toVersion": "holdout-promotion-policy-2026-07-14.4",
+        "regressionPath": "scripts/ai-evals/promote-holdout.mjs",
+        "targetedVerification": "node scripts/ai-evals/promote-holdout.mjs self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-036",
+      "title": "Staff communication could be labeled as a requested non-Latin language while remaining English",
+      "category": "translation",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent final reliability audit",
+      "caseIds": ["regression/request-bound-communication-language"],
+      "responsibleLayer": "provider-validation",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Bind requested and reported language metadata, enforce consistent translation presence, and require expected scripts for non-Latin user and restaurant communication channels.",
+        "fromVersion": "provider-validation-2026-07-14.6",
+        "toVersion": "provider-validation-2026-07-14.7",
+        "regressionPath": "scripts/ai-evals/configuration-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/configuration-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-037",
+      "title": "Normalized results discarded ordered page provenance",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "multi-page evaluation architecture audit",
+      "caseIds": ["regression/public-page-provenance"],
+      "responsibleLayer": "normalization-and-public-contract",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Preserve ordered page assessments and dish source-page attribution through normalization, deterministic policy, public validation, client validation, saved results, and benchmark scoring.",
+        "fromVersion": "normalization-2026-07-14.5;schema-11;public-validation-2026-07-14.2",
+        "toVersion": "normalization-2026-07-14.6;schema-12;public-validation-2026-07-14.3",
+        "regressionPath": "scripts/ai-evals/public-contract-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/public-contract-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-038",
+      "title": "Candidate builder rejected every required real-world holdout case",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "goal completion audit",
+      "caseIds": ["regression/mixed-source-holdout-builder"],
+      "responsibleLayer": "holdout-corpus-builder",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Allow controlled and licensed candidate cases while requiring complete HTTPS provenance, rights metadata, whole-group source consistency, and unchanged fixed corpus distributions; promotion still requires exactly 12 reviewed real-world cases across six groups.",
+        "fromVersion": "holdout-builder-controlled-only-v1",
+        "toVersion": "holdout-builder-mixed-source-v2",
+        "regressionPath": "scripts/ai-evals/build-holdout-manifest.mjs",
+        "targetedVerification": "node scripts/ai-evals/build-holdout-manifest.mjs --self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-039",
+      "title": "Real-world intake could replace the wrong language group and alter the cross-language slice",
+      "category": "translation",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent real-world source mapping audit",
+      "caseIds": ["RW-TRAD-ZH-001", "holdout/traditional-chinese-dim-sum"],
+      "responsibleLayer": "real-world-source-intake-validator",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Require each candidate source to replace its one predeclared English-user cross-language group, preserve both existing case IDs and quality variants, and keep source research free of expected model labels.",
+        "fromVersion": "real-world-source-intake-unlocked-v1",
+        "toVersion": "real-world-source-intake-cross-language-locked-v1",
+        "regressionPath": "scripts/ai-evals/validate-real-world-source-candidates.mjs",
+        "targetedVerification": "npm.cmd run eval:ai:sources",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-040",
+      "title": "Source metadata could admit an image that was not a usable menu evaluation input",
+      "category": "vision",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "real-world source visual screening",
+      "caseIds": ["RW-VI-001", "regression/real-world-source-screening"],
+      "responsibleLayer": "real-world-source-intake-validator",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Require a documented, non-approval visual screen for menu dominance, readable target-language text, and realistic image conditions; keep independent rights, labels, and suitability pending, and verify exact local source bytes separately from benchmark cases.",
+        "fromVersion": "real-world-source-intake-metadata-only-v1",
+        "toVersion": "real-world-source-intake-screened-v2",
+        "regressionPath": "scripts/ai-evals/validate-real-world-source-candidates.mjs",
+        "targetedVerification": "npm.cmd run eval:ai:sources && npm.cmd run eval:ai:sources:acquire:self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-041",
+      "title": "Readable supporting pages were forced to fabricate dish coverage",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "multi-page prompt and provider contract audit",
+      "caseIds": ["regression/supporting-information-page-no-fabrication"],
+      "responsibleLayer": "provider-schema-and-validation",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Classify provider pages as dish listings, supporting information, or unusable/unknown; require source-attributed dish coverage only for readable dish-listing pages so covers and allergen legends cannot force an invented dish. Keep the classification provider-internal so the public ScanResult remains unchanged.",
+        "fromVersion": "prompt-2026-07-14.3;schema-12;provider-validation-2026-07-14.7;public-validation-2026-07-14.3",
+        "toVersion": "prompt-2026-07-14.4;schema-13;provider-validation-2026-07-14.8;public-validation-2026-07-14.4",
+        "regressionPath": "scripts/ai-evals/configuration-self-test.mjs",
+        "targetedVerification": "node scripts/ai-evals/configuration-self-test.mjs",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-042",
+      "title": "Holdout promotion was disconnected from real-world source acquisition and review lineage",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent holdout intake audit",
+      "caseIds": ["regression/source-acquisition-review-lineage"],
+      "responsibleLayer": "holdout-integrity",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Bind the exact source-intake, completed download receipt, per-case source review, original image hash, transformed candidate hash, and rights, suitability, and transformation evidence hashes into promotion and frozen lineage.",
+        "fromVersion": "holdout-promotion-policy-2026-07-14.4;lineage-2.0.0",
+        "toVersion": "holdout-promotion-policy-2026-07-14.5;lineage-3.0.0",
+        "regressionPath": "scripts/ai-evals/promote-holdout.mjs",
+        "targetedVerification": "node scripts/ai-evals/promote-holdout.mjs self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-043",
+      "title": "Source page, download identity, license declaration, and image bytes were not bound tightly enough",
+      "category": "vision",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent holdout intake audit",
+      "caseIds": ["RW-VI-001", "regression/commons-source-license-byte-binding"],
+      "responsibleLayer": "real-world-source-intake-and-acquisition",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Require one canonical Commons filename across source title, source page, requested download, and resolved upload URL; record canonical license URLs and attribution flags; correct the Vietnamese source to PD-self; and bind decoded JPEG bytes through a schema-v2 download receipt.",
+        "fromVersion": "source-intake-screened-v2;acquisition-manifest-1.0.0",
+        "toVersion": "source-intake-identity-bound-v3;acquisition-manifest-2.0.0",
+        "regressionPath": "scripts/ai-evals/validate-real-world-source-candidates.mjs",
+        "targetedVerification": "npm.cmd run eval:ai:sources && npm.cmd run eval:ai:sources:acquire:self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-044",
+      "title": "Holdout duplicate auditing could use a caller-selected development boundary",
+      "category": "contract",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent holdout intake audit",
+      "caseIds": ["regression/canonical-development-boundary"],
+      "responsibleLayer": "holdout-integrity",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Pin the exact canonical development-v1 file-byte hash and reject alternate paths or byte-equivalent-looking manifests before duplicate-audit scope or promotion can be accepted.",
+        "fromVersion": "holdout-promotion-policy-2026-07-14.4",
+        "toVersion": "holdout-promotion-policy-2026-07-14.5",
+        "regressionPath": "scripts/ai-evals/promote-holdout.mjs",
+        "targetedVerification": "node scripts/ai-evals/promote-holdout.mjs self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-045",
+      "title": "Real-world source intake label isolation relied on a bypassable key denylist",
+      "category": "prompt",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent holdout intake audit",
+      "caseIds": ["regression/source-intake-exact-allowlist-and-semantic-label-leakage"],
+      "responsibleLayer": "real-world-source-intake-validator",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Replace the denylist with exact object-key allowlists and reject semantic review notes that direct expected risk labels, retake outcomes, or other benchmark answers.",
+        "fromVersion": "source-intake-key-denylist-v2",
+        "toVersion": "source-intake-exact-allowlist-v3",
+        "regressionPath": "scripts/ai-evals/validate-real-world-source-candidates.mjs",
+        "targetedVerification": "npm.cmd run eval:ai:sources",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    },
+    {
+      "id": "FAIL-046",
+      "title": "Real-world source acquisition accepted JPEG-header-shaped invalid bytes",
+      "category": "vision",
+      "status": "resolved",
+      "discoveredAt": "2026-07-14T00:00:00.000Z",
+      "discoveredIn": "independent holdout intake audit",
+      "caseIds": ["regression/decoded-jpeg-source-validation"],
+      "responsibleLayer": "real-world-source-acquisition",
+      "holdoutRetirementRequired": false,
+      "resolution": {
+        "summary": "Decode every acquired JPEG, compare decoded dimensions with the frame header and intake metadata, require a trusted completed download receipt for local rechecks, and reject header-only impostors.",
+        "fromVersion": "acquisition-header-check-v1",
+        "toVersion": "acquisition-decoder-and-receipt-v2",
+        "regressionPath": "scripts/ai-evals/acquire-real-world-source-candidates.mjs",
+        "targetedVerification": "npm.cmd run eval:ai:sources:acquire:self-test",
+        "fullVerification": "npm.cmd run eval:ai:architecture"
+      }
+    }
+  ]
+}

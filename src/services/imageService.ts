@@ -1,9 +1,17 @@
 import * as FileSystem from "expo-file-system";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
+import { MAX_MENU_IMAGES_PER_SCAN } from "../constants/menuScan";
 import { PreparedMenuImage } from "../types/image";
 
-const MAX_LONG_EDGE = 1600;
+export const MENU_IMAGE_PREPROCESSING = Object.freeze({
+  version: "app-jpeg-1600-compress-0.72-v1",
+  maxLongEdge: 1600,
+  compress: 0.72,
+  mimeType: "image/jpeg" as const
+});
+
+const MAX_LONG_EDGE = MENU_IMAGE_PREPROCESSING.maxLongEdge;
 
 export type ImageAccessErrorCode = "camera_denied" | "photo_library_denied" | "image_picker_failed";
 
@@ -18,24 +26,43 @@ export class ImageAccessError extends Error {
   }
 }
 
-export async function pickMenuImage(): Promise<PreparedMenuImage | null> {
+export async function pickMenuImages(
+  selectionLimit = MAX_MENU_IMAGES_PER_SCAN
+): Promise<PreparedMenuImage[]> {
   const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permission.granted) {
     throw new ImageAccessError("photo_library_denied", "Photo library permission was not granted.");
   }
 
   try {
+    const boundedSelectionLimit = Math.max(
+      1,
+      Math.min(MAX_MENU_IMAGES_PER_SCAN, Math.floor(selectionLimit))
+    );
+    const allowsMultipleSelection = boundedSelectionLimit > 1;
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: false,
+      allowsMultipleSelection,
       mediaTypes: ["images"],
+      ...(allowsMultipleSelection
+        ? {
+            orderedSelection: true,
+            selectionLimit: boundedSelectionLimit
+          }
+        : {}),
       quality: 1
     });
 
     if (result.canceled || result.assets.length === 0) {
-      return null;
+      return [];
     }
 
-    return prepareMenuImage(result.assets[0]);
+    const preparedImages: PreparedMenuImage[] = [];
+    for (const asset of result.assets.slice(0, boundedSelectionLimit)) {
+      preparedImages.push(await prepareMenuImage(asset));
+    }
+
+    return preparedImages;
   } catch (error) {
     if (error instanceof ImageAccessError) {
       throw error;
@@ -43,6 +70,11 @@ export async function pickMenuImage(): Promise<PreparedMenuImage | null> {
 
     throw new ImageAccessError("image_picker_failed", "Could not open the image picker.");
   }
+}
+
+export async function pickMenuImage(): Promise<PreparedMenuImage | null> {
+  const images = await pickMenuImages(1);
+  return images[0] ?? null;
 }
 
 export async function captureMenuImage(): Promise<PreparedMenuImage | null> {
@@ -72,7 +104,19 @@ export async function captureMenuImage(): Promise<PreparedMenuImage | null> {
   }
 }
 
-async function prepareMenuImage(asset: ImagePicker.ImagePickerAsset): Promise<PreparedMenuImage> {
+export async function prepareCapturedMenuImage(asset: {
+  uri: string;
+  width: number;
+  height: number;
+}): Promise<PreparedMenuImage> {
+  return prepareMenuImage(asset);
+}
+
+async function prepareMenuImage(asset: {
+  uri: string;
+  width?: number;
+  height?: number;
+}): Promise<PreparedMenuImage> {
   const width = asset.width ?? MAX_LONG_EDGE;
   const height = asset.height ?? MAX_LONG_EDGE;
   const longestEdge = Math.max(width, height);
@@ -90,7 +134,7 @@ async function prepareMenuImage(asset: ImagePicker.ImagePickerAsset): Promise<Pr
     ],
     {
       base64: true,
-      compress: 0.72,
+      compress: MENU_IMAGE_PREPROCESSING.compress,
       format: ImageManipulator.SaveFormat.JPEG
     }
   );

@@ -1,0 +1,200 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import { site } from "../config/site";
+---
+
+<BaseLayout
+  title="Sift Support"
+  description="Practical scan tips, data guidance, safety boundaries, and answers to common questions about using Sift."
+  path="/support"
+>
+  <PageHero
+    title="Use Sift with a clear picture and a careful question."
+    description="Get better scan results, understand what Sift can and cannot tell you, and find help when something does not look right."
+    compact
+  />
+
+  <section class="content-section">
+    <div class="shell">
+      <div class="section-heading">
+        <h2>Three habits for a more useful scan</h2>
+        <p>A scan starts with the information Sift can see. A few deliberate choices make that information easier to review.</p>
+      </div>
+
+      <div class="principle-grid">
+        <article class="principle-card">
+          <h2>Check the profile first</h2>
+          <p>
+            Confirm the correct person's allergens, severity, notes, and cross-contact preferences before scanning.
+            A profile guides the review, but it cannot make an incomplete menu complete.
+          </p>
+        </article>
+        <article class="principle-card">
+          <h2>Photograph readable sections</h2>
+          <p>
+            Hold the camera steady in even light. Avoid glare, deep shadows, steep angles, folded pages, and tiny
+            text. For a long menu, scan one readable section at a time.
+          </p>
+        </article>
+        <article class="principle-card">
+          <h2>Include the full description</h2>
+          <p>
+            Capture the dish name and its complete printed description together. Sauces, garnishes, sides, broths,
+            and preparation notes often appear away from the main ingredient.
+          </p>
+        </article>
+        <article class="principle-card">
+          <h2>Finish with staff confirmation</h2>
+          <p>
+            Use Sift's questions to ask about ingredients, substitutions, shared equipment, fryers, and preparation.
+            A result without a flagged concern is not proof that a dish is safe.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section content-section--tint">
+    <div class="shell prose">
+      <h2>If a scan looks wrong or incomplete</h2>
+      <ol>
+        <li>Do not rely on the result to make a food-safety decision.</li>
+        <li>Check that the correct allergy profile and restaurant language are selected.</li>
+        <li>Retake the image closer to the menu, with the text flat, sharp, and evenly lit.</li>
+        <li>Try a smaller menu section so each dish name and description is readable.</li>
+        <li>Ask restaurant staff directly if the menu still leaves an ingredient or preparation question unresolved.</li>
+      </ol>
+      <p>
+        If the problem repeats, email <a href={`mailto:${site.supportEmail}`}>{site.supportEmail}</a> with the app
+        version, device model, and a description of the steps you took. Remove personal and health information from
+        screenshots before attaching them.
+      </p>
+    </div>
+  </section>
+
+  <section class="content-section">
+    <div class="shell">
+      <div class="section-heading">
+        <h2>Your information on this device</h2>
+        <p>Sift is local-first, but a requested menu analysis still requires processing beyond your device.</p>
+      </div>
+      <div class="prose">
+        <p>
+          Allergy profiles, onboarding choices, language preferences, and scan history are stored on your device.
+          You can edit or delete profiles and clear local scan history in the app. Clearing app data or uninstalling
+          Sift can remove local information, and it may not be recoverable afterward.
+        </p>
+        <p>
+          When you choose to analyze a menu, the selected menu image, relevant allergy profile details, language
+          preference, and basic request information may be sent to Sift's analysis service and an AI provider to
+          produce the requested result. Sift does not use menu photos for advertising tracking.
+        </p>
+        <p>
+          Read the <a href="/privacy">Privacy Policy</a> for processing, retention, choices, and contact details. If
+          account features are enabled for you, see <a href="/delete-account">Delete your account</a> for deletion
+          options.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section content-section--tint" id="faq">
+    <div class="shell">
+      <div class="section-heading">
+        <h2>Frequently asked questions</h2>
+        <p>Direct answers to the questions that matter most before using a scan at the table.</p>
+      </div>
+
+      <div class="faq-grid">
+        <article class="faq-item">
+          <h2>Does Sift tell me a dish is safe?</h2>
+          <p>
+            No. Sift cannot verify a complete recipe, substitutions, supplier changes, preparation surfaces, shared
+            fryers, staff practices, or cross-contact. Confirm with restaurant staff before ordering.
+          </p>
+        </article>
+        <article class="faq-item">
+          <h2>What does “possible concern” mean?</h2>
+          <p>
+            Sift found visible menu language or a common ingredient pattern that may relate to the selected profile.
+            It is a prompt to inspect the explanation and ask staff—not a diagnosis or confirmed ingredient list.
+          </p>
+        </article>
+        <article class="faq-item">
+          <h2>What does “unclear” mean?</h2>
+          <p>
+            The image, menu text, or available ingredient information was not clear enough for a useful conclusion.
+            Retake the photo or ask staff directly rather than treating an unclear result as low risk.
+          </p>
+        </article>
+        <article class="faq-item">
+          <h2>Can Sift detect cross-contact?</h2>
+          <p>
+            It can recognize menu wording and preparation patterns that suggest a question, but it cannot see the
+            kitchen. Ask about shared equipment, utensils, surfaces, oil, storage, and preparation procedures.
+          </p>
+        </article>
+        <article class="faq-item">
+          <h2>Why might Sift miss an allergen?</h2>
+          <p>
+            Menus can omit ingredients, use unfamiliar names, change without notice, or be difficult to read. Image
+            quality and language can also affect the result. An unflagged item has not been verified as safe.
+          </p>
+        </article>
+        <article class="faq-item">
+          <h2>Can I manage a profile for someone I care for?</h2>
+          <p>
+            Yes. Sift supports multiple profiles for diners and caregivers. Keep each profile current, and confirm
+            the person's care plan and allergy details with them, their guardian, or a qualified healthcare
+            professional as appropriate.
+          </p>
+        </article>
+        <article class="faq-item">
+          <h2>Can I use a translated restaurant message?</h2>
+          <p>
+            Use it as a conversation aid, not as a verified translation. Automated translations can be incomplete or
+            wrong. Confirm important allergy and preparation details with a fluent speaker or restaurant staff when
+            possible.
+          </p>
+        </article>
+        <article class="faq-item">
+          <h2>Can I scan a menu from my photo library?</h2>
+          <p>
+            Yes. Choose Upload Photo and select the menu image you want reviewed. Sift accesses the selected image
+            for that request; it does not need your photo library for unrelated purposes.
+          </p>
+        </article>
+        <article class="faq-item">
+          <h2>How do I remove local information?</h2>
+          <p>
+            Edit or delete allergy profiles and clear scan history in the app. Uninstalling Sift or clearing its app
+            data can also remove local information. Review the Privacy Policy before acting if you need to keep a
+            record.
+          </p>
+        </article>
+        <article class="faq-item">
+          <h2>What should I do during an allergic reaction?</h2>
+          <p>
+            Do not use Sift or email support for emergency help. Contact local emergency services and follow the
+            emergency plan provided by your healthcare professional.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section">
+    <div class="shell prose">
+      <h2>Still need help?</h2>
+      <p>
+        Email <a href={`mailto:${site.supportEmail}`}>{site.supportEmail}</a>. Tell us what screen you were on, what
+        you expected, and what happened instead.
+      </p>
+      <div class="callout callout--warning">
+        <strong>Do not send sensitive health information or unredacted allergy profile details unless support asks for specific information and explains why it is needed.</strong>
+      </div>
+      <p>Sift support is not a restaurant verification, medical advice, or emergency service.</p>
+    </div>
+  </section>
+</BaseLayout>

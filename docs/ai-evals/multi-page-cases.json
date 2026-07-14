@@ -1,0 +1,1823 @@
+{
+  "schemaVersion": "1.0.0",
+  "corpusId": "sift-ai-multi-page-development-diagnostic-v1",
+  "status": "development_diagnostic",
+  "generatorPath": "scripts/generate-ai-multipage-fixtures.py",
+  "generation": {
+    "imageWidth": 1200,
+    "imageHeight": 1600,
+    "format": "JPEG",
+    "quality": 90,
+    "subsampling": 0,
+    "deterministic": true,
+    "caseCount": 8,
+    "pageCount": 25
+  },
+  "evidenceBoundary": {
+    "holdout": false,
+    "releaseAccuracyClaim": false,
+    "note": "Controlled synthetic development diagnostics only; results must not be presented as public accuracy evidence."
+  },
+  "cases": [
+    {
+      "id": "MP-001",
+      "name": "Harbor Lunch - allergen appears on page 2",
+      "sourceType": "controlled",
+      "split": "development_diagnostic",
+      "diagnosticOnly": true,
+      "critical": true,
+      "language": "English",
+      "cuisine": "Contemporary cafe",
+      "diagnosticScenarios": [
+        "page_2_direct_allergen"
+      ],
+      "imagePaths": [
+        "docs/ai-evals/images/multi-page/MP-001-p01.jpg",
+        "docs/ai-evals/images/multi-page/MP-001-p02.jpg"
+      ],
+      "imageSha256s": [
+        "d4af083674ce704f7754f981b74811b6b8fbd28da65a5817450c304c0d571c0d",
+        "c690ae66b99b54e019841273bf416276e426396a2efcbbe59b8dd94f284c30db"
+      ],
+      "profile": {
+        "id": "profile-mp-001",
+        "name": "Multi-page diagnostic profile",
+        "preferredLanguage": "English",
+        "restaurantLanguage": "English",
+        "allergies": [
+          {
+            "id": "mp-001-allergy-1",
+            "name": "Peanut",
+            "severity": "severe",
+            "avoidCrossContact": true
+          }
+        ]
+      },
+      "expectations": {
+        "pages": [
+          {
+            "pageNumber": 1,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "benign_only"
+            ],
+            "dishNames": [
+              "Garden Salad",
+              "Steamed Rice"
+            ]
+          },
+          {
+            "pageNumber": 2,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "direct_profile_allergen"
+            ],
+            "dishNames": [
+              "Peanut Satay Noodles",
+              "Citrus Chicken"
+            ]
+          }
+        ],
+        "overallRisk": {
+          "status": "diagnostic",
+          "allowedRiskRange": {
+            "kind": "ordinal",
+            "minimum": "avoid_unless_confirmed",
+            "maximum": "avoid_unless_confirmed",
+            "levels": [
+              "avoid_unless_confirmed"
+            ]
+          },
+          "note": "At least one readable page directly names a profile allergen or relevant derivative."
+        },
+        "dishes": [
+          {
+            "dishName": "Garden Salad",
+            "sourcePageNumbers": [
+              1
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "No peanut is visible, while recipe completeness and shared preparation remain unobservable.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          },
+          {
+            "dishName": "Peanut Satay Noodles",
+            "sourcePageNumbers": [
+              2
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "confirmed_visible",
+            "evidenceNote": "Peanut and peanut satay sauce are directly named on page 2.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "avoid_unless_confirmed",
+              "maximum": "avoid_unless_confirmed",
+              "levels": [
+                "avoid_unless_confirmed"
+              ]
+            }
+          },
+          {
+            "dishName": "Citrus Chicken",
+            "sourcePageNumbers": [
+              2
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "No peanut is visible, but the complete marinade and kitchen handling are not shown.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "readability": "clear",
+        "minimumRisks": [
+          {
+            "dishName": "Peanut Satay Noodles",
+            "minimumRisk": "avoid_unless_confirmed",
+            "directListed": true
+          }
+        ],
+        "benignDishes": [
+          "Garden Salad",
+          "Citrus Chicken"
+        ]
+      },
+      "reviewStatus": "development_diagnostic_unreviewed"
+    },
+    {
+      "id": "MP-002",
+      "name": "Casa del Patio - benign and severe pages",
+      "sourceType": "controlled",
+      "split": "development_diagnostic",
+      "diagnosticOnly": true,
+      "critical": true,
+      "language": "Spanish",
+      "cuisine": "Spanish neighborhood kitchen",
+      "diagnosticScenarios": [
+        "benign_and_severe_pages",
+        "non_english_menu"
+      ],
+      "imagePaths": [
+        "docs/ai-evals/images/multi-page/MP-002-p01.jpg",
+        "docs/ai-evals/images/multi-page/MP-002-p02.jpg",
+        "docs/ai-evals/images/multi-page/MP-002-p03.jpg"
+      ],
+      "imageSha256s": [
+        "5946709b84cfa5288a2aa59c05f513d86910353d1d060f5f1b9fcd37a50195c4",
+        "d50e92e2f4748aeea652e281fe413e1b677ebb29c42ee7fd02366ac0ed9eb777",
+        "a878cfe80b00feec3032f4b191253c4c13cb52c6625e819ff8fbe2a8b2e3a11a"
+      ],
+      "profile": {
+        "id": "profile-mp-002",
+        "name": "Multi-page diagnostic profile",
+        "preferredLanguage": "English",
+        "restaurantLanguage": "Spanish",
+        "allergies": [
+          {
+            "id": "mp-002-allergy-1",
+            "name": "Sesame",
+            "severity": "severe",
+            "avoidCrossContact": true
+          },
+          {
+            "id": "mp-002-allergy-2",
+            "name": "Shellfish",
+            "severity": "severe",
+            "avoidCrossContact": true
+          }
+        ]
+      },
+      "expectations": {
+        "pages": [
+          {
+            "pageNumber": 1,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "benign_only"
+            ],
+            "dishNames": [
+              "Ensalada de tomate",
+              "Arroz blanco"
+            ]
+          },
+          {
+            "pageNumber": 2,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "direct_profile_allergen",
+              "severe_risk_page"
+            ],
+            "dishNames": [
+              "Pollo con sésamo",
+              "Camarones al ajillo"
+            ]
+          },
+          {
+            "pageNumber": 3,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "preparation_unknown"
+            ],
+            "dishNames": [
+              "Sopa de la casa",
+              "Fruta fresca"
+            ]
+          }
+        ],
+        "overallRisk": {
+          "status": "diagnostic",
+          "allowedRiskRange": {
+            "kind": "ordinal",
+            "minimum": "avoid_unless_confirmed",
+            "maximum": "avoid_unless_confirmed",
+            "levels": [
+              "avoid_unless_confirmed"
+            ]
+          },
+          "note": "At least one readable page directly names a profile allergen or relevant derivative."
+        },
+        "dishes": [
+          {
+            "dishName": "Ensalada de tomate",
+            "sourcePageNumbers": [
+              1
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "No profile allergen is visible; ingredient completeness and cross-contact remain unobservable.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          },
+          {
+            "dishName": "Arroz blanco",
+            "sourcePageNumbers": [
+              1
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "The visible description is simple, while shared preparation cannot be assessed from the menu.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          },
+          {
+            "dishName": "Pollo con sésamo",
+            "sourcePageNumbers": [
+              2
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "confirmed_visible",
+            "evidenceNote": "Sesame sauce and sesame seeds are directly named on page 2.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "avoid_unless_confirmed",
+              "maximum": "avoid_unless_confirmed",
+              "levels": [
+                "avoid_unless_confirmed"
+              ]
+            }
+          },
+          {
+            "dishName": "Camarones al ajillo",
+            "sourcePageNumbers": [
+              2
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "confirmed_visible",
+            "evidenceNote": "Shrimp is directly named on page 2 for the severe shellfish profile.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "avoid_unless_confirmed",
+              "maximum": "avoid_unless_confirmed",
+              "levels": [
+                "avoid_unless_confirmed"
+              ]
+            }
+          },
+          {
+            "dishName": "Sopa de la casa",
+            "sourcePageNumbers": [
+              3
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "plausible_pattern",
+            "evidenceNote": "The daily broth and house spices are not fully specified.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "ask_staff",
+              "maximum": "high_risk",
+              "levels": [
+                "ask_staff",
+                "high_risk"
+              ]
+            }
+          },
+          {
+            "dishName": "Fruta fresca",
+            "sourcePageNumbers": [
+              3
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "No profile allergen is visible, but handling remains unobservable.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "readability": "clear",
+        "minimumRisks": [
+          {
+            "dishName": "Pollo con sésamo",
+            "minimumRisk": "avoid_unless_confirmed",
+            "directListed": true
+          },
+          {
+            "dishName": "Camarones al ajillo",
+            "minimumRisk": "avoid_unless_confirmed",
+            "directListed": true
+          },
+          {
+            "dishName": "Sopa de la casa",
+            "minimumRisk": "ask_staff",
+            "directListed": false
+          }
+        ],
+        "benignDishes": [
+          "Ensalada de tomate",
+          "Arroz blanco",
+          "Fruta fresca"
+        ]
+      },
+      "reviewStatus": "development_diagnostic_unreviewed"
+    },
+    {
+      "id": "MP-003",
+      "name": "青葉食堂 - repeated dish across four pages",
+      "sourceType": "controlled",
+      "split": "development_diagnostic",
+      "diagnosticOnly": true,
+      "critical": true,
+      "language": "Japanese",
+      "cuisine": "Japanese set meals",
+      "diagnosticScenarios": [
+        "repeated_dish_deduplication",
+        "non_english_menu",
+        "max_four_page_path"
+      ],
+      "imagePaths": [
+        "docs/ai-evals/images/multi-page/MP-003-p01.jpg",
+        "docs/ai-evals/images/multi-page/MP-003-p02.jpg",
+        "docs/ai-evals/images/multi-page/MP-003-p03.jpg",
+        "docs/ai-evals/images/multi-page/MP-003-p04.jpg"
+      ],
+      "imageSha256s": [
+        "b3cf46ec1bf73e4d6ce73b5c15dac39937083e952b5f161ec1d1864a65cfafef",
+        "c127442acc0fecb82476afa06544652ce514b2001c6ca399b8c4e35b0f8a2911",
+        "db705f013bdd2a5f4c33d2abfdb6b3069d9012b74fd7bfbdabbd46f99d414a56",
+        "d5e29f0b5f5b0a3ef94abfa53aeb0948e0c8a489193ec0b96899861e6d0e94ac"
+      ],
+      "profile": {
+        "id": "profile-mp-003",
+        "name": "Multi-page diagnostic profile",
+        "preferredLanguage": "English",
+        "restaurantLanguage": "Japanese",
+        "allergies": [
+          {
+            "id": "mp-003-allergy-1",
+            "name": "Soy",
+            "severity": "severe",
+            "avoidCrossContact": true
+          },
+          {
+            "id": "mp-003-allergy-2",
+            "name": "Sesame",
+            "severity": "moderate",
+            "avoidCrossContact": false
+          }
+        ]
+      },
+      "expectations": {
+        "pages": [
+          {
+            "pageNumber": 1,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "direct_profile_allergen",
+              "repeated_dish"
+            ],
+            "dishNames": [
+              "胡麻冷ややっこ",
+              "塩きゅうり"
+            ]
+          },
+          {
+            "pageNumber": 2,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "direct_profile_allergen"
+            ],
+            "dishNames": [
+              "焼きおにぎり",
+              "焼きしいたけ"
+            ]
+          },
+          {
+            "pageNumber": 3,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "direct_profile_allergen",
+              "repeated_dish"
+            ],
+            "dishNames": [
+              "胡麻冷ややっこ",
+              "季節の野菜"
+            ]
+          },
+          {
+            "pageNumber": 4,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "benign_only"
+            ],
+            "dishNames": [
+              "白ごはん",
+              "柚子ゼリー"
+            ]
+          }
+        ],
+        "overallRisk": {
+          "status": "diagnostic",
+          "allowedRiskRange": {
+            "kind": "ordinal",
+            "minimum": "avoid_unless_confirmed",
+            "maximum": "avoid_unless_confirmed",
+            "levels": [
+              "avoid_unless_confirmed"
+            ]
+          },
+          "note": "At least one readable page directly names a profile allergen or relevant derivative."
+        },
+        "dishes": [
+          {
+            "dishName": "胡麻冷ややっこ",
+            "sourcePageNumbers": [
+              1,
+              3
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "confirmed_visible",
+            "evidenceNote": "The same dish is listed on pages 1 and 3; tofu, sesame, and soy sauce are directly visible.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "avoid_unless_confirmed",
+              "maximum": "avoid_unless_confirmed",
+              "levels": [
+                "avoid_unless_confirmed"
+              ]
+            }
+          },
+          {
+            "dishName": "塩きゅうり",
+            "sourcePageNumbers": [
+              1
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "No soy or sesame is visible, while shared preparation remains unobservable.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          },
+          {
+            "dishName": "焼きおにぎり",
+            "sourcePageNumbers": [
+              2
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "confirmed_visible",
+            "evidenceNote": "Soy sauce is directly named on page 2.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "avoid_unless_confirmed",
+              "maximum": "avoid_unless_confirmed",
+              "levels": [
+                "avoid_unless_confirmed"
+              ]
+            }
+          },
+          {
+            "dishName": "季節の野菜",
+            "sourcePageNumbers": [
+              3
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "plausible_pattern",
+            "evidenceNote": "Stock and seasoning are visible but unspecified.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "ask_staff",
+              "maximum": "high_risk",
+              "levels": [
+                "ask_staff",
+                "high_risk"
+              ]
+            }
+          },
+          {
+            "dishName": "白ごはん",
+            "sourcePageNumbers": [
+              4
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "Only rice is visible, while kitchen handling is not shown.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "readability": "clear",
+        "minimumRisks": [
+          {
+            "dishName": "胡麻冷ややっこ",
+            "minimumRisk": "avoid_unless_confirmed",
+            "directListed": true
+          },
+          {
+            "dishName": "焼きおにぎり",
+            "minimumRisk": "avoid_unless_confirmed",
+            "directListed": true
+          },
+          {
+            "dishName": "季節の野菜",
+            "minimumRisk": "ask_staff",
+            "directListed": false
+          }
+        ],
+        "benignDishes": [
+          "塩きゅうり",
+          "白ごはん"
+        ]
+      },
+      "reviewStatus": "development_diagnostic_unreviewed"
+    },
+    {
+      "id": "MP-004",
+      "name": "江南小馆 - one poor page among readable pages",
+      "sourceType": "controlled",
+      "split": "development_diagnostic",
+      "diagnosticOnly": true,
+      "critical": true,
+      "language": "Simplified Chinese",
+      "cuisine": "Jiangnan home cooking",
+      "diagnosticScenarios": [
+        "one_poor_page_among_readable",
+        "non_english_menu"
+      ],
+      "imagePaths": [
+        "docs/ai-evals/images/multi-page/MP-004-p01.jpg",
+        "docs/ai-evals/images/multi-page/MP-004-p02.jpg",
+        "docs/ai-evals/images/multi-page/MP-004-p03.jpg"
+      ],
+      "imageSha256s": [
+        "8075496219f970c37fe0fa010c972467dd0f86901965ec50077931380e0e7055",
+        "6a7d32a3b8e357270ee92a67c5ef0eab225e64e4a7376988b6a5e0c1b522a272",
+        "ac4fb26c9fb05573149881344b7eab93c584e8d2f77c4021c7ee187cb9097cc6"
+      ],
+      "profile": {
+        "id": "profile-mp-004",
+        "name": "Multi-page diagnostic profile",
+        "preferredLanguage": "Simplified Chinese",
+        "restaurantLanguage": "Simplified Chinese",
+        "allergies": [
+          {
+            "id": "mp-004-allergy-1",
+            "name": "Shellfish",
+            "severity": "severe",
+            "avoidCrossContact": true
+          },
+          {
+            "id": "mp-004-allergy-2",
+            "name": "Soy",
+            "severity": "moderate",
+            "avoidCrossContact": false
+          }
+        ]
+      },
+      "expectations": {
+        "pages": [
+          {
+            "pageNumber": 1,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "benign_only"
+            ],
+            "dishNames": [
+              "拍黄瓜",
+              "白米饭"
+            ]
+          },
+          {
+            "pageNumber": 2,
+            "readability": {
+              "allowedValues": [
+                "poor"
+              ],
+              "needsRetake": true
+            },
+            "issues": [
+              "blur",
+              "low_contrast"
+            ],
+            "contentLabels": [
+              "unscored_poor_content"
+            ],
+            "dishNames": [
+              "宫保豆腐",
+              "每日例汤"
+            ]
+          },
+          {
+            "pageNumber": 3,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "direct_profile_allergen"
+            ],
+            "dishNames": [
+              "虾仁炒饭",
+              "清炒时蔬"
+            ]
+          }
+        ],
+        "overallRisk": {
+          "status": "diagnostic",
+          "allowedRiskRange": {
+            "kind": "ordinal",
+            "minimum": "avoid_unless_confirmed",
+            "maximum": "avoid_unless_confirmed",
+            "levels": [
+              "avoid_unless_confirmed"
+            ]
+          },
+          "note": "At least one readable page directly names a profile allergen or relevant derivative."
+        },
+        "dishes": [
+          {
+            "dishName": "拍黄瓜",
+            "sourcePageNumbers": [
+              1
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "No shellfish or soy is visible, while preparation completeness remains unobservable.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          },
+          {
+            "dishName": "白米饭",
+            "sourcePageNumbers": [
+              1
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "Only steamed rice is visible, while shared preparation is not shown.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          },
+          {
+            "dishName": "虾仁炒饭",
+            "sourcePageNumbers": [
+              3
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "confirmed_visible",
+            "evidenceNote": "Shrimp and soy sauce are directly named on readable page 3.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "avoid_unless_confirmed",
+              "maximum": "avoid_unless_confirmed",
+              "levels": [
+                "avoid_unless_confirmed"
+              ]
+            }
+          },
+          {
+            "dishName": "清炒时蔬",
+            "sourcePageNumbers": [
+              3
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "No profile allergen is visible, while wok sharing remains unobservable.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "readability": "partially_clear",
+        "minimumRisks": [
+          {
+            "dishName": "虾仁炒饭",
+            "minimumRisk": "avoid_unless_confirmed",
+            "directListed": true
+          }
+        ],
+        "benignDishes": [
+          "拍黄瓜",
+          "白米饭",
+          "清炒时蔬"
+        ]
+      },
+      "reviewStatus": "development_diagnostic_unreviewed"
+    },
+    {
+      "id": "MP-005",
+      "name": "ครัวริมทาง - cropped second page",
+      "sourceType": "controlled",
+      "split": "development_diagnostic",
+      "diagnosticOnly": true,
+      "critical": true,
+      "language": "Thai",
+      "cuisine": "Thai street kitchen",
+      "diagnosticScenarios": [
+        "cropped_page",
+        "non_english_menu"
+      ],
+      "imagePaths": [
+        "docs/ai-evals/images/multi-page/MP-005-p01.jpg",
+        "docs/ai-evals/images/multi-page/MP-005-p02.jpg"
+      ],
+      "imageSha256s": [
+        "fecc5488f6aa9ab153faf1788330177bdf3d729429ba3cf243ec157f547c88a7",
+        "81bb2362e4f81b5652521e93c13085750ccce62c7bac95766d763da72bb5181b"
+      ],
+      "profile": {
+        "id": "profile-mp-005",
+        "name": "Multi-page diagnostic profile",
+        "preferredLanguage": "English",
+        "restaurantLanguage": "Thai",
+        "allergies": [
+          {
+            "id": "mp-005-allergy-1",
+            "name": "Peanut",
+            "severity": "severe",
+            "avoidCrossContact": true
+          }
+        ]
+      },
+      "expectations": {
+        "pages": [
+          {
+            "pageNumber": 1,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "benign_only"
+            ],
+            "dishNames": [
+              "ข้าวสวย",
+              "แตงกวากับมะนาว"
+            ]
+          },
+          {
+            "pageNumber": 2,
+            "readability": {
+              "allowedValues": [
+                "partially_clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [
+              "crop"
+            ],
+            "contentLabels": [
+              "direct_profile_allergen"
+            ],
+            "dishNames": [
+              "ส้มตำถั่วลิสง",
+              "ไก่ย่าง"
+            ]
+          }
+        ],
+        "overallRisk": {
+          "status": "diagnostic",
+          "allowedRiskRange": {
+            "kind": "ordinal",
+            "minimum": "avoid_unless_confirmed",
+            "maximum": "avoid_unless_confirmed",
+            "levels": [
+              "avoid_unless_confirmed"
+            ]
+          },
+          "note": "At least one readable page directly names a profile allergen or relevant derivative."
+        },
+        "dishes": [
+          {
+            "dishName": "ข้าวสวย",
+            "sourcePageNumbers": [
+              1
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "Only steamed jasmine rice is visible, while handling remains unobservable.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          },
+          {
+            "dishName": "ส้มตำถั่วลิสง",
+            "sourcePageNumbers": [
+              2
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "confirmed_visible",
+            "evidenceNote": "Peanut remains directly visible on the intentionally cropped page.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "avoid_unless_confirmed",
+              "maximum": "avoid_unless_confirmed",
+              "levels": [
+                "avoid_unless_confirmed"
+              ]
+            }
+          },
+          {
+            "dishName": "ไก่ย่าง",
+            "sourcePageNumbers": [
+              2
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "plausible_pattern",
+            "evidenceNote": "The house sauce is visible but its ingredients are unspecified.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "ask_staff",
+              "maximum": "high_risk",
+              "levels": [
+                "ask_staff",
+                "high_risk"
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "readability": "partially_clear",
+        "minimumRisks": [
+          {
+            "dishName": "ส้มตำถั่วลิสง",
+            "minimumRisk": "avoid_unless_confirmed",
+            "directListed": true
+          },
+          {
+            "dishName": "ไก่ย่าง",
+            "minimumRisk": "ask_staff",
+            "directListed": false
+          }
+        ],
+        "benignDishes": [
+          "ข้าวสวย"
+        ]
+      },
+      "reviewStatus": "development_diagnostic_unreviewed"
+    },
+    {
+      "id": "MP-006",
+      "name": "Zum Stadtgarten - partial glare page",
+      "sourceType": "controlled",
+      "split": "development_diagnostic",
+      "diagnosticOnly": true,
+      "critical": true,
+      "language": "German",
+      "cuisine": "German regional kitchen",
+      "diagnosticScenarios": [
+        "partial_glare_page",
+        "non_english_menu"
+      ],
+      "imagePaths": [
+        "docs/ai-evals/images/multi-page/MP-006-p01.jpg",
+        "docs/ai-evals/images/multi-page/MP-006-p02.jpg",
+        "docs/ai-evals/images/multi-page/MP-006-p03.jpg"
+      ],
+      "imageSha256s": [
+        "ec06f2545ae8e6e430cae941478d646fa01d616cfa928b275532f35e055b9ac0",
+        "ce9337d69ff6ba1efaf274b03fb628f29cbf78ff285962a9670d5c2a51f190d9",
+        "6241f6355e321349cffa8456ddca40afc6098a324237bd7de0d3e9b3b07afd7e"
+      ],
+      "profile": {
+        "id": "profile-mp-006",
+        "name": "Multi-page diagnostic profile",
+        "preferredLanguage": "German",
+        "restaurantLanguage": "German",
+        "allergies": [
+          {
+            "id": "mp-006-allergy-1",
+            "name": "Mustard",
+            "severity": "severe",
+            "avoidCrossContact": true
+          },
+          {
+            "id": "mp-006-allergy-2",
+            "name": "Sulfites",
+            "severity": "mild",
+            "avoidCrossContact": false
+          }
+        ]
+      },
+      "expectations": {
+        "pages": [
+          {
+            "pageNumber": 1,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "benign_only"
+            ],
+            "dishNames": [
+              "Gedämpfter Reis",
+              "Gurkensalat"
+            ]
+          },
+          {
+            "pageNumber": 2,
+            "readability": {
+              "allowedValues": [
+                "partially_clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [
+              "partial_occlusion",
+              "glare"
+            ],
+            "contentLabels": [
+              "direct_profile_allergen"
+            ],
+            "dishNames": [
+              "Bratwurst mit Senfsauce",
+              "Hähnchen in Weißweinsauce"
+            ]
+          },
+          {
+            "pageNumber": 3,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "preparation_unknown"
+            ],
+            "dishNames": [
+              "Kartoffelsuppe",
+              "Apfelkompott"
+            ]
+          }
+        ],
+        "overallRisk": {
+          "status": "diagnostic",
+          "allowedRiskRange": {
+            "kind": "ordinal",
+            "minimum": "avoid_unless_confirmed",
+            "maximum": "avoid_unless_confirmed",
+            "levels": [
+              "avoid_unless_confirmed"
+            ]
+          },
+          "note": "At least one readable page directly names a profile allergen or relevant derivative."
+        },
+        "dishes": [
+          {
+            "dishName": "Gedämpfter Reis",
+            "sourcePageNumbers": [
+              1
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "No mustard or sulfite source is visible, while shared preparation remains unobservable.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          },
+          {
+            "dishName": "Bratwurst mit Senfsauce",
+            "sourcePageNumbers": [
+              2
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "confirmed_visible",
+            "evidenceNote": "Mustard is directly named on the partially occluded, glare-affected page.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "avoid_unless_confirmed",
+              "maximum": "avoid_unless_confirmed",
+              "levels": [
+                "avoid_unless_confirmed"
+              ]
+            }
+          },
+          {
+            "dishName": "Hähnchen in Weißweinsauce",
+            "sourcePageNumbers": [
+              2
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "confirmed_visible",
+            "evidenceNote": "White wine is directly named as a sulfite-relevant ingredient.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "high_risk",
+              "maximum": "avoid_unless_confirmed",
+              "levels": [
+                "high_risk",
+                "avoid_unless_confirmed"
+              ]
+            }
+          },
+          {
+            "dishName": "Kartoffelsuppe",
+            "sourcePageNumbers": [
+              3
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "plausible_pattern",
+            "evidenceNote": "Broth and house spices are visible but unspecified.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "ask_staff",
+              "maximum": "high_risk",
+              "levels": [
+                "ask_staff",
+                "high_risk"
+              ]
+            }
+          },
+          {
+            "dishName": "Apfelkompott",
+            "sourcePageNumbers": [
+              3
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "No profile allergen is visible, while full preparation remains unobservable.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "readability": "partially_clear",
+        "minimumRisks": [
+          {
+            "dishName": "Bratwurst mit Senfsauce",
+            "minimumRisk": "avoid_unless_confirmed",
+            "directListed": true
+          },
+          {
+            "dishName": "Hähnchen in Weißweinsauce",
+            "minimumRisk": "high_risk",
+            "directListed": true
+          },
+          {
+            "dishName": "Kartoffelsuppe",
+            "minimumRisk": "ask_staff",
+            "directListed": false
+          }
+        ],
+        "benignDishes": [
+          "Gedämpfter Reis",
+          "Apfelkompott"
+        ]
+      },
+      "reviewStatus": "development_diagnostic_unreviewed"
+    },
+    {
+      "id": "MP-007",
+      "name": "Trattoria del Porto - four-page shellfish and dairy",
+      "sourceType": "controlled",
+      "split": "development_diagnostic",
+      "diagnosticOnly": true,
+      "critical": true,
+      "language": "Italian",
+      "cuisine": "Italian coastal kitchen",
+      "diagnosticScenarios": [
+        "non_english_menu",
+        "max_four_page_path"
+      ],
+      "imagePaths": [
+        "docs/ai-evals/images/multi-page/MP-007-p01.jpg",
+        "docs/ai-evals/images/multi-page/MP-007-p02.jpg",
+        "docs/ai-evals/images/multi-page/MP-007-p03.jpg",
+        "docs/ai-evals/images/multi-page/MP-007-p04.jpg"
+      ],
+      "imageSha256s": [
+        "c65dbe65e13c68ad1824d7a41b2d0a72aec879eeb668784b95a2c28f997f45d1",
+        "4119eea8ac359e40fea291668a94f39868221131da9f71930ef5dc21400db2a0",
+        "f91c179bd93a466e0b8f2e3457f681c2bd89f02a94dcec6e086026adb42a25b5",
+        "754b48b212683c4dd5de6a32a4a2d4ecb0ed2bd58afd5401729562ade5380ec7"
+      ],
+      "profile": {
+        "id": "profile-mp-007",
+        "name": "Multi-page diagnostic profile",
+        "preferredLanguage": "English",
+        "restaurantLanguage": "Italian",
+        "allergies": [
+          {
+            "id": "mp-007-allergy-1",
+            "name": "Shellfish",
+            "severity": "severe",
+            "avoidCrossContact": true
+          },
+          {
+            "id": "mp-007-allergy-2",
+            "name": "Dairy",
+            "severity": "moderate",
+            "avoidCrossContact": false
+          }
+        ]
+      },
+      "expectations": {
+        "pages": [
+          {
+            "pageNumber": 1,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "benign_only"
+            ],
+            "dishNames": [
+              "Bruschetta al Pomodoro",
+              "Olive Marinate"
+            ]
+          },
+          {
+            "pageNumber": 2,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "direct_profile_allergen",
+              "severe_risk_page"
+            ],
+            "dishNames": [
+              "Risotto ai Gamberi",
+              "Pasta al Pomodoro"
+            ]
+          },
+          {
+            "pageNumber": 3,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "direct_profile_allergen"
+            ],
+            "dishNames": [
+              "Polenta al Parmigiano",
+              "Verdure Grigliate"
+            ]
+          },
+          {
+            "pageNumber": 4,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "benign_only",
+              "preparation_unknown"
+            ],
+            "dishNames": [
+              "Sorbetto al Limone",
+              "Dolce del Giorno"
+            ]
+          }
+        ],
+        "overallRisk": {
+          "status": "diagnostic",
+          "allowedRiskRange": {
+            "kind": "ordinal",
+            "minimum": "avoid_unless_confirmed",
+            "maximum": "avoid_unless_confirmed",
+            "levels": [
+              "avoid_unless_confirmed"
+            ]
+          },
+          "note": "At least one readable page directly names a profile allergen or relevant derivative."
+        },
+        "dishes": [
+          {
+            "dishName": "Bruschetta al Pomodoro",
+            "sourcePageNumbers": [
+              1
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "No shellfish or dairy is visible, while shared preparation remains unobservable.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          },
+          {
+            "dishName": "Risotto ai Gamberi",
+            "sourcePageNumbers": [
+              2
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "confirmed_visible",
+            "evidenceNote": "Shrimp and butter are directly named on page 2.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "avoid_unless_confirmed",
+              "maximum": "avoid_unless_confirmed",
+              "levels": [
+                "avoid_unless_confirmed"
+              ]
+            }
+          },
+          {
+            "dishName": "Polenta al Parmigiano",
+            "sourcePageNumbers": [
+              3
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "confirmed_visible",
+            "evidenceNote": "Butter and parmesan are directly named on page 3.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "high_risk",
+              "maximum": "avoid_unless_confirmed",
+              "levels": [
+                "high_risk",
+                "avoid_unless_confirmed"
+              ]
+            }
+          },
+          {
+            "dishName": "Verdure Grigliate",
+            "sourcePageNumbers": [
+              3
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "No profile allergen is visible, while grill sharing remains unobservable.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          },
+          {
+            "dishName": "Sorbetto al Limone",
+            "sourcePageNumbers": [
+              4
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "No profile allergen is visible, while scoop and surface sharing are not shown.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          },
+          {
+            "dishName": "Dolce del Giorno",
+            "sourcePageNumbers": [
+              4
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "plausible_pattern",
+            "evidenceNote": "The daily recipe does not disclose its ingredients.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "ask_staff",
+              "maximum": "high_risk",
+              "levels": [
+                "ask_staff",
+                "high_risk"
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "readability": "clear",
+        "minimumRisks": [
+          {
+            "dishName": "Risotto ai Gamberi",
+            "minimumRisk": "avoid_unless_confirmed",
+            "directListed": true
+          },
+          {
+            "dishName": "Polenta al Parmigiano",
+            "minimumRisk": "high_risk",
+            "directListed": true
+          },
+          {
+            "dishName": "Dolce del Giorno",
+            "minimumRisk": "ask_staff",
+            "directListed": false
+          }
+        ],
+        "benignDishes": [
+          "Bruschetta al Pomodoro",
+          "Verdure Grigliate",
+          "Sorbetto al Limone"
+        ]
+      },
+      "reviewStatus": "development_diagnostic_unreviewed"
+    },
+    {
+      "id": "MP-008",
+      "name": "Market Table - clear four-page control",
+      "sourceType": "controlled",
+      "split": "development_diagnostic",
+      "diagnosticOnly": true,
+      "critical": true,
+      "language": "English",
+      "cuisine": "Modern market kitchen",
+      "diagnosticScenarios": [
+        "max_four_page_path"
+      ],
+      "imagePaths": [
+        "docs/ai-evals/images/multi-page/MP-008-p01.jpg",
+        "docs/ai-evals/images/multi-page/MP-008-p02.jpg",
+        "docs/ai-evals/images/multi-page/MP-008-p03.jpg",
+        "docs/ai-evals/images/multi-page/MP-008-p04.jpg"
+      ],
+      "imageSha256s": [
+        "0a236df9b55e0aa506be200e8fc7762800f5630efb56e744740685a39b9ef67c",
+        "7bd269e562cb2c00337599e36b5524249b4ce6dbeeacd2acea8b4e7d6e4b9dd4",
+        "b617ba2a47fac604d4262bfacedc12ee854ec09b70b4fe400859f070933599a5",
+        "2a7c187a0b9c518eb828a760559619c2e2468f7cfb624167330832c560fb4dfa"
+      ],
+      "profile": {
+        "id": "profile-mp-008",
+        "name": "Multi-page diagnostic profile",
+        "preferredLanguage": "English",
+        "restaurantLanguage": "English",
+        "allergies": [
+          {
+            "id": "mp-008-allergy-1",
+            "name": "Dairy",
+            "severity": "severe",
+            "avoidCrossContact": true
+          },
+          {
+            "id": "mp-008-allergy-2",
+            "name": "Soy",
+            "severity": "moderate",
+            "avoidCrossContact": true
+          }
+        ]
+      },
+      "expectations": {
+        "pages": [
+          {
+            "pageNumber": 1,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "benign_only"
+            ],
+            "dishNames": [
+              "Fruit Cup",
+              "Cucumber Plate"
+            ]
+          },
+          {
+            "pageNumber": 2,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "direct_profile_allergen",
+              "severe_risk_page"
+            ],
+            "dishNames": [
+              "Creamy Tomato Soup",
+              "Daily Broth"
+            ]
+          },
+          {
+            "pageNumber": 3,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "direct_profile_allergen"
+            ],
+            "dishNames": [
+              "Tofu Grain Bowl",
+              "Roasted Vegetable Bowl"
+            ]
+          },
+          {
+            "pageNumber": 4,
+            "readability": {
+              "allowedValues": [
+                "clear"
+              ],
+              "needsRetake": false
+            },
+            "issues": [],
+            "contentLabels": [
+              "benign_only"
+            ],
+            "dishNames": [
+              "Market Salad",
+              "Plain Rice"
+            ]
+          }
+        ],
+        "overallRisk": {
+          "status": "diagnostic",
+          "allowedRiskRange": {
+            "kind": "ordinal",
+            "minimum": "avoid_unless_confirmed",
+            "maximum": "avoid_unless_confirmed",
+            "levels": [
+              "avoid_unless_confirmed"
+            ]
+          },
+          "note": "At least one readable page directly names a profile allergen or relevant derivative."
+        },
+        "dishes": [
+          {
+            "dishName": "Fruit Cup",
+            "sourcePageNumbers": [
+              1
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "No dairy or soy is visible, while handling remains unobservable.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          },
+          {
+            "dishName": "Creamy Tomato Soup",
+            "sourcePageNumbers": [
+              2
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "confirmed_visible",
+            "evidenceNote": "Cream and butter are directly named on page 2.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "avoid_unless_confirmed",
+              "maximum": "avoid_unless_confirmed",
+              "levels": [
+                "avoid_unless_confirmed"
+              ]
+            }
+          },
+          {
+            "dishName": "Daily Broth",
+            "sourcePageNumbers": [
+              2
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "plausible_pattern",
+            "evidenceNote": "The chef's broth is visible but its ingredients are unspecified.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "ask_staff",
+              "maximum": "high_risk",
+              "levels": [
+                "ask_staff",
+                "high_risk"
+              ]
+            }
+          },
+          {
+            "dishName": "Tofu Grain Bowl",
+            "sourcePageNumbers": [
+              3
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "confirmed_visible",
+            "evidenceNote": "Tofu and soy dressing are directly named on page 3.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "high_risk",
+              "maximum": "avoid_unless_confirmed",
+              "levels": [
+                "high_risk",
+                "avoid_unless_confirmed"
+              ]
+            }
+          },
+          {
+            "dishName": "Roasted Vegetable Bowl",
+            "sourcePageNumbers": [
+              3
+            ],
+            "role": "risk_target",
+            "evidenceLabel": "plausible_pattern",
+            "evidenceNote": "The house dressing is visible but unspecified.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "ask_staff",
+              "maximum": "high_risk",
+              "levels": [
+                "ask_staff",
+                "high_risk"
+              ]
+            }
+          },
+          {
+            "dishName": "Market Salad",
+            "sourcePageNumbers": [
+              4
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "No profile allergen is visible, while shared preparation remains unobservable.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          },
+          {
+            "dishName": "Plain Rice",
+            "sourcePageNumbers": [
+              4
+            ],
+            "role": "benign_control",
+            "evidenceLabel": "unknown_unobservable",
+            "evidenceNote": "Only steamed rice is visible, while kitchen handling is not shown.",
+            "allowedRiskRange": {
+              "kind": "ordinal",
+              "minimum": "low_risk",
+              "maximum": "ask_staff",
+              "levels": [
+                "low_risk",
+                "ask_staff"
+              ]
+            }
+          }
+        ]
+      },
+      "expected": {
+        "readability": "clear",
+        "minimumRisks": [
+          {
+            "dishName": "Creamy Tomato Soup",
+            "minimumRisk": "avoid_unless_confirmed",
+            "directListed": true
+          },
+          {
+            "dishName": "Daily Broth",
+            "minimumRisk": "ask_staff",
+            "directListed": false
+          },
+          {
+            "dishName": "Tofu Grain Bowl",
+            "minimumRisk": "high_risk",
+            "directListed": true
+          },
+          {
+            "dishName": "Roasted Vegetable Bowl",
+            "minimumRisk": "ask_staff",
+            "directListed": false
+          }
+        ],
+        "benignDishes": [
+          "Fruit Cup",
+          "Market Salad",
+          "Plain Rice"
+        ]
+      },
+      "reviewStatus": "development_diagnostic_unreviewed"
+    }
+  ]
+}

@@ -1,0 +1,354 @@
+---
+import {
+  Check,
+  EyeOff,
+  ListChecks,
+  MessageCircleMore,
+  RefreshCcw,
+  ScanLine,
+  ShieldCheck,
+  UtensilsCrossed
+} from "@lucide/astro";
+import DownloadAction from "../components/DownloadAction.astro";
+import HandAnnotation from "../components/HandAnnotation.astro";
+import PhoneFrame from "../components/PhoneFrame.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import "../styles/home.css";
+
+// Mirrors the current in-app plan model. The release gate blocks deployment until App Store products and prices are verified.
+const plans = [
+  {
+    name: "Free",
+    audience: "Occasional menus",
+    price: "$0",
+    cadence: "forever",
+    summary: "A simple starting point for one allergy profile.",
+    features: ["3 menu scans each month", "1 saved allergy profile", "5 scans in local history"]
+  },
+  {
+    name: "Plus",
+    audience: "Regular dining",
+    price: "$4.99",
+    cadence: "/ month",
+    summary: "More room for repeat dining and the people you help most.",
+    features: ["50 menu scans each month", "3 saved allergy profiles", "50 scans in local history"]
+  },
+  {
+    name: "Pro",
+    audience: "Frequent use",
+    price: "$8.99",
+    cadence: "/ month",
+    summary: "Higher limits for dining out and travel-heavy routines.",
+    features: ["200 menu scans each month", "5 saved allergy profiles", "200 scans in local history"]
+  },
+  {
+    name: "Family",
+    audience: "Caregivers & households",
+    price: "$12.99",
+    cadence: "/ month",
+    summary: "The largest allowance for several allergy profiles.",
+    features: ["500 menu scans each month", "8 saved allergy profiles", "500 scans in local history"]
+  }
+];
+
+const comparisonGroups = [
+  {
+    label: "Usage",
+    rows: [
+      { feature: "Menu scans each month", values: ["3", "50", "200", "500"] },
+      { feature: "Saved allergy profiles", values: ["1", "3", "5", "8"] },
+      { feature: "Scans in local history", values: ["5", "50", "200", "500"] }
+    ]
+  },
+  {
+    label: "Guidance",
+    rows: [
+      { feature: "Scan against an active allergy profile", values: ["Included", "Included", "Included", "Included"] },
+      { feature: "Dish-by-dish concern cards", values: ["Included", "Included", "Included", "Included"] },
+      { feature: "Questions to confirm with restaurant staff", values: ["Included", "Included", "Included", "Included"] },
+      { feature: "Visible reasoning and Unclear fallback", values: ["Included", "Included", "Included", "Included"] }
+    ]
+  }
+];
+---
+
+<BaseLayout
+  title="Sift — Know what to ask before you eat"
+  description="Scan a restaurant menu against your allergy profile. Sift surfaces possible allergen concerns and practical questions to confirm with restaurant staff."
+  path="/"
+  schemaType="WebSite"
+  bodyClass="home-page"
+>
+  <section class="home-hero" id="product">
+    <div class="shell home-hero__grid">
+      <div class="home-hero__copy">
+        <p class="eyebrow">For food allergies and the people who care</p>
+        <h1>Know what to ask before you eat.</h1>
+        <p class="home-hero__lede">
+          Scan a menu against your allergy profile. Sift surfaces possible concerns, explains why, and turns
+          uncertainty into questions for restaurant staff.
+        </p>
+        <div class="home-hero__actions">
+          <DownloadAction />
+          <a class="button button--secondary" href="/how-it-works">See how it works</a>
+        </div>
+        <p class="boundary-line"><ShieldCheck aria-hidden="true" size={18} stroke-width={2} /> Questions, not guarantees.</p>
+      </div>
+
+      <div class="hero-evidence" aria-label="Current Sift app screens">
+        <PhoneFrame
+          src="/app/home.png"
+          alt="Sift Home screen with Peanut, Sesame, and Mango filters and a Scan Menu action."
+          eager
+          className="hero-phone hero-phone--home"
+        />
+        <PhoneFrame
+          src="/app/results-dishes.png"
+          alt="Sift Scan Results showing high-risk dish cards and the allergens that need confirmation."
+          eager
+          className="hero-phone hero-phone--results"
+        />
+        <HandAnnotation
+          text="Start a new scan"
+          direction="up-right"
+          variant={1}
+          className="hero-annotation hero-annotation--scan"
+        />
+        <HandAnnotation
+          text="Clear risk flag"
+          variant={1}
+          className="hero-annotation hero-annotation--risk"
+        />
+        <HandAnnotation
+          text="Why it matters"
+          variant={2}
+          className="hero-annotation hero-annotation--reason"
+        />
+        <HandAnnotation
+          text="Allergens in play"
+          variant={3}
+          className="hero-annotation hero-annotation--allergens"
+        />
+      </div>
+    </div>
+  </section>
+
+  <section class="menu-margin-section" aria-labelledby="menu-margin-title">
+    <div class="shell">
+      <div class="section-heading">
+        <p class="eyebrow">The menu margin</p>
+        <h2 id="menu-margin-title">Menus rarely tell the whole story.</h2>
+        <p>Even when ingredients are listed, the details that matter most are often left out.</p>
+      </div>
+
+      <article class="menu-sheet">
+        <div class="menu-sheet__spine" aria-hidden="true">Tonkotsu ramen</div>
+        <div class="menu-sheet__dish">
+          <p class="menu-sheet__title">Tonkotsu Ramen</p>
+          <p>
+            Pork <mark>broth</mark>, noodles, egg, scallion<br />
+            <mark>tare</mark>, <mark>sesame</mark>, wheat noodles
+          </p>
+        </div>
+        <div class="menu-sheet__questions" aria-label="Questions the menu does not answer">
+          <p>What’s in the broth?</p>
+          <p>What’s in the sauce or tare?</p>
+          <p>What oil was used?</p>
+          <p>Shared fryer or utensils?</p>
+        </div>
+        <div class="menu-sheet__legend">
+          <p class="menu-sheet__legend-title">What menus don’t say</p>
+          <ul>
+            <li>Broth ingredients and hidden flavorings</li>
+            <li>Sauces, oils, dressings, and marinades</li>
+            <li>Garnishes and toppings</li>
+            <li>Shared equipment and cross-contact risk</li>
+          </ul>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="reliability-home" aria-labelledby="reliability-title">
+    <div class="shell reliability-home__grid">
+      <div class="reliability-home__copy">
+        <p class="eyebrow eyebrow--light">Reliability</p>
+        <h2 id="reliability-title">AI should show its work.</h2>
+        <p>
+          Sift separates what it can read from what remains uncertain. Every useful result connects visible menu
+          text, the active allergy profile, common risk patterns, and a next question for staff.
+        </p>
+        <ul class="reliability-points">
+          <li><ScanLine aria-hidden="true" size={20} /><span><strong>Reads the visible menu text</strong><br />without claiming to see a recipe.</span></li>
+          <li><ListChecks aria-hidden="true" size={20} /><span><strong>Checks a defined result structure</strong><br />before showing it in the app.</span></li>
+          <li><ShieldCheck aria-hidden="true" size={20} /><span><strong>Falls back to Unclear</strong><br />when the image or response is insufficient.</span></li>
+        </ul>
+        <a class="text-link text-link--light" href="/reliability">Read the reliability method <span aria-hidden="true">→</span></a>
+      </div>
+
+      <div class="reliability-evidence">
+        <PhoneFrame
+          src="/app/results-unclear.png"
+          alt="Sift returning an Unclear result and asking the user to retake the photo or ask staff directly."
+          eager
+          className="reliability-phone reliability-phone--unclear"
+        />
+        <PhoneFrame
+          src="/app/dish-detail-reasoning.png"
+          alt="Sift showing questions for staff and the visible text, profile factors, and common patterns behind a result."
+          eager
+          className="reliability-phone reliability-phone--reasoning"
+        />
+        <HandAnnotation
+          text="What Sift read"
+          variant={1}
+          tone="dark"
+          className="reliability-annotation reliability-annotation--input"
+        />
+        <HandAnnotation
+          text="Your allergy profile"
+          variant={2}
+          tone="dark"
+          className="reliability-annotation reliability-annotation--profile"
+        />
+        <HandAnnotation
+          text="When in doubt, Sift says so"
+          direction="right"
+          variant={1}
+          tone="dark"
+          className="reliability-annotation reliability-annotation--unclear"
+        />
+      </div>
+    </div>
+  </section>
+
+  <section class="limits-section" aria-labelledby="limits-title">
+    <div class="shell">
+      <div class="limits-intro">
+        <div>
+          <p class="eyebrow">Safety boundary</p>
+          <h2 id="limits-title">Useful guidance. Firm limits.</h2>
+        </div>
+        <p>
+          Sift reviews the menu information it can see. It cannot confirm recipes, substitutions, shared equipment,
+          kitchen practices, or cross-contact. Restaurant confirmation remains essential.
+        </p>
+      </div>
+
+      <div class="limits-grid">
+        <div><EyeOff aria-hidden="true" size={30} /><h3>Recipes stay out of view.</h3><p>A menu photo cannot reveal every ingredient or supplier change.</p></div>
+        <div><RefreshCcw aria-hidden="true" size={30} /><h3>Substitutions can change.</h3><p>Last-minute swaps and restaurant-specific preparation still need confirmation.</p></div>
+        <div><UtensilsCrossed aria-hidden="true" size={30} /><h3>Shared equipment is invisible.</h3><p>Fryers, utensils, surfaces, and cross-contact cannot be verified from a menu.</p></div>
+        <div><MessageCircleMore aria-hidden="true" size={30} /><h3>Staff answers matter.</h3><p>Sift is designed to improve the question, not replace the conversation.</p></div>
+      </div>
+      <a class="text-link" href="/safety">Read the complete safety approach <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+
+  <section class="caregiver-section" aria-labelledby="caregiver-title">
+    <div class="shell caregiver-grid">
+      <div>
+        <p class="eyebrow">For diners and caregivers</p>
+        <h2 id="caregiver-title">The decision stays human.</h2>
+        <p class="caregiver-lede">
+          Whether you are ordering for yourself, a child, a partner, or a friend, Sift helps keep the most useful
+          questions close when the menu is unfamiliar.
+        </p>
+      </div>
+      <ul class="caregiver-list">
+        <li><Check aria-hidden="true" size={20} /><span><strong>Less guessing.</strong> Possible concerns are named, not hidden behind a score.</span></li>
+        <li><Check aria-hidden="true" size={20} /><span><strong>Clearer conversations.</strong> Questions are ready for restaurant staff.</span></li>
+        <li><Check aria-hidden="true" size={20} /><span><strong>One active profile.</strong> Review the allergies and cross-contact settings before each scan.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="pricing-section" id="pricing" aria-labelledby="pricing-title">
+    <div class="shell">
+      <div class="pricing-intro">
+        <div>
+          <p class="eyebrow">Plans for every table</p>
+          <h2 id="pricing-title">One diner, a few profiles, or the whole household.</h2>
+        </div>
+        <p>
+          Choose by how often you scan and how many people you look after. The same conservative review,
+          uncertainty handling, and safety boundary apply on every plan.
+        </p>
+      </div>
+
+      <div class="plan-ledger" id="plan-options" aria-label="Sift monthly plans">
+        {
+          plans.map((plan) => (
+            <article class="plan-card">
+              <p class="plan-card__audience">{plan.audience}</p>
+              <h3>{plan.name}</h3>
+              <p class="plan-card__price">
+                <span>{plan.price}</span>
+                <small>{plan.cadence}</small>
+              </p>
+              <p class="plan-card__summary">{plan.summary}</p>
+              <ul>
+                {plan.features.map((feature) => (
+                  <li><Check aria-hidden="true" size={17} stroke-width={2.2} /><span>{feature}</span></li>
+                ))}
+              </ul>
+            </article>
+          ))
+        }
+      </div>
+
+      <div class="pricing-principle">
+        <ShieldCheck aria-hidden="true" size={22} stroke-width={1.9} />
+        <p><strong>Safety is not a premium feature.</strong> Every plan shows limitations and keeps restaurant confirmation essential.</p>
+        <a href="/reliability">See how Sift handles uncertainty <span aria-hidden="true">→</span></a>
+      </div>
+
+      <div class="comparison-heading" id="plan-comparison">
+        <div>
+          <p class="eyebrow">Feature comparison</p>
+          <h3>Compare the plans.</h3>
+        </div>
+        <p>Paid plans increase usage and profile limits—not the certainty of a result.</p>
+      </div>
+
+      <p class="comparison-swipe">Swipe to compare plans.</p>
+      <div class="comparison-scroll" tabindex="0" aria-label="Scrollable Sift plan comparison">
+        <table>
+          <caption class="visually-hidden">Sift plan features compared across Free, Plus, Pro, and Family.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Feature</th>
+              {plans.map((plan) => <th scope="col">{plan.name}</th>)}
+            </tr>
+          </thead>
+          {
+            comparisonGroups.map((group) => (
+              <tbody>
+                <tr class="comparison-group">
+                  <th scope="rowgroup" colspan={plans.length + 1}>{group.label}</th>
+                </tr>
+                {group.rows.map((row) => (
+                  <tr>
+                    <th scope="row">{row.feature}</th>
+                    {row.values.map((value) => <td>{value}</td>)}
+                  </tr>
+                ))}
+              </tbody>
+            ))
+          }
+        </table>
+      </div>
+
+      <div class="pricing-foot">
+        <p>
+          <strong>Monthly plans.</strong> Prices are shown in USD. Apple shows the final regional price and
+          renewal terms before purchase.
+        </p>
+        <div class="pricing-foot__actions">
+          <DownloadAction label="View Sift on the App Store" />
+          <a class="button button--secondary" href="/support">Questions about plans?</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

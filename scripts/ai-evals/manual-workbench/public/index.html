@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Sift manual AI eval workbench</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="topbar-title">
+          <p class="product-name">Sift AI evals</p>
+          <h1>Manual response workbench</h1>
+        </div>
+        <div class="run-summary" aria-live="polite">
+          <div>
+            <span class="summary-label">Run</span>
+            <strong id="runId">Loading</strong>
+          </div>
+          <div>
+            <span class="summary-label">Pass</span>
+            <strong id="passNumber">-</strong>
+          </div>
+          <div>
+            <span class="summary-label">Progress</span>
+            <strong id="progressText">0 / 0</strong>
+          </div>
+        </div>
+      </header>
+
+      <section class="configuration-bar" aria-labelledby="configurationTitle">
+        <div class="configuration-primary">
+          <span id="configurationTitle" class="summary-label">Locked model</span>
+          <strong id="modelLabel">Loading</strong>
+        </div>
+        <details>
+          <summary>Configuration fingerprints</summary>
+          <dl class="fingerprint-list">
+            <div><dt>Model</dt><dd><code id="modelFingerprint"></code></dd></div>
+            <div><dt>Prompt</dt><dd><code id="promptFingerprint"></code></dd></div>
+            <div><dt>Schema</dt><dd><code id="schemaFingerprint"></code></dd></div>
+            <div><dt>Config</dt><dd><code id="configFingerprint"></code></dd></div>
+          </dl>
+        </details>
+      </section>
+
+      <section class="session-reminder" aria-labelledby="sessionReminderTitle">
+        <div>
+          <h2 id="sessionReminderTitle">Fresh session required</h2>
+          <p id="sessionReminderText">Start a fresh Google AI Studio chat before this pass.</p>
+        </div>
+        <label class="acknowledgement">
+          <input id="sessionAcknowledgement" type="checkbox">
+          <span id="sessionAcknowledgementText">Fresh session started</span>
+        </label>
+      </section>
+
+      <main class="workspace">
+        <aside class="queue-pane" aria-labelledby="queueTitle">
+          <div class="queue-header">
+            <div>
+              <h2 id="queueTitle">Case queue</h2>
+              <p id="remainingText">Loading cases</p>
+            </div>
+            <progress id="progressBar" value="0" max="1">0%</progress>
+          </div>
+          <ol id="queueList" class="queue-list" aria-label="Evaluation cases"></ol>
+        </aside>
+
+        <section class="case-pane" aria-live="polite">
+          <div id="loadingState" class="center-state">
+            <h2>Loading prepared run</h2>
+          </div>
+
+          <div id="errorState" class="center-state error-state" hidden>
+            <h2>Workbench unavailable</h2>
+            <p id="errorMessage"></p>
+            <button id="retryButton" type="button" class="button button-secondary">Retry</button>
+          </div>
+
+          <div id="caseView" hidden>
+            <header class="case-header">
+              <div>
+                <p id="casePosition" class="case-position"></p>
+                <h2 id="caseName"></h2>
+                <p id="caseId" class="case-id"></p>
+              </div>
+              <span id="caseStatus" class="status-label">Pending</span>
+            </header>
+
+            <div class="case-grid">
+              <section class="input-column" aria-label="Case inputs">
+                <section class="image-section" aria-labelledby="menuPagesTitle">
+                  <header class="image-section-header">
+                    <h3 id="menuPagesTitle">Menu pages</h3>
+                    <span id="pageCount" class="page-count"></span>
+                  </header>
+                  <div id="caseImages" class="image-list"></div>
+                </section>
+
+                <section class="input-block" aria-labelledby="inputOrderTitle">
+                  <header class="block-header">
+                    <h3 id="inputOrderTitle">Exact multimodal input</h3>
+                  </header>
+                  <pre id="promptContentOrder" tabindex="0"></pre>
+                  <pre id="menuPageLabel" tabindex="0"></pre>
+                </section>
+
+                <section class="input-block" aria-labelledby="profileTitle">
+                  <header class="block-header">
+                    <h3 id="profileTitle">Profile</h3>
+                    <button id="copyProfileButton" type="button" class="button button-quiet">Copy</button>
+                  </header>
+                  <pre id="profileJson" tabindex="0"></pre>
+                </section>
+
+                <section class="input-block" aria-labelledby="promptTitle">
+                  <header class="block-header">
+                    <h3 id="promptTitle">User prompt</h3>
+                    <button id="copyPromptButton" type="button" class="button button-quiet">Copy</button>
+                  </header>
+                  <pre id="userPrompt" class="prompt-text" tabindex="0"></pre>
+                </section>
+              </section>
+
+              <section class="response-column" aria-labelledby="responseTitle">
+                <div class="response-heading">
+                  <div>
+                    <h3 id="responseTitle">Raw JSON response</h3>
+                    <p id="savedAt"></p>
+                  </div>
+                  <output id="jsonStatus" for="rawJson">Paste JSON to validate</output>
+                </div>
+
+                <label for="rawJson" class="visually-hidden">Raw JSON response</label>
+                <textarea
+                  id="rawJson"
+                  spellcheck="false"
+                  autocapitalize="off"
+                  autocomplete="off"
+                  placeholder="Paste the model's raw JSON response"
+                ></textarea>
+
+                <fieldset class="input-block" aria-describedby="executionMetricsHint">
+                  <legend>Optional execution metrics</legend>
+                  <p id="executionMetricsHint">Record values shown by AI Studio. Leave unknown values blank.</p>
+                  <label for="latencyMs">Latency (ms)</label>
+                  <input id="latencyMs" type="number" min="0" step="1" inputmode="numeric">
+                  <label for="inputTokens">Input tokens</label>
+                  <input id="inputTokens" type="number" min="0" step="1" inputmode="numeric">
+                  <label for="outputTokens">Output tokens</label>
+                  <input id="outputTokens" type="number" min="0" step="1" inputmode="numeric">
+                  <label for="thinkingTokens">Thinking tokens</label>
+                  <input id="thinkingTokens" type="number" min="0" step="1" inputmode="numeric">
+                </fieldset>
+
+                <div class="response-actions">
+                  <button id="previousButton" type="button" class="button button-secondary">Previous</button>
+                  <button id="nextButton" type="button" class="button button-secondary">Next</button>
+                  <button id="saveButton" type="button" class="button button-primary" disabled>Save response</button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "benchmark-holdout.schema.json",
+  "title": "Sift AI Holdout Manifest v1",
+  "description": "Sidecar extension of the Sift benchmark v1 contract for repository-owned candidate or human-approved frozen holdout image paths.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "benchmarkId",
+    "version",
+    "split",
+    "status",
+    "generatedBy",
+    "corpus",
+    "grouping",
+    "taxonomies",
+    "cases"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../images/holdout/benchmark-holdout.schema.json"
+    },
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "benchmarkId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "version": {
+      "const": "test-v1"
+    },
+    "split": {
+      "const": "test"
+    },
+    "status": {
+      "enum": ["development", "frozen"]
+    },
+    "generatedBy": {
+      "type": "string",
+      "pattern": "^[^\\\\]+\\.mjs$"
+    },
+    "corpus": {
+      "$ref": "../../benchmark-v1/benchmark-manifest.schema.json#/$defs/corpus"
+    },
+    "grouping": {
+      "$ref": "../../benchmark-v1/benchmark-manifest.schema.json#/$defs/grouping"
+    },
+    "taxonomies": {
+      "$ref": "../../benchmark-v1/benchmark-manifest.schema.json#/$defs/taxonomies"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 48,
+      "maxItems": 48,
+      "items": {
+        "$ref": "#/$defs/holdoutCase"
+      }
+    }
+  },
+  "$defs": {
+    "holdoutImage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^docs/ai-evals/images/holdout/I-1(?:0[1-9]|[1-3][0-9]|4[0-8])\\.jpg$"
+        },
+        "sha256": {
+          "$ref": "../../benchmark-v1/benchmark-manifest.schema.json#/$defs/sha256"
+        }
+      }
+    },
+    "holdoutCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "split",
+        "groupId",
+        "sourceType",
+        "critical",
+        "language",
+        "cuisine",
+        "qualityVariant",
+        "image",
+        "profile",
+        "expectations",
+        "provenance",
+        "license",
+        "review"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^I-1(?:0[1-9]|[1-3][0-9]|4[0-8])$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "split": {
+          "const": "test"
+        },
+        "groupId": {
+          "type": "string",
+          "pattern": "^holdout/[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "sourceType": {
+          "enum": [
+            "controlled",
+            "licensed"
+          ]
+        },
+        "critical": {
+          "type": "boolean"
+        },
+        "language": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cuisine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "qualityVariant": {
+          "enum": [
+            "clear_counter",
+            "angled_photo",
+            "glare_fold",
+            "blurred_crop"
+          ]
+        },
+        "image": {
+          "$ref": "#/$defs/holdoutImage"
+        },
+        "profile": {
+          "$ref": "../../benchmark-v1/benchmark-manifest.schema.json#/$defs/profile"
+        },
+        "expectations": {
+          "$ref": "../../benchmark-v1/benchmark-manifest.schema.json#/$defs/expectations"
+        },
+        "provenance": {
+          "$ref": "../../benchmark-v1/benchmark-manifest.schema.json#/$defs/provenance"
+        },
+        "license": {
+          "$ref": "../../benchmark-v1/benchmark-manifest.schema.json#/$defs/license"
+        },
+        "review": {
+          "$ref": "../../benchmark-v1/benchmark-manifest.schema.json#/$defs/review"
+        }
+      }
+    }
+  }
+}

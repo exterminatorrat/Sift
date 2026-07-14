@@ -1,0 +1,936 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "benchmark-manifest.schema.json",
+  "title": "Sift AI Benchmark Manifest v1",
+  "description": "Versioned manifest for grouped Sift menu-analysis benchmark cases.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "benchmarkId",
+    "version",
+    "split",
+    "status",
+    "generatedBy",
+    "corpus",
+    "grouping",
+    "taxonomies",
+    "cases"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "./benchmark-manifest.schema.json"
+    },
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "benchmarkId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(development|validation|test)-v[1-9][0-9]*$"
+    },
+    "split": {
+      "$ref": "#/$defs/split"
+    },
+    "status": {
+      "enum": [
+        "development",
+        "frozen"
+      ]
+    },
+    "generatedBy": {
+      "type": "string",
+      "pattern": "^[^\\\\]+\\.mjs$"
+    },
+    "corpus": {
+      "$ref": "#/$defs/corpus"
+    },
+    "grouping": {
+      "$ref": "#/$defs/grouping"
+    },
+    "taxonomies": {
+      "$ref": "#/$defs/taxonomies"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nullableString": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "nullableHttpsUrl": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^https://"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "split": {
+      "enum": [
+        "development",
+        "validation",
+        "test"
+      ]
+    },
+    "evidenceLabel": {
+      "enum": [
+        "confirmed_visible",
+        "confirmed_external",
+        "plausible_pattern",
+        "unknown_unobservable"
+      ]
+    },
+    "ordinalRiskLevel": {
+      "enum": [
+        "low_risk",
+        "ask_staff",
+        "high_risk",
+        "avoid_unless_confirmed"
+      ]
+    },
+    "riskLevel": {
+      "enum": [
+        "low_risk",
+        "ask_staff",
+        "high_risk",
+        "avoid_unless_confirmed",
+        "unclear"
+      ]
+    },
+    "riskRange": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "minimum",
+            "maximum",
+            "levels"
+          ],
+          "properties": {
+            "kind": {
+              "const": "ordinal"
+            },
+            "minimum": {
+              "$ref": "#/$defs/ordinalRiskLevel"
+            },
+            "maximum": {
+              "$ref": "#/$defs/ordinalRiskLevel"
+            },
+            "levels": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/ordinalRiskLevel"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "minimum",
+            "maximum",
+            "levels"
+          ],
+          "properties": {
+            "kind": {
+              "const": "non_ordinal"
+            },
+            "minimum": {
+              "type": "null"
+            },
+            "maximum": {
+              "type": "null"
+            },
+            "levels": {
+              "const": [
+                "unclear"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "sourceManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^[^\\\\]+\\.json$"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "corpus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceManifest",
+        "sha256",
+        "caseCount",
+        "groupCount"
+      ],
+      "properties": {
+        "sourceManifest": {
+          "$ref": "#/$defs/sourceManifest"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "caseCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "groupCount": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "name",
+        "caseIds"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[./-][a-z0-9]+)*$"
+        },
+        "kind": {
+          "enum": [
+            "controlled_template",
+            "licensed_menu"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "caseIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[IL]-[0-9]{3}$"
+          }
+        }
+      }
+    },
+    "grouping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "leakageRule",
+        "groups"
+      ],
+      "properties": {
+        "unit": {
+          "const": "underlying_menu_or_template"
+        },
+        "leakageRule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "groups": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/group"
+          }
+        }
+      }
+    },
+    "taxonomies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceLabels",
+        "ordinalRiskLevels",
+        "nonOrdinalRiskLevels"
+      ],
+      "properties": {
+        "evidenceLabels": {
+          "const": [
+            "confirmed_visible",
+            "confirmed_external",
+            "plausible_pattern",
+            "unknown_unobservable"
+          ]
+        },
+        "ordinalRiskLevels": {
+          "const": [
+            "low_risk",
+            "ask_staff",
+            "high_risk",
+            "avoid_unless_confirmed"
+          ]
+        },
+        "nonOrdinalRiskLevels": {
+          "const": [
+            "unclear"
+          ]
+        }
+      }
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^docs/ai-evals/images/(controlled|licensed)/[IL]-[0-9]{3}\\.jpg$"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "allergy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "severity",
+        "avoidCrossContact"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "enum": [
+            "mild",
+            "moderate",
+            "severe"
+          ]
+        },
+        "avoidCrossContact": {
+          "type": "boolean"
+        }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "preferredLanguage",
+        "restaurantLanguage",
+        "allergies"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "preferredLanguage": {
+          "type": "string",
+          "minLength": 1
+        },
+        "restaurantLanguage": {
+          "type": "string",
+          "minLength": 1
+        },
+        "allergies": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/allergy"
+          }
+        }
+      }
+    },
+    "readabilityExpectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowedValues",
+        "needsRetake"
+      ],
+      "properties": {
+        "allowedValues": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "clear",
+              "partially_clear",
+              "poor"
+            ]
+          }
+        },
+        "needsRetake": {
+          "type": "boolean"
+        }
+      }
+    },
+    "overallRiskExpectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "evidenceLabel",
+        "evidenceSourceUrls",
+        "allowedRiskRange",
+        "note"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "annotated",
+            "not_annotated"
+          ]
+        },
+        "evidenceLabel": {
+          "$ref": "#/$defs/evidenceLabel"
+        },
+        "evidenceSourceUrls": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^https://"
+          }
+        },
+        "allowedRiskRange": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/riskRange"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "not_annotated"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "allowedRiskRange": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "annotated"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "allowedRiskRange": {
+                "$ref": "#/$defs/riskRange"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "dishExpectation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dishName",
+        "role",
+        "evidenceLabel",
+        "evidenceNote",
+        "evidenceSourceUrls",
+        "allowedRiskRange"
+      ],
+      "properties": {
+        "dishName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "enum": [
+            "risk_target",
+            "benign_control"
+          ]
+        },
+        "evidenceLabel": {
+          "$ref": "#/$defs/evidenceLabel"
+        },
+        "evidenceNote": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidenceSourceUrls": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^https://"
+          }
+        },
+        "allowedRiskRange": {
+          "$ref": "#/$defs/riskRange"
+        }
+      }
+    },
+    "questionRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "scope",
+        "dishNames",
+        "intent",
+        "allergens",
+        "requiredLanguages"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "scope": {
+          "enum": [
+            "scan",
+            "each_returned_dish",
+            "named_dishes"
+          ]
+        },
+        "dishNames": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "intent": {
+          "enum": [
+            "request_readable_menu",
+            "confirm_ingredients",
+            "confirm_preparation",
+            "confirm_cross_contact"
+          ]
+        },
+        "allergens": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "requiredLanguages": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "scope": {
+                "const": "named_dishes"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "dishNames": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "dishNames": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "expectations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readability",
+        "overallRisk",
+        "dishes",
+        "requiredQuestions"
+      ],
+      "properties": {
+        "readability": {
+          "$ref": "#/$defs/readabilityExpectation"
+        },
+        "overallRisk": {
+          "$ref": "#/$defs/overallRiskExpectation"
+        },
+        "dishes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dishExpectation"
+          }
+        },
+        "requiredQuestions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/questionRequirement"
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "sourceManifestPath",
+        "sourceCaseId",
+        "sourceRecordSha256",
+        "generatorPath",
+        "sourceTitle",
+        "sourceCreator",
+        "sourcePageUrl"
+      ],
+      "properties": {
+        "origin": {
+          "enum": [
+            "controlled_fixture",
+            "licensed_external"
+          ]
+        },
+        "sourceManifestPath": {
+          "type": "string",
+          "pattern": "^[^\\\\]+\\.json$"
+        },
+        "sourceCaseId": {
+          "type": "string",
+          "pattern": "^[IL]-[0-9]{3}$"
+        },
+        "sourceRecordSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "generatorPath": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "sourceTitle": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "sourceCreator": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "sourcePageUrl": {
+          "$ref": "#/$defs/nullableHttpsUrl"
+        }
+      }
+    },
+    "license": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "identifier",
+        "creator",
+        "attributionRequired",
+        "licenseUrl",
+        "sourcePageUrl",
+        "notes"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "internal_fixture",
+            "declared"
+          ]
+        },
+        "identifier": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "creator": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "attributionRequired": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "licenseUrl": {
+          "$ref": "#/$defs/nullableHttpsUrl"
+        },
+        "sourcePageUrl": {
+          "$ref": "#/$defs/nullableHttpsUrl"
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "internal_fixture"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "identifier": {
+                "type": "null"
+              },
+              "creator": {
+                "type": "null"
+              },
+              "attributionRequired": {
+                "type": "null"
+              },
+              "licenseUrl": {
+                "type": "null"
+              },
+              "sourcePageUrl": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "identifier": {
+                "type": "string",
+                "minLength": 1
+              },
+              "creator": {
+                "type": "string",
+                "minLength": 1
+              },
+              "attributionRequired": {
+                "type": "boolean"
+              },
+              "sourcePageUrl": {
+                "type": "string",
+                "pattern": "^https://"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "primaryReviewerId",
+        "secondaryReviewerId",
+        "reviewedAt",
+        "notes"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "pending",
+            "in_review",
+            "approved",
+            "rejected"
+          ]
+        },
+        "primaryReviewerId": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "secondaryReviewerId": {
+          "$ref": "#/$defs/nullableString"
+        },
+        "reviewedAt": {
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "notes": {
+          "$ref": "#/$defs/nullableString"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "pending"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "primaryReviewerId": {
+                "type": "null"
+              },
+              "secondaryReviewerId": {
+                "type": "null"
+              },
+              "reviewedAt": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "split",
+        "groupId",
+        "sourceType",
+        "critical",
+        "language",
+        "cuisine",
+        "qualityVariant",
+        "image",
+        "profile",
+        "expectations",
+        "provenance",
+        "license",
+        "review"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[IL]-[0-9]{3}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "split": {
+          "$ref": "#/$defs/split"
+        },
+        "groupId": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[./-][a-z0-9]+)*$"
+        },
+        "sourceType": {
+          "enum": [
+            "controlled",
+            "licensed"
+          ]
+        },
+        "critical": {
+          "type": "boolean"
+        },
+        "language": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cuisine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "qualityVariant": {
+          "type": "string",
+          "minLength": 1
+        },
+        "image": {
+          "$ref": "#/$defs/image"
+        },
+        "profile": {
+          "$ref": "#/$defs/profile"
+        },
+        "expectations": {
+          "$ref": "#/$defs/expectations"
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "license": {
+          "$ref": "#/$defs/license"
+        },
+        "review": {
+          "$ref": "#/$defs/review"
+        }
+      }
+    }
+  }
+}

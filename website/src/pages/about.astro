@@ -1,0 +1,100 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+---
+
+<BaseLayout
+  title="About Sift"
+  description="Why Sift is built around careful questions, visible uncertainty, and restaurant staff confirmation for people with food allergies and their caregivers."
+  path="/about"
+  schemaType="AboutPage"
+>
+  <PageHero
+    title="Built for the questions menus leave unanswered."
+    description="Sift helps people with food allergies and their caregivers turn a menu into a more useful conversation with restaurant staff."
+    compact
+  />
+
+  <section class="content-section">
+    <div class="shell">
+      <div class="section-heading">
+        <h2>A clearer next step at the table</h2>
+        <p>
+          Restaurant menus are written to describe dishes, not every ingredient, substitution, preparation
+          surface, or cross-contact possibility. Sift is designed for that gap.
+        </p>
+      </div>
+
+      <div class="prose">
+        <p>
+          A diner or caregiver selects a menu photo and an allergy profile. Sift reviews the visible menu
+          information, surfaces possible concerns and common hidden-risk patterns, and prepares questions that
+          can be confirmed with restaurant staff.
+        </p>
+        <p>
+          The result is not a verdict. It is a structured way to notice what may matter, understand what remains
+          unknown, and decide what to ask before ordering.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section content-section--tint">
+    <div class="shell">
+      <div class="section-heading">
+        <h2>What guides the product</h2>
+        <p>Sift is built around a narrow, protective role: help people prepare better questions without replacing their judgment.</p>
+      </div>
+
+      <div class="principle-grid">
+        <article class="principle-card">
+          <h2>Start with what is visible</h2>
+          <p>
+            Sift works from the menu image and profile a person provides. It distinguishes visible information
+            from inferences and from details the menu cannot answer.
+          </p>
+        </article>
+        <article class="principle-card">
+          <h2>Treat uncertainty as useful</h2>
+          <p>
+            An unclear image or incomplete description should lead to a retake or a staff question—not a confident
+            guess.
+          </p>
+        </article>
+        <article class="principle-card">
+          <h2>Keep people in the decision</h2>
+          <p>
+            The diner, caregiver, restaurant staff, and qualified healthcare professionals each know things an app
+            cannot. Sift supports that conversation.
+          </p>
+        </article>
+        <article class="principle-card">
+          <h2>Earn trust through limits</h2>
+          <p>
+            Reliability means showing what was checked, using conservative language, and being direct about what
+            cannot be verified from a menu.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section">
+    <div class="shell prose">
+      <h2>Questions, not guarantees</h2>
+      <p>
+        Sift cannot inspect a kitchen, verify a recipe, confirm a supplier change, or rule out cross-contact. It is
+        not a medical device and does not provide medical advice, diagnosis, or treatment.
+      </p>
+      <p>
+        Always confirm ingredients, preparation, and cross-contact with restaurant staff before ordering,
+        especially for severe allergies. Follow the care and emergency guidance provided by qualified healthcare
+        professionals.
+      </p>
+      <p>
+        Read more about <a href="/how-it-works">how Sift works</a>, our <a href="/reliability">reliability approach</a>,
+        and the product's <a href="/safety">safety boundaries</a>.
+      </p>
+    </div>
+  </section>
+</BaseLayout>

@@ -33,15 +33,27 @@ import {
 } from "./src/constants/subscriptionPlans";
 import { createDefaultProfile } from "./src/services/mockAnalysisService";
 import {
-  analyzeMenuImage,
+  analyzeMenuImages,
   createUnclearScanResult,
-  ScanQuotaExceededError
+  ScanQuotaExceededError,
+  ScanRateLimitExceededError
 } from "./src/services/aiAnalysisService";
-import { loadAuthSession, signInWithApple, signOut } from "./src/services/authService";
-import { captureMenuImage, ImageAccessError, pickMenuImage } from "./src/services/imageService";
+import {
+  isAppleAccountRequired,
+  isDurableAuthSession,
+  loadAuthSession,
+  signInWithApple,
+  signOut
+} from "./src/services/authService";
+import { ImageAccessError, pickMenuImages } from "./src/services/imageService";
+import {
+  MAX_MENU_IMAGES_PER_SCAN,
+  MAX_MENU_SCAN_BASE64_CHARACTERS
+} from "./src/constants/menuScan";
 import {
   clearScanHistory,
   loadStoredAppState,
+  saveCameraGuideComplete,
   saveOnboardingComplete,
   saveProfiles,
   saveScanHistory,
@@ -53,6 +65,8 @@ import { LoginScreen } from "./src/screens/LoginScreen";
 import { ProfileScreen } from "./src/screens/ProfileScreen";
 import { HomeScreen } from "./src/screens/HomeScreen";
 import { ScanCaptureScreen } from "./src/screens/ScanCaptureScreen";
+import { CameraGuideScreen } from "./src/screens/CameraGuideScreen";
+import { MenuCameraScreen } from "./src/screens/MenuCameraScreen";
 import { ImagePreviewScreen } from "./src/screens/ImagePreviewScreen";
 import { AnalysisLoadingScreen } from "./src/screens/AnalysisLoadingScreen";
 import { ResultsScreen } from "./src/screens/ResultsScreen";
@@ -69,7 +83,6 @@ import { I18nProvider } from "./src/i18n/I18nProvider";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 type MainTab = "home" | "history" | "profile";
-type PendingImageSource = "camera" | "library";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -89,20 +102,21 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [cameraGuideComplete, setCameraGuideComplete] = useState(false);
   const [mainTab, setMainTab] = useState<MainTab>("home");
   const [profiles, setProfiles] = useState<UserProfile[]>([createDefaultProfile()]);
   const [activeProfileId, setActiveProfileId] = useState(createDefaultProfile().id);
   const [scanHistory, setScanHistory] = useState<ScanResult[]>([]);
   const [subscriptionPlanId, setSubscriptionPlanId] =
     useState<SubscriptionPlanId>(defaultSubscriptionPlanId);
-  const [pendingImage, setPendingImage] = useState<PreparedMenuImage | null>(null);
-  const [pendingImageSource, setPendingImageSource] = useState<PendingImageSource>("camera");
+  const [pendingImages, setPendingImages] = useState<PreparedMenuImage[]>([]);
   const [scanError, setScanError] = useState<string | null>(null);
   const profile = profiles.find((item) => item.id === activeProfileId) ?? profiles[0] ?? createDefaultProfile();
   const subscriptionPlan = getSubscriptionPlan(subscriptionPlanId);
   const monthlyScanCount = getMonthlyScanCount(scanHistory);
   const canStartScan = monthlyScanCount < subscriptionPlan.scanLimit;
   const canCreateProfile = profiles.length < subscriptionPlan.profileLimit;
+  const hasRequiredAuth = !isAppleAccountRequired() || isDurableAuthSession(authSession);
 
   useEffect(() => {
     let mounted = true;
@@ -115,6 +129,7 @@ export default function App() {
 
         setAuthSession(storedAuthSession);
         setOnboardingComplete(stored.onboardingComplete);
+        setCameraGuideComplete(stored.cameraGuideComplete);
         const nextProfiles = stored.profiles.length > 0 ? stored.profiles : [stored.profile ?? createDefaultProfile()];
         setProfiles(nextProfiles);
         setActiveProfileId(stored.activeProfileId ?? nextProfiles[0].id);
@@ -186,7 +201,7 @@ export default function App() {
       <I18nProvider language={profile.preferredLanguage}>
         <NavigationContainer>
           <Stack.Navigator
-            initialRouteName={!authSession ? "Login" : !onboardingComplete ? "Onboarding" : "Home"}
+            initialRouteName={!hasRequiredAuth ? "Login" : !onboardingComplete ? "Onboarding" : "Home"}
             screenOptions={{ animation: "none", headerShown: false }}
           >
           <Stack.Screen name="Login">
@@ -264,12 +279,7 @@ export default function App() {
                           setMainTab("profile");
                           return;
                         }
-                        if (!canStartScan) {
-                          showScanLimitAlert(navigation.navigate);
-                          return;
-                        }
-                        setScanError(null);
-                        void selectImageFromCamera(navigation.navigate);
+                        openCameraFlow(navigation.navigate);
                       }}
                       onUploadPhoto={async () => {
                         if (profile.allergies.length === 0) {
@@ -280,7 +290,7 @@ export default function App() {
                           showScanLimitAlert(navigation.navigate);
                           return;
                         }
-                        await selectImageFromLibrary(navigation.navigate);
+                        await selectImagesFromLibrary(navigation.navigate);
                       }}
                     />
                   ),
@@ -356,8 +366,71 @@ export default function App() {
               <ScanCaptureScreen
                 error={scanError}
                 onBack={() => navigation.goBack()}
-                onTakePhoto={async () => selectImageFromCamera(navigation.navigate)}
-                onUploadPhoto={async () => selectImageFromLibrary(navigation.navigate)}
+                onTakePhoto={() => openCameraFlow(navigation.navigate)}
+                onUploadPhoto={async () => selectImagesFromLibrary(navigation.navigate)}
+              />
+            )}
+          </Stack.Screen>
+
+          <Stack.Screen name="CameraGuide" options={{ animation: "slide_from_bottom" }}>
+            {({ navigation, route }) => (
+              <CameraGuideScreen
+                onClose={() => {
+                  if (route.params?.continueSession) {
+                    navigation.replace("ImagePreview");
+                    return;
+                  }
+                  navigation.goBack();
+                }}
+                onFinish={async () => {
+                  setCameraGuideComplete(true);
+                  await saveCameraGuideComplete(true).catch(() => undefined);
+                  if (route.params?.replay) {
+                    navigation.goBack();
+                  } else {
+                    navigation.replace("MenuCamera");
+                  }
+                }}
+              />
+            )}
+          </Stack.Screen>
+
+          <Stack.Screen name="MenuCamera" options={{ animation: "fade" }}>
+            {({ navigation }) => (
+              <MenuCameraScreen
+                images={pendingImages}
+                maxImages={MAX_MENU_IMAGES_PER_SCAN}
+                onBack={() => {
+                  if (pendingImages.length > 0) {
+                    navigation.replace("ImagePreview");
+                    return;
+                  }
+
+                  navigation.goBack();
+                }}
+                onAddImage={(image) => {
+                  const nextImages = [...pendingImages, image];
+                  if (
+                    nextImages.length > MAX_MENU_IMAGES_PER_SCAN ||
+                    getImagesBase64Length(nextImages) > MAX_MENU_SCAN_BASE64_CHARACTERS
+                  ) {
+                    return false;
+                  }
+
+                  setPendingImages(nextImages);
+                  return true;
+                }}
+                onComplete={() => navigation.replace("ImagePreview")}
+                onOpenGuide={() => navigation.navigate("CameraGuide", { replay: true })}
+                onRemoveImage={(index) => {
+                  setPendingImages((current) => current.filter((_, itemIndex) => itemIndex !== index));
+                }}
+                onUploadPhotos={() =>
+                  selectImagesFromLibrary(navigation.navigate, {
+                    append: true,
+                    stayOnCurrentScreen: true
+                  })
+                }
               />
             )}
           </Stack.Screen>
@@ -365,21 +438,23 @@ export default function App() {
           <Stack.Screen name="ImagePreview">
             {({ navigation }) => (
               <ImagePreviewScreen
-                image={pendingImage}
-                imageSource={pendingImageSource}
+                images={pendingImages}
                 onBack={() => {
+                  setPendingImages([]);
                   setMainTab("home");
                   navigation.navigate("Home");
                 }}
-                onChooseAgain={async () => {
-                  if (pendingImageSource === "library") {
-                    await selectImageFromLibrary(navigation.navigate);
-                    return;
+                onAddPage={() => {
+                  if (cameraGuideComplete) {
+                    navigation.replace("MenuCamera");
+                  } else {
+                    navigation.replace("CameraGuide", { continueSession: true });
                   }
-
-                  await selectImageFromCamera(navigation.navigate);
                 }}
-                onUsePhoto={() => navigation.replace("AnalysisLoading")}
+                onRemovePage={(index) => {
+                  setPendingImages((current) => current.filter((_, itemIndex) => itemIndex !== index));
+                }}
+                onUsePhotos={() => navigation.replace("AnalysisLoading")}
               />
             )}
           </Stack.Screen>
@@ -387,15 +462,25 @@ export default function App() {
           <Stack.Screen name="AnalysisLoading">
             {({ navigation }) => (
               <AnalysisLoadingScreen
-                imageUri={pendingImage?.uri}
+                imageUris={pendingImages.map((image) => image.uri)}
                 onAnalyze={async () => {
-                  const scanResult = await analyzePendingImage();
-                  if (!scanResult) {
-                    showScanLimitAlert(navigation.navigate);
-                    setMainTab("home");
-                    navigation.replace("Home");
-                    return;
+                  let scanResult: ScanResult;
+                  try {
+                    scanResult = await analyzePendingImages();
+                  } catch (error) {
+                    if (error instanceof ScanRateLimitExceededError) {
+                      showScanRateLimitAlert(error.retryAfterSeconds);
+                      navigation.replace("ImagePreview");
+                      return;
+                    } else if (error instanceof ScanQuotaExceededError) {
+                      showScanLimitAlert(navigation.navigate);
+                      setMainTab("home");
+                      navigation.replace("Home");
+                      return;
+                    }
+                    throw error;
                   }
+
                   const nextHistory = addScanToHistory(scanHistory, scanResult, subscriptionPlan.historyLimit);
                   await persistScanHistory(nextHistory);
                   navigation.replace("Results", { scanId: scanResult.id });
@@ -574,7 +659,7 @@ export default function App() {
     </SafeAreaProvider>
   );
 
-  async function selectImageFromCamera(
+  function openCameraFlow(
     navigate: <RouteName extends keyof RootStackParamList>(
       screen: RouteName,
       params?: RootStackParamList[RouteName]
@@ -585,24 +670,25 @@ export default function App() {
       return;
     }
 
-    try {
-      setScanError(null);
-      const image = await captureMenuImage();
-      if (image) {
-        setPendingImage(image);
-        setPendingImageSource("camera");
-        navigate("ImagePreview");
-      }
-    } catch (error) {
-      handleImageError(error);
+    setScanError(null);
+    setPendingImages([]);
+    if (cameraGuideComplete) {
+      navigate("MenuCamera");
+    } else {
+      navigate("CameraGuide");
     }
   }
 
-  async function selectImageFromLibrary(
+  async function selectImagesFromLibrary(
     navigate: <RouteName extends keyof RootStackParamList>(
       screen: RouteName,
       params?: RootStackParamList[RouteName]
-    ) => void
+    ) => void,
+    options: {
+      append?: boolean;
+      onSelected?: () => void;
+      stayOnCurrentScreen?: boolean;
+    } = {}
   ) {
     if (!canStartScan) {
       showScanLimitAlert(navigate);
@@ -611,10 +697,43 @@ export default function App() {
 
     try {
       setScanError(null);
-      const image = await pickMenuImage();
-      if (image) {
-        setPendingImage(image);
-        setPendingImageSource("library");
+      const existingImages = options.append ? pendingImages : [];
+      const remainingSlots = MAX_MENU_IMAGES_PER_SCAN - existingImages.length;
+      if (remainingSlots <= 0) {
+        Alert.alert(
+          "Four pages already added",
+          "Remove a page before adding another menu photo."
+        );
+        return;
+      }
+
+      const selectedImages = await pickMenuImages(remainingSlots);
+      if (selectedImages.length === 0) {
+        return;
+      }
+
+      const merged = mergeMenuImages(existingImages, selectedImages);
+      const addedCount = merged.images.length - existingImages.length;
+      if (addedCount === 0) {
+        Alert.alert(
+          "Photos are too large",
+          "Choose fewer menu pages or take new photos closer to the menu."
+        );
+        return;
+      }
+
+      setPendingImages(merged.images);
+
+      if (merged.rejectedCount > 0) {
+        Alert.alert(
+          "Some photos were not added",
+          "Sift kept the pages that fit this scan. Review them before analysis."
+        );
+      }
+
+      if (options.onSelected) {
+        options.onSelected();
+      } else if (!options.stayOnCurrentScreen) {
         navigate("ImagePreview");
       }
     } catch (error) {
@@ -651,28 +770,43 @@ export default function App() {
     ]);
   }
 
-  async function analyzePendingImage() {
-    if (!pendingImage) {
-      Alert.alert("No image selected", "Please choose a menu photo first.");
+  async function analyzePendingImages() {
+    if (pendingImages.length === 0) {
+      Alert.alert("No images selected", "Please add at least one menu photo first.");
       return createUnclearScanResult(profile);
     }
 
+    const selectedImages = [...pendingImages];
+    const selectedImageUris = selectedImages.map((image) => image.uri);
+
     try {
-      return await analyzeMenuImage({
+      const scanResult = await analyzeMenuImages({
         profile,
-        image: pendingImage,
-        restaurantLanguage: profile.restaurantLanguage,
-        subscriptionPlanId
+        images: selectedImages,
+        restaurantLanguage: profile.restaurantLanguage
       });
+      setPendingImages([]);
+      return scanResult;
     } catch (error) {
-      if (error instanceof ScanQuotaExceededError) {
-        return null;
+      if (error instanceof ScanRateLimitExceededError) {
+        throw error;
       }
 
-      return createUnclearScanResult(profile, pendingImage.uri);
-    } finally {
-      setPendingImage(null);
+      setPendingImages([]);
+      if (error instanceof ScanQuotaExceededError) {
+        throw error;
+      }
+
+      return createUnclearScanResult(profile, selectedImageUris);
     }
+  }
+
+  function showScanRateLimitAlert(retryAfterSeconds: number) {
+    const waitSeconds = Math.max(1, Math.ceil(retryAfterSeconds));
+    Alert.alert(
+      "Please wait before scanning again",
+      `Sift limits scans to protect reliability and prevent unexpected AI usage. Try again in about ${waitSeconds} seconds.`
+    );
   }
 
   function showScanLimitAlert(
@@ -690,6 +824,30 @@ export default function App() {
       ]
     );
   }
+}
+
+function getImagesBase64Length(images: PreparedMenuImage[]) {
+  return images.reduce((total, image) => total + image.base64.length, 0);
+}
+
+function mergeMenuImages(existing: PreparedMenuImage[], candidates: PreparedMenuImage[]) {
+  const images = [...existing];
+  let rejectedCount = 0;
+
+  for (const candidate of candidates) {
+    const nextImages = [...images, candidate];
+    if (
+      nextImages.length > MAX_MENU_IMAGES_PER_SCAN ||
+      getImagesBase64Length(nextImages) > MAX_MENU_SCAN_BASE64_CHARACTERS
+    ) {
+      rejectedCount += 1;
+      continue;
+    }
+
+    images.push(candidate);
+  }
+
+  return { images, rejectedCount };
 }
 
 const mainTabOrder: Record<MainTab, number> = {

@@ -1,0 +1,484 @@
+---
+import { Camera, ListChecks, MessageSquareText, UserRound } from "@lucide/astro";
+import PageHero from "../components/PageHero.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="How Sift works"
+  description="See how Sift turns a menu photo and allergy profile into possible concerns and practical questions to confirm with restaurant staff."
+  path="/how-it-works"
+>
+  <PageHero
+    eyebrow="From menu to questions"
+    title="A clearer way through an unfamiliar menu."
+    description="Sift starts with your allergy profile, reviews the menu in front of you, and organizes what deserves a closer look. It helps you prepare questions for restaurant staff; it does not replace them."
+    compact
+  />
+
+  <section class="process" aria-labelledby="process-title">
+    <div class="shell">
+      <div class="process__opening">
+        <h2 id="process-title">Three steps, with the evidence kept close.</h2>
+        <p>
+          The order matters: your profile sets the context, the photo supplies the visible menu information,
+          and the result turns uncertainty into a practical conversation.
+        </p>
+      </div>
+
+      <ol class="steps" aria-label="How Sift works in three steps">
+        <li class="step">
+          <div class="step__copy">
+            <div class="step__marker" aria-hidden="true">
+              <span>1</span>
+              <UserRound size={21} stroke-width={1.8} />
+            </div>
+            <h3>Start with the person, not the plate.</h3>
+            <p>
+              Add the foods you need Sift to watch for and the level of caution that fits your situation. The
+              profile travels with each scan, so the same menu can be reviewed through your needs rather than a
+              generic allergen list.
+            </p>
+            <p class="step__note">Profiles provide context; they are not medical records or emergency plans.</p>
+          </div>
+
+          <figure class="capture capture--single">
+            <img
+              src="/app/profile.png"
+              alt="Sift profile screen showing Peanut, Sesame, and Mango as active allergy filters"
+              width="390"
+              height="844"
+              loading="eager"
+              decoding="async"
+            />
+            <figcaption>Your selected allergies remain visible and editable.</figcaption>
+          </figure>
+        </li>
+
+        <li class="step step--reverse">
+          <div class="step__copy">
+            <div class="step__marker" aria-hidden="true">
+              <span>2</span>
+              <Camera size={21} stroke-width={1.8} />
+            </div>
+            <h3>Give Sift the menu that is actually in front of you.</h3>
+            <p>
+              Photograph or upload a menu page. Before analysis, you can inspect the image and retake it if the
+              text is cropped, blurred, or too small. A clearer source gives Sift more useful information to work
+              with.
+            </p>
+            <p class="step__note">
+              A menu image cannot reveal every recipe, substitution, preparation surface, or cross-contact
+              practice.
+            </p>
+          </div>
+
+          <figure class="capture capture--pair">
+            <img
+              class="capture__back"
+              src="/app/home.png"
+              alt="Sift home screen with active allergy filters and the Scan Menu action"
+              width="390"
+              height="844"
+              loading="eager"
+              decoding="async"
+            />
+            <img
+              class="capture__front"
+              src="/app/image-preview.png"
+              alt="Sift image preview screen used to check a menu photo before analysis"
+              width="390"
+              height="844"
+              loading="eager"
+              decoding="async"
+            />
+            <figcaption>Review the photo before asking Sift to analyze it.</figcaption>
+          </figure>
+        </li>
+
+        <li class="step">
+          <div class="step__copy">
+            <div class="step__marker" aria-hidden="true">
+              <span>3</span>
+              <ListChecks size={21} stroke-width={1.8} />
+            </div>
+            <h3>Follow the reasoning, then ask.</h3>
+            <p>
+              Sift groups possible concerns by dish, shows why each item was flagged, and suggests specific
+              questions for restaurant staff. When the image or returned information is insufficient, Sift uses
+              an explicit <strong>Unclear</strong> result instead of forcing a confident answer.
+            </p>
+            <p class="step__note">Every result is guidance for a conversation, never a guarantee that a dish is safe.</p>
+          </div>
+
+          <figure class="capture capture--results">
+            <img
+              class="capture__result"
+              src="/app/results-top.png"
+              alt="Sift scan results showing a risk summary, image readability, and what the app checked"
+              width="390"
+              height="844"
+              loading="eager"
+              decoding="async"
+            />
+            <img
+              class="capture__detail"
+              src="/app/dish-detail-reasoning.png"
+              alt="Sift dish detail showing the reasoning behind a flag and questions to ask staff"
+              width="390"
+              height="844"
+              loading="eager"
+              decoding="async"
+            />
+            <figcaption>The summary stays connected to the detail behind it.</figcaption>
+          </figure>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="handoff" aria-labelledby="handoff-title">
+    <div class="shell handoff__inner">
+      <MessageSquareText class="handoff__icon" size={34} stroke-width={1.6} aria-hidden="true" />
+      <div>
+        <h2 id="handoff-title">The result is a better handoff to restaurant staff.</h2>
+        <p>
+          Recipes change, ingredients can be omitted from menus, and cross-contact happens outside the frame.
+          Sift helps you arrive at the conversation with more focused questions—not with a software verdict.
+        </p>
+      </div>
+      <nav class="handoff__links" aria-label="Learn more about Sift guidance">
+        <a href="/reliability">How reliability works <span aria-hidden="true">→</span></a>
+        <a href="/safety">Read the safety boundary <span aria-hidden="true">→</span></a>
+      </nav>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .process {
+    padding-block: clamp(76px, 10vw, 136px);
+  }
+
+  .process__opening {
+    align-items: end;
+    display: grid;
+    gap: 30px clamp(40px, 8vw, 120px);
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.72fr);
+    margin-bottom: clamp(54px, 8vw, 96px);
+  }
+
+  .process__opening h2,
+  .process__opening p {
+    margin-bottom: 0;
+  }
+
+  .process__opening p {
+    color: var(--ink-muted);
+    max-width: 58ch;
+    text-wrap: pretty;
+  }
+
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .step {
+    align-items: center;
+    border-top: 1px solid var(--border);
+    display: grid;
+    gap: clamp(44px, 9vw, 128px);
+    grid-template-columns: minmax(0, 0.88fr) minmax(360px, 1.12fr);
+    min-height: 680px;
+    padding-block: clamp(64px, 9vw, 120px);
+  }
+
+  .step:last-child {
+    padding-bottom: 24px;
+  }
+
+  .step--reverse .step__copy {
+    grid-column: 2;
+  }
+
+  .step--reverse .capture {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .step__copy {
+    max-width: 540px;
+  }
+
+  .step__marker {
+    align-items: center;
+    color: var(--teal-700);
+    display: flex;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .step__marker span {
+    align-items: center;
+    border: 1px solid var(--teal-500);
+    border-radius: 50%;
+    display: inline-flex;
+    height: 38px;
+    justify-content: center;
+    width: 38px;
+  }
+
+  .step h3 {
+    font-size: clamp(2rem, 4vw, 3.6rem);
+    margin-bottom: 24px;
+  }
+
+  .step__copy > p:not(.step__note) {
+    color: #34433f;
+    font-size: clamp(1.03rem, 1.6vw, 1.18rem);
+    max-width: 58ch;
+    text-wrap: pretty;
+  }
+
+  .step__note {
+    border-top: 1px solid var(--border);
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-size: 0.79rem;
+    line-height: 1.55;
+    margin: 28px 0 0;
+    max-width: 58ch;
+    padding-top: 18px;
+  }
+
+  .capture {
+    margin: 0;
+    min-height: 560px;
+    position: relative;
+  }
+
+  .capture img {
+    background: var(--cream);
+    border-radius: 24px;
+    box-shadow: var(--shadow-phone);
+    width: min(100%, 292px);
+  }
+
+  .capture figcaption {
+    bottom: 0;
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    left: 50%;
+    line-height: 1.45;
+    margin: 0;
+    max-width: 260px;
+    position: absolute;
+    text-align: center;
+    transform: translateX(-50%);
+  }
+
+  .capture--single img {
+    margin-inline: auto;
+  }
+
+  .capture--pair .capture__back {
+    left: 4%;
+    position: absolute;
+    top: 52px;
+    transform: rotate(-4deg);
+    width: 246px;
+  }
+
+  .capture--pair .capture__front {
+    position: absolute;
+    right: 2%;
+    top: 0;
+    transform: rotate(2.5deg);
+    width: 268px;
+  }
+
+  .capture--results .capture__result {
+    left: 2%;
+    position: absolute;
+    top: 0;
+    width: 272px;
+  }
+
+  .capture--results .capture__detail {
+    position: absolute;
+    right: 0;
+    top: 86px;
+    width: 250px;
+  }
+
+  .handoff {
+    background: var(--teal-800);
+    color: var(--white);
+    padding-block: clamp(62px, 8vw, 96px);
+  }
+
+  .handoff__inner {
+    align-items: start;
+    display: grid;
+    gap: 24px clamp(28px, 5vw, 72px);
+    grid-template-columns: auto minmax(0, 1fr) minmax(230px, 0.46fr);
+  }
+
+  .handoff__icon {
+    color: var(--tangerine);
+    margin-top: 8px;
+  }
+
+  .handoff h2 {
+    color: var(--white);
+    font-size: clamp(2rem, 3.7vw, 3.4rem);
+    margin-bottom: 18px;
+    max-width: 700px;
+  }
+
+  .handoff p {
+    color: rgba(255, 255, 255, 0.84);
+    margin-bottom: 0;
+    max-width: 64ch;
+  }
+
+  .handoff__links {
+    border-top: 1px solid rgba(255, 255, 255, 0.26);
+    display: grid;
+  }
+
+  .handoff__links a {
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.26);
+    color: var(--white);
+    display: flex;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    justify-content: space-between;
+    min-height: 54px;
+    text-decoration: none;
+  }
+
+  .handoff__links a:hover {
+    color: var(--teal-100);
+  }
+
+  @media (max-width: 900px) {
+    .process__opening {
+      align-items: start;
+      grid-template-columns: 1fr;
+    }
+
+    .step,
+    .step--reverse {
+      gap: 52px;
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+
+    .step--reverse .step__copy,
+    .step--reverse .capture {
+      grid-column: 1;
+      grid-row: auto;
+    }
+
+    .step__copy {
+      max-width: 680px;
+    }
+
+    .capture {
+      margin-inline: auto;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    .handoff__inner {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .handoff__links {
+      grid-column: 2;
+      max-width: 420px;
+    }
+  }
+
+  @media (max-width: 620px) {
+    .step {
+      padding-block: 56px;
+    }
+
+    .capture {
+      min-height: 490px;
+    }
+
+    .capture img {
+      border-radius: 18px;
+    }
+
+    .capture--single img {
+      width: 248px;
+    }
+
+    .capture--pair .capture__back {
+      left: 0;
+      width: 205px;
+    }
+
+    .capture--pair .capture__front {
+      right: 0;
+      width: 220px;
+    }
+
+    .capture--results .capture__result {
+      left: 0;
+      width: 218px;
+    }
+
+    .capture--results .capture__detail {
+      right: 0;
+      top: 74px;
+      width: 205px;
+    }
+
+    .capture figcaption {
+      max-width: 230px;
+    }
+
+    .handoff__inner {
+      grid-template-columns: 1fr;
+    }
+
+    .handoff__icon,
+    .handoff__links {
+      grid-column: 1;
+    }
+
+    .handoff__links {
+      margin-top: 16px;
+      max-width: none;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .capture {
+      min-height: 450px;
+    }
+
+    .capture--pair .capture__back,
+    .capture--results .capture__result {
+      width: 190px;
+    }
+
+    .capture--pair .capture__front,
+    .capture--results .capture__detail {
+      width: 190px;
+    }
+  }
+</style>
