@@ -1,10 +1,17 @@
 {
-  "id": "sample-low-risk",
+  "id": "sample-ask-staff",
   "createdAt": "2026-07-09T12:00:00.000Z",
   "profileId": "profile-sample",
+  "pageAssessments": [
+    {
+      "pageNumber": 1,
+      "readability": "clear",
+      "issues": []
+    }
+  ],
   "scanSummary": {
-    "overallRisk": "low_risk",
-    "summary": "Plain rice has no obvious listed peanut ingredient in the visible menu text.",
+    "overallRisk": "ask_staff",
+    "summary": "Plain rice has no obvious listed peanut ingredient, but shared serving utensils need staff confirmation.",
     "limitations": "Visible menu text only; Sift cannot verify kitchen preparation, hidden ingredients, or cross-contact."
   },
   "dishes": [
@@ -12,16 +19,17 @@
       "id": "plain-rice",
       "dishName": "Plain Rice",
       "menuDescription": "Steamed white rice",
-      "riskLevel": "low_risk",
+      "sourcePageNumbers": [1],
+      "riskLevel": "ask_staff",
       "possibleAllergens": [],
       "hiddenRiskIngredients": [],
       "crossContactConcerns": ["shared serving utensils"],
       "evidenceConfidence": "medium",
       "riskBasis": ["visible_text", "cross_contact"],
-      "reason": "No obvious peanut ingredient is listed in the visible menu text.",
+      "reason": "No obvious peanut ingredient is listed, but shared serving utensils create a cross-contact question.",
       "questionsToAsk": ["Can you confirm the rice is not cooked with broth, oil, or shared utensils that touch peanuts?"],
       "questionsToAskUserLanguage": ["Can you confirm the rice is not cooked with broth, oil, or shared utensils that touch peanuts?"],
-      "conservativeLanguage": "Low risk based on visible menu text, but confirm ingredients and cross-contact with staff.",
+      "conservativeLanguage": "Possible cross-contact risk. Confirm ingredients and shared utensils with staff.",
       "transparency": {
         "visibleMenuText": ["Steamed white rice"],
         "profileFactors": ["Peanut allergy"],

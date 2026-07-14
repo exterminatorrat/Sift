@@ -17,6 +17,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   ChevronLeft,
+  ChevronRight,
   Image as ImageIcon,
   Languages,
   ListChecks,
@@ -59,10 +60,17 @@ export function ResultsScreen({
   const summaryMeta = getRiskMeta(scanResult.scanSummary.overallRisk, t);
   const scanTitle = scanResult.restaurantName ?? t("home.menuScan");
   const [photoOpen, setPhotoOpen] = useState(false);
+  const [photoIndex, setPhotoIndex] = useState(0);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const hasMenuPhoto = Boolean(scanResult.imageUri);
+  const menuPhotoUris =
+    scanResult.imageUris && scanResult.imageUris.length > 0
+      ? scanResult.imageUris
+      : scanResult.imageUri
+        ? [scanResult.imageUri]
+        : [];
+  const hasMenuPhoto = menuPhotoUris.length > 0;
   const lowerConcernDishes = scanResult.dishes.filter((dish) => dish.riskLevel === "low_risk");
   const attentionDishes = scanResult.dishes.filter((dish) => dish.riskLevel !== "low_risk");
   const scanTransparency = scanResult.transparency ?? {
@@ -163,13 +171,20 @@ export function ResultsScreen({
           </Text>
           {hasMenuPhoto && (
             <AnimatedPressable
-              accessibilityLabel={t("results.viewPhoto")}
+              accessibilityLabel={
+                menuPhotoUris.length > 1 ? t("results.viewPhotos") : t("results.viewPhoto")
+              }
               accessibilityRole="button"
-              onPress={() => setPhotoOpen(true)}
+              onPress={() => {
+                setPhotoIndex(0);
+                setPhotoOpen(true);
+              }}
               scaleTo={0.94}
               style={styles.photoButton}
             >
-              <Text style={styles.photoButtonText}>{t("results.viewPhoto")}</Text>
+              <Text style={styles.photoButtonText}>
+                {menuPhotoUris.length > 1 ? t("results.viewPhotos") : t("results.viewPhoto")}
+              </Text>
             </AnimatedPressable>
           )}
         </View>
@@ -308,7 +323,7 @@ export function ResultsScreen({
         )}
       </ScrollView>
 
-      {scanResult.imageUri && (
+      {menuPhotoUris.length > 0 && (
         <Modal
           animationType="fade"
           onRequestClose={() => setPhotoOpen(false)}
@@ -318,7 +333,9 @@ export function ResultsScreen({
           <View style={styles.photoOverlay}>
             <View style={styles.photoViewer}>
               <View style={styles.photoHeader}>
-                <Text style={styles.photoTitle}>{t("results.menuPhoto")}</Text>
+                <Text style={styles.photoTitle}>
+                  {menuPhotoUris.length > 1 ? t("results.menuPhotos") : t("results.menuPhoto")}
+                </Text>
                 <AnimatedPressable
                   accessibilityLabel={t("common.close")}
                   accessibilityRole="button"
@@ -331,9 +348,44 @@ export function ResultsScreen({
               </View>
               <Image
                 resizeMode="contain"
-                source={{ uri: scanResult.imageUri }}
+                source={{ uri: menuPhotoUris[photoIndex] ?? menuPhotoUris[0] }}
                 style={styles.menuPhoto}
               />
+              {menuPhotoUris.length > 1 && (
+                <View style={styles.photoPagination}>
+                  <AnimatedPressable
+                    accessibilityLabel={t("results.previousPhoto")}
+                    accessibilityRole="button"
+                    disabled={photoIndex === 0}
+                    onPress={() => setPhotoIndex((current) => Math.max(0, current - 1))}
+                    scaleTo={0.9}
+                    style={[styles.photoPageButton, photoIndex === 0 && styles.photoPageButtonDisabled]}
+                  >
+                    <ChevronLeft color={colors.ink} size={21} strokeWidth={2.1} />
+                  </AnimatedPressable>
+                  <Text style={styles.photoPageText}>
+                    {t("results.photoCount", {
+                      current: photoIndex + 1,
+                      count: menuPhotoUris.length
+                    })}
+                  </Text>
+                  <AnimatedPressable
+                    accessibilityLabel={t("results.nextPhoto")}
+                    accessibilityRole="button"
+                    disabled={photoIndex === menuPhotoUris.length - 1}
+                    onPress={() =>
+                      setPhotoIndex((current) => Math.min(menuPhotoUris.length - 1, current + 1))
+                    }
+                    scaleTo={0.9}
+                    style={[
+                      styles.photoPageButton,
+                      photoIndex === menuPhotoUris.length - 1 && styles.photoPageButtonDisabled
+                    ]}
+                  >
+                    <ChevronRight color={colors.ink} size={21} strokeWidth={2.1} />
+                  </AnimatedPressable>
+                </View>
+              )}
             </View>
           </View>
         </Modal>
@@ -1016,6 +1068,30 @@ const styles = StyleSheet.create({
   photoCloseText: {
     color: colors.ink,
     ...typography.badge
+  },
+  photoPagination: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    minHeight: 54,
+    paddingTop: 10
+  },
+  photoPageButton: {
+    alignItems: "center",
+    backgroundColor: colors.surfaceMuted,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    height: 44,
+    justifyContent: "center",
+    width: 44
+  },
+  photoPageButtonDisabled: {
+    opacity: 0.36
+  },
+  photoPageText: {
+    color: colors.inkMuted,
+    ...typography.label
   },
   actionOverlay: {
     alignItems: "flex-end",

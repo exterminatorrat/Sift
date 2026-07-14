@@ -1,0 +1,404 @@
+---
+import { ShieldCheck } from "@lucide/astro";
+import PageHero from "../../components/PageHero.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Sift benchmark methodology"
+  description="Read how Sift separates development data, blinded holdout evaluation, human review, deployed-path checks, and public reliability claims."
+  path="/reliability/methodology"
+>
+  <PageHero
+    eyebrow="Benchmark method"
+    title="Measure each failure mode without turning it into a safety promise."
+    description="Sift's benchmark is designed to test menu reading, evidence handling, conservative risk labels, uncertainty, staff questions, translation, stability, and deployed behavior as separate responsibilities."
+    compact
+  />
+
+  <section class="status" aria-labelledby="status-title">
+    <div class="shell status__inner">
+      <ShieldCheck size={34} stroke-width={1.6} aria-hidden="true" />
+      <div>
+        <h2 id="status-title">Current status: methodology ready, performance gate open.</h2>
+        <p>
+          The repository has a 60-case development set and a separate 48-case / 24-group synthetic candidate. Twelve
+          cases test a menu language that differs from the user's language. The candidate cannot freeze until exactly
+          12 cases across six groups are replaced with reviewed real-world menus and an external perceptual plus visual
+          duplicate audit is approved. Six possible source pages have been researched, visually screened as menu
+          candidates, and bound to stricter source-intake rules. A completed current-version download receipt,
+          independent rights, suitability, transformation, labels, and duplicate audit remain pending, so they are not
+          yet holdout evidence. Model
+          experiments have not run, and the candidate has zero model-produced benchmark results. No reliability
+          percentage or launch-readiness claim is available.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="methodology">
+    <section class="shell section" aria-labelledby="roles-title">
+      <div class="section__heading">
+        <p>01 / Data roles</p>
+        <h2 id="roles-title">Development work and final evidence stay separate.</h2>
+      </div>
+      <div class="section__body">
+        <dl class="data-roles">
+          <div>
+            <dt>Development</dt>
+            <dd>60 cases in 23 menu groups for prompt, policy, ontology, validator, scorer, and regression work.</dd>
+          </div>
+          <div>
+            <dt>Candidate holdout</dt>
+            <dd>48 synthetic cases in 24 non-overlapping groups. Promotion requires exactly 12 reviewed real-world cases with source and review lineage across six groups.</dd>
+          </div>
+          <div>
+            <dt>Deployed canaries</dt>
+            <dd>A fixed 12-case multilingual clear/poor set for authentication, fallback, telemetry, validation, and latency.</dd>
+          </div>
+        </dl>
+        <p>
+          Development results can reveal failures, but they cannot estimate unseen performance. Holdout results become
+          reportable only after label approval, lineage-verified freezing, and one locked run. Canaries verify the
+          deployed path; they do not replace the model-quality holdout.
+        </p>
+      </div>
+    </section>
+
+    <section class="protocol" aria-labelledby="protocol-title">
+      <div class="shell section">
+        <div class="section__heading">
+          <p>02 / Protocol</p>
+          <h2 id="protocol-title">Configuration drift starts a new run.</h2>
+        </div>
+        <div class="section__body">
+          <ol>
+            <li>Freeze model, thinking level, image preparation, prompt order, prompt, schemas, ontology, policy, validators, and scorer.</li>
+            <li>Hash the exact configuration, benchmark manifest, prepared image bytes, and a separate scoring manifest bound to labels and grouping.</li>
+            <li>Use a fresh model session for every case and repeat without exposing expected labels.</li>
+            <li>Make one provider call, validate raw structured output, preserve observed evidence, then apply server normalization and deterministic risk policy.</li>
+            <li>Run the actual client validator before scoring any user-visible result.</li>
+            <li>Preserve every fallback, timeout, malformed output, exclusion, and missing metric in its denominator.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell section" aria-labelledby="review-title">
+      <div class="section__heading">
+        <p>03 / Human review</p>
+        <h2 id="review-title">Structured output still needs human judgment.</h2>
+      </div>
+      <div class="section__body">
+        <p>
+          Reviewers inspect the exact image bytes and label visible evidence, plausible patterns, unknown information,
+          accepted risk ranges, benign controls, and required question intent. Critical holdout cases require an
+          independent second reviewer.
+        </p>
+        <p>
+          A separate blinded review checks whether visible-text claims are supported by the image and whether
+          restaurant-language messages and questions remain faithful to the user's language. Automated lexical checks
+          cannot establish translation quality. Any unsupported visible claim, material translation error, missed
+          question intent, unreviewable required item, or missing expected item blocks release. The combined report
+          re-scores the filled template against its sealed key and verifies its run, configuration, requirements,
+          manifest, and frozen lineage rather than trusting a stored pass flag.
+        </p>
+      </div>
+    </section>
+
+    <section class="metrics" aria-labelledby="metrics-title">
+      <div class="shell">
+        <div class="metrics__heading">
+          <p>04 / Release gates</p>
+          <h2 id="metrics-title">Report safety-critical failures before averages.</h2>
+        </div>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Sift private beta reliability gates">
+          <table>
+            <thead>
+              <tr><th scope="col">Measure</th><th scope="col">Private-beta gate</th></tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">Direct severe-allergen misses</th><td>0</td></tr>
+              <tr><th scope="row">Deterministic under-escalations</th><td>0</td></tr>
+              <tr><th scope="row">Unsupported assurance claims</th><td>0</td></tr>
+              <tr><th scope="row">Invalid client-visible results</th><td>0</td></tr>
+              <tr><th scope="row">Poor-image retake behavior</th><td>100%</td></tr>
+              <tr><th scope="row">Unsupported visible-text claims</th><td>0 after human review</td></tr>
+              <tr><th scope="row">Material translation errors</th><td>0, with no required item unreviewable</td></tr>
+              <tr><th scope="row">Required staff-question coverage</th><td>100% after human review</td></tr>
+              <tr><th scope="row">Clear or partial successful-result rate</th><td>At least 95%</td></tr>
+              <tr><th scope="row">Benign high or avoid rate</th><td>At most 10%</td></tr>
+              <tr><th scope="row">Critical repeat drift</th><td>0 label flips or non-ordinal comparisons; exact dish/readability agreement</td></tr>
+              <tr><th scope="row">Required language slices</th><td>Every slice passes its safety gates</td></tr>
+              <tr><th scope="row">Deployed canary</th><td>Fixed 12-case set passes with telemetry verified</td></tr>
+              <tr><th scope="row">Deployed latency</th><td>p95 at most 15s; p99 at most 25s</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="metrics__note">
+          These are acceptance thresholds, not measured results. Every rate must publish its numerator, denominator,
+          confidence interval where applicable, case scope, exclusions, configuration identity, and known failures.
+          The failure-registry snapshot for this documentation pass has 46 entries, with 43 resolved and three open:
+          provider access, the missing real-world holdout subset plus human and duplicate review, and unmeasured live multi-page
+          completeness. That status is not a model
+          reliability percentage. Combined reporting recomputes raw phase evidence, canary telemetry, and human review;
+          every live release phase remains pending.
+        </p>
+      </div>
+    </section>
+
+    <section class="shell section" aria-labelledby="limits-title">
+      <div class="section__heading">
+        <p>05 / Limits</p>
+        <h2 id="limits-title">A menu benchmark cannot observe a kitchen.</h2>
+      </div>
+      <div class="section__body">
+        <ul>
+          <li>Menu images cannot verify complete recipes, substitutions, suppliers, or cross-contact controls.</li>
+          <li>The candidate is synthetic-only and cannot freeze until its 12-case real-world subset and duplicate audit exist.</li>
+          <li>Small language, cuisine, allergen, severity, and image-quality slices require exact denominators.</li>
+          <li>Runtime and evaluation tooling accept up to four ordered pages; the 8-case diagnostic still has no model responses.</li>
+          <li>Model and provider behavior can change, so the same tests must be repeated after material changes.</li>
+          <li>No benchmark result makes a dish safe or replaces confirmation with restaurant staff.</li>
+        </ul>
+        <nav aria-label="Related information">
+          <a href="/reliability">Reliability overview <span aria-hidden="true">&rarr;</span></a>
+          <a href="/safety">Safety boundary <span aria-hidden="true">&rarr;</span></a>
+        </nav>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .status {
+    background: var(--teal-100);
+    padding-block: clamp(48px, 7vw, 72px);
+  }
+
+  .status__inner {
+    align-items: start;
+    display: grid;
+    gap: 22px;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .status svg {
+    color: var(--teal-700);
+    margin-top: 5px;
+  }
+
+  .status h2 {
+    font-size: clamp(1.75rem, 3vw, 2.55rem);
+    margin-bottom: 12px;
+  }
+
+  .status p {
+    color: #29433f;
+    margin: 0;
+    max-width: 78ch;
+  }
+
+  .methodology {
+    background: var(--cream);
+  }
+
+  .section {
+    display: grid;
+    gap: 38px clamp(56px, 10vw, 150px);
+    grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1.3fr);
+    padding-block: clamp(72px, 10vw, 122px);
+  }
+
+  .section__heading > p,
+  .metrics__heading > p {
+    color: var(--teal-700);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+
+  .section__heading h2 {
+    margin: 0;
+  }
+
+  .section__body {
+    color: #34433f;
+    max-width: 74ch;
+  }
+
+  .section__body p:last-child,
+  .section__body ul:last-child {
+    margin-bottom: 0;
+  }
+
+  .data-roles {
+    margin: 0 0 36px;
+  }
+
+  .data-roles div {
+    border-top: 1px solid var(--border);
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(150px, 0.45fr) minmax(0, 1.55fr);
+    padding-block: 18px;
+  }
+
+  .data-roles div:last-child {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-roles dt {
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .data-roles dd {
+    margin: 0;
+  }
+
+  .protocol {
+    background: var(--teal-900);
+    color: var(--white);
+  }
+
+  .protocol h2 {
+    color: var(--white);
+  }
+
+  .protocol .section__heading > p {
+    color: var(--tangerine);
+  }
+
+  .protocol .section__body {
+    color: rgba(255, 255, 255, 0.84);
+  }
+
+  .protocol ol {
+    counter-reset: protocol;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .protocol li {
+    border-top: 1px solid rgba(255, 255, 255, 0.22);
+    counter-increment: protocol;
+    display: grid;
+    gap: 20px;
+    grid-template-columns: 32px minmax(0, 1fr);
+    padding-block: 18px;
+  }
+
+  .protocol li::before {
+    color: var(--tangerine);
+    content: counter(protocol, decimal-leading-zero);
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    padding-top: 3px;
+  }
+
+  .protocol li:last-child {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+  }
+
+  .metrics {
+    background: var(--warm);
+    padding-block: clamp(72px, 10vw, 122px);
+  }
+
+  .metrics__heading {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 44px;
+  }
+
+  .metrics__heading h2 {
+    margin: 0;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  .table-wrap:focus-visible {
+    outline: 3px solid var(--teal-600);
+    outline-offset: 6px;
+  }
+
+  table {
+    border-collapse: collapse;
+    min-width: 680px;
+    width: 100%;
+  }
+
+  th,
+  td {
+    border-bottom: 1px solid var(--border);
+    padding: 17px 24px 18px 0;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  thead th {
+    border-top: 1px solid var(--ink);
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  tbody th {
+    color: var(--ink);
+    font-weight: 600;
+    width: 62%;
+  }
+
+  .metrics__note {
+    color: var(--ink-muted);
+    margin: 28px 0 0;
+    max-width: 82ch;
+  }
+
+  .section__body li {
+    margin-bottom: 12px;
+  }
+
+  .section__body nav {
+    border-top: 1px solid var(--border);
+    display: grid;
+    margin-top: 36px;
+  }
+
+  .section__body a {
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    color: var(--teal-700);
+    display: flex;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    justify-content: space-between;
+    min-height: 52px;
+    text-decoration: none;
+  }
+
+  @media (max-width: 820px) {
+    .section {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 540px) {
+    .status__inner {
+      grid-template-columns: 1fr;
+    }
+
+    .data-roles div {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

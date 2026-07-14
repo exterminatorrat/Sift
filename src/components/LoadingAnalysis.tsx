@@ -9,6 +9,7 @@ import { useI18n } from "../i18n/I18nProvider";
 import { AppLanguageCode } from "../i18n/translations";
 
 type LoadingAnalysisProps = {
+  imageCount?: number;
   imageUri?: string | null;
   showTopBar?: boolean;
   showBack?: boolean;
@@ -95,8 +96,15 @@ function stripOpacity(progress: Animated.Value, index: number) {
   });
 }
 
-export function LoadingAnalysis({ imageUri, showTopBar = false, showBack = false, onBack }: LoadingAnalysisProps) {
-  const { languageCode } = useI18n();
+export function LoadingAnalysis({
+  imageCount,
+  imageUri,
+  showTopBar = false,
+  showBack = false,
+  onBack
+}: LoadingAnalysisProps) {
+  const { languageCode, t } = useI18n();
+  const resolvedImageCount = imageCount ?? (imageUri ? 1 : 0);
   const phrases = loadingPhrases[languageCode] ?? englishPhrases;
   const chips = processChipLabels[languageCode] ?? processChipLabels.en!;
   const [phraseIndex, setPhraseIndex] = useState(0);
@@ -235,6 +243,14 @@ export function LoadingAnalysis({ imageUri, showTopBar = false, showBack = false
               </View>
             )}
             <View style={styles.photoDim} />
+
+            {resolvedImageCount > 1 && (
+              <View style={styles.pageCountBadge}>
+                <Text style={styles.pageCountBadgeText}>
+                  {t("analysis.pageCount", { count: resolvedImageCount })}
+                </Text>
+              </View>
+            )}
 
             <Animated.View
               style={[
@@ -399,6 +415,19 @@ const styles = StyleSheet.create({
   photoDim: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(24, 35, 33, 0.2)"
+  },
+  pageCountBadge: {
+    backgroundColor: "rgba(24, 35, 33, 0.76)",
+    borderRadius: 999,
+    left: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    position: "absolute",
+    top: 12
+  },
+  pageCountBadgeText: {
+    color: colors.textInverse,
+    ...typography.caption
   },
   scanWindow: {
     height: 76,

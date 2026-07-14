@@ -12,7 +12,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <PageHero
     eyebrow="Reliability"
     title="Confidence should come from the method, not a magic number."
-    description="Sift uses AI to review imperfect menu information, then surrounds that output with structure, validation, conservative rules, and an explicit way to say ‘not enough information.’"
+    description="Sift uses AI to review imperfect menu information, then surrounds that output with structure, validation, conservative rules, and an explicit way to say 'not enough information.'"
     compact
   />
 
@@ -51,9 +51,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <div>
             <h3>The model must return a defined structure.</h3>
             <p>
-              The response is expected to separate an overall status from per-dish reasoning, possible allergens,
-              hidden-risk patterns, cross-contact concerns, staff questions, readability, and source references.
-              That makes the output checkable instead of leaving it as free-form prose.
+              The response must separate observed menu text, direct allergen terms, derivatives, recipe patterns,
+              unknown preparation components, cross-contact signals, uncertainty, and staff questions. That makes the
+              evidence checkable instead of leaving it as free-form prose.
             </p>
           </div>
         </li>
@@ -61,10 +61,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <span class="method__number">03</span>
           <ShieldCheck size={23} stroke-width={1.7} aria-hidden="true" />
           <div>
-            <h3>The server validates before the app accepts it.</h3>
+            <h3>The server applies the non-negotiable risk policy.</h3>
             <p>
-              Server-side checks verify required fields, allowed status values, and basic consistency. Malformed,
-              missing, or contradictory data is not treated as a complete analysis.
+              Each accepted scan makes one model call. Server-side checks validate the evidence contract, preserve
+              observed evidence through normalization, and apply deterministic minimum risks for direct evidence,
+              severe-allergy uncertainty, unreadable images, and preparation concerns. A shared public-result
+              validator checks the final shape. Malformed, missing, contradictory, or failed output becomes Unclear;
+              the provider is not retried behind the user's back.
             </p>
           </div>
         </li>
@@ -72,11 +75,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <span class="method__number">04</span>
           <SlidersHorizontal size={23} stroke-width={1.7} aria-hidden="true" />
           <div>
-            <h3>The client validates again and applies deterministic floors.</h3>
+            <h3>The app validates again before rendering.</h3>
             <p>
-              The app checks the result before rendering it. Conditions such as insufficient image detail, missing
-              required evidence, contradictory fields, or a validation failure can only move the experience toward
-              more caution; they cannot be promoted into a reassuring status.
+              The app accepts only the public result shape and conservative language it knows how to display. Invalid
+              timestamps, unsafe reference links, malformed evidence, or prohibited assurance language cannot pass
+              through as a normal result.
             </p>
           </div>
         </li>
@@ -203,7 +206,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   <section class="metric" aria-labelledby="metric-title">
     <div class="shell metric__layout">
-      <h2 id="metric-title">Why there is no single “accuracy” percentage</h2>
+      <h2 id="metric-title">Why there is no single "accuracy" percentage</h2>
       <div>
         <p>
           One number can collapse very different tasks: reading a menu, matching an allergy term, reasoning about a
@@ -225,12 +228,20 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <div>
         <h2 id="status-title">Current validation status</h2>
         <p>
-          Sift's full live validation gate is not yet complete. The structured checks and failure-mode evaluation plan
-          described here are safeguards and methodology—not proof of end-to-end production performance. Until that
-          gate is complete, Sift does not publish an accuracy percentage or describe the system as production-validated.
+          Sift has a versioned 60-case development set and a separate 48-case candidate across 24 menu groups. The
+          candidate is synthetic-only, label-pending, unfrozen, and has zero model-produced benchmark results. Before
+          it can freeze, exactly 12 cases across six groups must be replaced with rights-reviewed real-world menus and
+          include a byte-bound computed perceptual report and pass independent visual duplicate review. Final evidence must then pass every language slice,
+          exact-label critical repeats, blinded review of visible claims, translations, and staff-question intent, and
+          a fixed 12-case multilingual deployed canary with verified telemetry under the same configuration and
+          lineage. Combined reporting recomputes raw evidence rather than trusting saved pass flags. Every live gate is
+          still pending, so Sift publishes neither a reliability percentage nor a launch-readiness claim.
         </p>
       </div>
-      <a href="/safety">Read the safety boundary <span aria-hidden="true">→</span></a>
+      <nav aria-label="Reliability details">
+        <a href="/reliability/methodology">Read the benchmark method <span aria-hidden="true">&rarr;</span></a>
+        <a href="/safety">Read the safety boundary <span aria-hidden="true">&rarr;</span></a>
+      </nav>
     </div>
   </section>
 </BaseLayout>
@@ -551,6 +562,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     max-width: 70ch;
   }
 
+  .status-note nav {
+    border-top: 1px solid rgba(31, 138, 131, 0.28);
+    display: grid;
+  }
+
   .status-note a {
     border-bottom: 1px solid var(--teal-600);
     color: var(--teal-800);
@@ -558,7 +574,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     font-size: 0.8rem;
     font-weight: 600;
     justify-self: end;
-    padding-bottom: 7px;
+    align-items: center;
+    display: flex;
+    gap: 18px;
+    justify-content: space-between;
+    min-height: 48px;
     text-decoration: none;
   }
 
@@ -590,9 +610,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       grid-template-columns: auto minmax(0, 1fr);
     }
 
-    .status-note a {
+    .status-note nav {
       grid-column: 2;
       justify-self: start;
+      min-width: 260px;
     }
   }
 
@@ -631,8 +652,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       grid-template-columns: 1fr;
     }
 
-    .status-note a {
+    .status-note nav {
       grid-column: 1;
+      justify-self: stretch;
     }
   }
 

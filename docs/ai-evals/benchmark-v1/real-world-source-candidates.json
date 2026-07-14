@@ -1,0 +1,317 @@
+{
+  "schemaVersion": "1.0.0",
+  "intakeId": "sift-holdout-real-world-source-intake-v1",
+  "status": "research_pending_rights_and_suitability_review",
+  "metadataCheckedAt": "2026-07-14",
+  "purpose": "Candidate source research only. These records are not holdout cases, approved rights evidence, human labels, model inputs, or reliability results.",
+  "requiredLanguages": [
+    "Traditional Chinese",
+    "Vietnamese",
+    "Turkish",
+    "Polish",
+    "Indonesian",
+    "Dutch"
+  ],
+  "candidates": [
+    {
+      "candidateSourceId": "RW-TRAD-ZH-001",
+      "language": "Traditional Chinese",
+      "provenance": {
+        "sourceRepository": "Wikimedia Commons",
+        "sourceTitle": "HK Sheung Wan 德釗記茶餐廳 Tak Chiu Kee Restaurant Menu 03.JPG",
+        "sourceCreator": "Hoicelatina",
+        "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:HK_Sheung_Wan_%E5%BE%B7%E9%87%97%E8%A8%98%E8%8C%B6%E9%A4%90%E5%BB%B3_Tak_Chiu_Kee_Restaurant_Menu_03.JPG",
+        "downloadUrl": "https://commons.wikimedia.org/wiki/Special:Redirect/file/HK_Sheung_Wan_%E5%BE%B7%E9%87%97%E8%A8%98%E8%8C%B6%E9%A4%90%E5%BB%B3_Tak_Chiu_Kee_Restaurant_Menu_03.JPG",
+        "observedDimensions": "2448x3264",
+        "observedMimeType": "image/jpeg"
+      },
+      "license": {
+        "identifier": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+        "attributionRequired": true,
+        "notes": "The Commons page offers several compatible attribution-share-alike licenses; this intake records CC BY-SA 3.0. Any retained derivative must preserve attribution, identify modifications, and satisfy share-alike requirements."
+      },
+      "rightsReview": {
+        "status": "pending",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "notes": "Source-page metadata was researched, but no independent rights approval has been recorded."
+      },
+      "researchScreen": {
+        "status": "completed_candidate_screen",
+        "screenedAt": "2026-07-14",
+        "evaluator": "Codex visual source screening",
+        "disposition": "retained_for_independent_review",
+        "notes": "The menu dominates the frame, Traditional Chinese text is readable, and the photograph provides realistic glare and angle variation."
+      },
+      "suitabilityReview": {
+        "status": "pending_visual_and_label_review",
+        "notes": "Research screening found a menu-dominant Traditional Chinese image with readable dish text, prices, mild glare, and a natural camera angle. Independent review must still confirm transcription and general benchmark suitability."
+      },
+      "proposedReplacement": {
+        "groupId": "holdout/traditional-chinese-dim-sum",
+        "caseIds": [
+          "I-101",
+          "I-102"
+        ],
+        "preserveExistingProfiles": true,
+        "preserveExistingQualityVariants": true,
+        "qualityVariants": [
+          "clear_counter",
+          "angled_photo"
+        ],
+        "annotationStatus": "not_started"
+      }
+    },
+    {
+      "candidateSourceId": "RW-VI-001",
+      "language": "Vietnamese",
+      "provenance": {
+        "sourceRepository": "Wikimedia Commons",
+        "sourceTitle": "Thực đơn viết tay các món cúng đưa Tết 2018.jpg",
+        "sourceCreator": "Phương Huy",
+        "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Th%E1%BB%B1c_%C4%91%C6%A1n_vi%E1%BA%BFt_tay_c%C3%A1c_m%C3%B3n_c%C3%BAng_%C4%91%C6%B0a_T%E1%BA%BFt_2018.jpg",
+        "downloadUrl": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Th%E1%BB%B1c_%C4%91%C6%A1n_vi%E1%BA%BFt_tay_c%C3%A1c_m%C3%B3n_c%C3%BAng_%C4%91%C6%B0a_T%E1%BA%BFt_2018.jpg",
+        "observedDimensions": "3006x2590",
+        "observedMimeType": "image/jpeg"
+      },
+      "license": {
+        "identifier": "PD-self",
+        "licenseUrl": "https://commons.wikimedia.org/wiki/Template:PD-self",
+        "attributionRequired": false,
+        "notes": "The Commons file page records the uploader's public-domain release under PD-self. Independent rights review must still verify that this metadata is sufficient before the source enters the frozen holdout."
+      },
+      "rightsReview": {
+        "status": "pending",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "notes": "Source-page metadata was researched, but no independent rights approval has been recorded."
+      },
+      "researchScreen": {
+        "status": "completed_candidate_screen",
+        "screenedAt": "2026-07-14",
+        "evaluator": "Codex visual source screening",
+        "disposition": "retained_for_independent_review",
+        "notes": "The handwritten Vietnamese menu fills the frame and remains legible without relying on an English translation."
+      },
+      "suitabilityReview": {
+        "status": "pending_visual_and_label_review",
+        "notes": "Research screening found a menu-dominant handwritten Vietnamese list with legible dish text and no English translation shortcut. Independent review must still confirm transcription and general benchmark suitability."
+      },
+      "proposedReplacement": {
+        "groupId": "holdout/vietnamese-street-grill",
+        "caseIds": [
+          "I-109",
+          "I-110"
+        ],
+        "preserveExistingProfiles": true,
+        "preserveExistingQualityVariants": true,
+        "qualityVariants": [
+          "clear_counter",
+          "angled_photo"
+        ],
+        "annotationStatus": "not_started"
+      }
+    },
+    {
+      "candidateSourceId": "RW-TR-001",
+      "language": "Turkish",
+      "provenance": {
+        "sourceRepository": "Wikimedia Commons",
+        "sourceTitle": "Restaurant menus.jpg",
+        "sourceCreator": "E4024",
+        "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Restaurant_menus.jpg",
+        "downloadUrl": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Restaurant_menus.jpg",
+        "observedDimensions": "2560x1920",
+        "observedMimeType": "image/jpeg"
+      },
+      "license": {
+        "identifier": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "attributionRequired": true,
+        "notes": "Any retained or redistributed derivative must preserve attribution, identify modifications, and satisfy share-alike requirements."
+      },
+      "rightsReview": {
+        "status": "pending",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "notes": "Source-page metadata was researched, but no independent rights approval has been recorded."
+      },
+      "researchScreen": {
+        "status": "completed_candidate_screen",
+        "screenedAt": "2026-07-14",
+        "evaluator": "Codex visual source screening",
+        "disposition": "retained_for_independent_review",
+        "notes": "The Turkish lunch board is readable at a realistic distance and includes an unspecified complimentary dessert line."
+      },
+      "suitabilityReview": {
+        "status": "pending_visual_and_label_review",
+        "notes": "Research screening found a readable Turkish lunch board with realistic distance, reflections, and an unspecified complimentary dessert line. Independent label review must still confirm whether the retained profile creates a fair uncertainty case."
+      },
+      "proposedReplacement": {
+        "groupId": "holdout/turkish-lokanta-baklava",
+        "caseIds": [
+          "I-117",
+          "I-118"
+        ],
+        "preserveExistingProfiles": true,
+        "preserveExistingQualityVariants": true,
+        "qualityVariants": [
+          "clear_counter",
+          "angled_photo"
+        ],
+        "annotationStatus": "not_started"
+      }
+    },
+    {
+      "candidateSourceId": "RW-PL-001",
+      "language": "Polish",
+      "provenance": {
+        "sourceRepository": "Wikimedia Commons",
+        "sourceTitle": "Food menu at Chochołowy Dwór Restaurant, Jerzmanowice, Poland, 2024, 01.jpg",
+        "sourceCreator": "Chris Olszewski",
+        "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Food_menu_at_Chocho%C5%82owy_Dw%C3%B3r_Restaurant,_Jerzmanowice,_Poland,_2024,_01.jpg",
+        "downloadUrl": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Food_menu_at_Chocho%C5%82owy_Dw%C3%B3r_Restaurant,_Jerzmanowice,_Poland,_2024,_01.jpg",
+        "observedDimensions": "6031x5628",
+        "observedMimeType": "image/jpeg"
+      },
+      "license": {
+        "identifier": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "attributionRequired": true,
+        "notes": "Any retained or redistributed derivative must preserve attribution, identify modifications, and satisfy share-alike requirements."
+      },
+      "rightsReview": {
+        "status": "pending",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "notes": "Source-page metadata was researched, but no independent rights approval has been recorded."
+      },
+      "researchScreen": {
+        "status": "completed_candidate_screen",
+        "screenedAt": "2026-07-14",
+        "evaluator": "Codex visual source screening",
+        "disposition": "retained_for_independent_review",
+        "notes": "The Polish menu spread is sharp, menu-dominant, and readable despite page curvature."
+      },
+      "suitabilityReview": {
+        "status": "pending_visual_and_label_review",
+        "notes": "Research screening found a sharp, menu-dominant Polish spread with readable descriptions and realistic page curvature. Independent review must still confirm transcription and general benchmark suitability."
+      },
+      "proposedReplacement": {
+        "groupId": "holdout/polish-milk-bar",
+        "caseIds": [
+          "I-125",
+          "I-126"
+        ],
+        "preserveExistingProfiles": true,
+        "preserveExistingQualityVariants": true,
+        "qualityVariants": [
+          "clear_counter",
+          "angled_photo"
+        ],
+        "annotationStatus": "not_started"
+      }
+    },
+    {
+      "candidateSourceId": "RW-ID-001",
+      "language": "Indonesian",
+      "provenance": {
+        "sourceRepository": "Wikimedia Commons",
+        "sourceTitle": "Lesehan Terang Bulan Malioboro - Menu.jpg",
+        "sourceCreator": "Indonesiagood",
+        "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Lesehan_Terang_Bulan_Malioboro_-_Menu.jpg",
+        "downloadUrl": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Lesehan_Terang_Bulan_Malioboro_-_Menu.jpg",
+        "observedDimensions": "3000x4000",
+        "observedMimeType": "image/jpeg"
+      },
+      "license": {
+        "identifier": "CC BY 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+        "attributionRequired": true,
+        "notes": "Any retained or redistributed derivative must preserve attribution and identify modifications as required by the license."
+      },
+      "rightsReview": {
+        "status": "pending",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "notes": "Source-page metadata was researched, but no independent rights approval has been recorded."
+      },
+      "researchScreen": {
+        "status": "completed_candidate_screen",
+        "screenedAt": "2026-07-14",
+        "evaluator": "Codex visual source screening",
+        "disposition": "retained_for_independent_review",
+        "notes": "The Indonesian wall menu has readable dish text, realistic framing, and uneven indoor lighting."
+      },
+      "suitabilityReview": {
+        "status": "pending_visual_and_label_review",
+        "notes": "Research screening found a readable Indonesian wall menu with common dish and preparation names, uneven lighting, and realistic framing. Independent label review must still confirm transcription and fair profile coverage."
+      },
+      "proposedReplacement": {
+        "groupId": "holdout/indonesian-warung-terasi",
+        "caseIds": [
+          "I-133",
+          "I-134"
+        ],
+        "preserveExistingProfiles": true,
+        "preserveExistingQualityVariants": true,
+        "qualityVariants": [
+          "clear_counter",
+          "angled_photo"
+        ],
+        "annotationStatus": "not_started"
+      }
+    },
+    {
+      "candidateSourceId": "RW-NL-001",
+      "language": "Dutch",
+      "provenance": {
+        "sourceRepository": "Wikimedia Commons",
+        "sourceTitle": "Surstrata reklamo de restoracia menuo kun flandraj pladoj (Bruĝo).jpg",
+        "sourceCreator": "RG72",
+        "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Surstrata_reklamo_de_restoracia_menuo_kun_flandraj_pladoj_%28Bru%C4%9Do%29.jpg",
+        "downloadUrl": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Surstrata_reklamo_de_restoracia_menuo_kun_flandraj_pladoj_%28Bru%C4%9Do%29.jpg",
+        "observedDimensions": "2336x4160",
+        "observedMimeType": "image/jpeg"
+      },
+      "license": {
+        "identifier": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "attributionRequired": true,
+        "notes": "The photographed sign is trilingual. Any retained or redistributed derivative must preserve attribution, identify modifications, and satisfy share-alike requirements."
+      },
+      "rightsReview": {
+        "status": "pending",
+        "reviewerId": null,
+        "reviewedAt": null,
+        "notes": "Source-page metadata was researched, but no independent rights approval has been recorded."
+      },
+      "researchScreen": {
+        "status": "completed_candidate_screen",
+        "screenedAt": "2026-07-14",
+        "evaluator": "Codex visual source screening",
+        "disposition": "retained_for_independent_review",
+        "notes": "The street board is readable, presents Dutch first, and includes realistic handwritten and multilingual conditions."
+      },
+      "suitabilityReview": {
+        "status": "pending_visual_and_label_review",
+        "notes": "Research screening found a readable street board with Dutch presented first and English/French translations beneath it. Independent review must still confirm that Dutch remains a fair language slice and annotate preparation uncertainty."
+      },
+      "proposedReplacement": {
+        "groupId": "holdout/dutch-canal-bistro",
+        "caseIds": [
+          "I-141",
+          "I-142"
+        ],
+        "preserveExistingProfiles": true,
+        "preserveExistingQualityVariants": true,
+        "qualityVariants": [
+          "clear_counter",
+          "angled_photo"
+        ],
+        "annotationStatus": "not_started"
+      }
+    }
+  ]
+}

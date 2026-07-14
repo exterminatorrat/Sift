@@ -8,7 +8,13 @@ import { getMockScanResult } from "./mockAnalysisService";
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 const ANALYSIS_MODE = process.env.EXPO_PUBLIC_ANALYSIS_MODE ?? "mock";
-const ANALYSIS_TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_ANALYSIS_TIMEOUT_MS ?? 45000);
+const ANALYSIS_TIMEOUT_MS = Number(process.env.EXPO_PUBLIC_ANALYSIS_TIMEOUT_MS ?? 60000);
+
+export type AnalyzeMenuImagesRequest = {
+  profile: UserProfile;
+  images: PreparedMenuImage[];
+  restaurantLanguage?: string;
+};
 
 export type AnalyzeMenuRequest = {
   profile: UserProfile;
@@ -28,11 +34,16 @@ export class ScanRateLimitExceededError extends Error {
   }
 }
 
-export async function analyzeMenuImage(request: AnalyzeMenuRequest): Promise<ScanResult> {
+export async function analyzeMenuImages(request: AnalyzeMenuImagesRequest): Promise<ScanResult> {
+  if (request.images.length === 0) {
+    return createUnclearScanResult(request.profile);
+  }
+
+  const imageUris = request.images.map((image) => image.uri);
   if (ANALYSIS_MODE !== "supabase" || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    return withImageUri(
+    return withImageUris(
       getMockScanResult(request.profile),
-      request.image.uri,
+      imageUris,
       "mock",
       request.profile.preferredLanguage
     );
@@ -89,9 +100,9 @@ export async function analyzeMenuImage(request: AnalyzeMenuRequest): Promise<Sca
       throw new Error(`Menu analysis returned an invalid response: ${validation.error}`);
     }
 
-    return withImageUri(
+    return withImageUris(
       validation.value,
-      request.image.uri,
+      imageUris,
       validation.value.analysisSource ?? "ai",
       request.profile.preferredLanguage
     );
@@ -100,14 +111,22 @@ export async function analyzeMenuImage(request: AnalyzeMenuRequest): Promise<Sca
       throw error;
     }
 
-    return createUnclearScanResult(request.profile, request.image.uri);
+    return createUnclearScanResult(request.profile, imageUris);
   } finally {
     clearTimeout(timeout);
   }
 }
 
+export async function analyzeMenuImage(request: AnalyzeMenuRequest): Promise<ScanResult> {
+  return analyzeMenuImages({
+    profile: request.profile,
+    images: [request.image],
+    restaurantLanguage: request.restaurantLanguage
+  });
+}
+
 async function fetchAnalysis(
-  request: AnalyzeMenuRequest,
+  request: AnalyzeMenuImagesRequest,
   accessToken: string,
   signal: AbortSignal
 ) {
@@ -121,18 +140,28 @@ async function fetchAnalysis(
     },
     body: JSON.stringify({
       profile: request.profile,
-      imageBase64: request.image.base64,
-      mimeType: request.image.mimeType,
+      images: request.images.map((image) => ({
+        imageBase64: image.base64,
+        mimeType: image.mimeType
+      })),
       restaurantLanguage: request.restaurantLanguage
     })
   });
 }
 
-export function createUnclearScanResult(profile: UserProfile, imageUri?: string): ScanResult {
+export function createUnclearScanResult(
+  profile: UserProfile,
+  imageUriOrUris?: string | string[]
+): ScanResult {
+  const imageUris = (
+    Array.isArray(imageUriOrUris) ? imageUriOrUris : imageUriOrUris ? [imageUriOrUris] : []
+  ).filter(Boolean);
+
   return {
     id: `scan-error-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    imageUri,
+    imageUri: imageUris[0],
+    imageUris: imageUris.length > 0 ? imageUris : undefined,
     restaurantName: null,
     profileId: profile.id,
     analysisLanguage: profile.preferredLanguage,
@@ -186,9 +215,9 @@ export function createUnclearScanResult(profile: UserProfile, imageUri?: string)
   };
 }
 
-function withImageUri(
+function withImageUris(
   scanResult: ScanResult,
-  imageUri?: string,
+  imageUris: string[],
   analysisSource?: ScanResult["analysisSource"],
   analysisLanguage?: string | null
 ): ScanResult {
@@ -196,7 +225,8 @@ function withImageUri(
     ...scanResult,
     id: scanResult.id || `scan-${Date.now()}`,
     createdAt: scanResult.createdAt || new Date().toISOString(),
-    imageUri,
+    imageUri: imageUris[0],
+    imageUris,
     analysisLanguage: analysisLanguage ?? scanResult.analysisLanguage ?? null,
     analysisSource: analysisSource ?? scanResult.analysisSource
   };

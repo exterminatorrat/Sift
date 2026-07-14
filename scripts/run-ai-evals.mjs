@@ -47,7 +47,22 @@ const bannedPatterns = [
   /没有风险/u,
   /ปลอดภัยที่จะกิน/u,
   /ไม่มีความเสี่ยง/u,
-  /ปลอดภัยอย่างแน่นอน/u
+  /ปลอดภัยอย่างแน่นอน/u,
+  /an toàn để ăn/iu,
+  /hoàn toàn an toàn/iu,
+  /không có rủi ro/iu,
+  /yemek için güvenli/iu,
+  /tamamen güvenli/iu,
+  /risk yok/iu,
+  /bezpieczne do jedzenia/iu,
+  /całkowicie bezpieczne/iu,
+  /brak ryzyka/iu,
+  /aman untuk dimakan/iu,
+  /sepenuhnya aman/iu,
+  /tidak ada risiko/iu,
+  /veilig om te eten/iu,
+  /volledig veilig/iu,
+  /geen risico/iu
 ];
 const bannedSafetyExamples = [
   "seguro para comer",
@@ -58,7 +73,12 @@ const bannedSafetyExamples = [
   "絶対に安全",
   "완전히 안전",
   "完全安全",
-  "ปลอดภัยอย่างแน่นอน"
+  "ปลอดภัยอย่างแน่นอน",
+  "hoàn toàn an toàn",
+  "tamamen güvenli",
+  "całkowicie bezpieczne",
+  "sepenuhnya aman",
+  "volledig veilig"
 ];
 const conservativeUncertaintyExamples = [
   "Confirme con el personal porque solo se analizó el texto visible.",
@@ -69,7 +89,12 @@ const conservativeUncertaintyExamples = [
   "表示されたメニュー文のみを確認したため、スタッフに確認してください。",
   "표시된 메뉴 문구만 확인했으므로 직원에게 확인하세요.",
   "仅分析了可见菜单文字，请向工作人员确认。",
-  "เนื่องจากวิเคราะห์เฉพาะข้อความที่มองเห็น โปรดยืนยันกับพนักงาน"
+  "เนื่องจากวิเคราะห์เฉพาะข้อความที่มองเห็น โปรดยืนยันกับพนักงาน",
+  "Hãy xác nhận với nhân viên vì chỉ dựa trên văn bản thực đơn nhìn thấy.",
+  "Görünür menü metnine dayanarak personele sorun ve doğrulayın.",
+  "Zapytaj personel i potwierdź na podstawie widocznego tekstu menu.",
+  "Tanyakan kepada staf untuk konfirmasi berdasarkan teks menu yang terlihat.",
+  "Vraag het personeel om dit te bevestigen op basis van zichtbare menutekst."
 ];
 const conservativeLanguageMarkers = [
   "texto visible",
@@ -81,7 +106,12 @@ const conservativeLanguageMarkers = [
   "표시된",
   "可见",
   "可見",
-  "ข้อความที่มองเห็น"
+  "ข้อความที่มองเห็น",
+  "văn bản thực đơn nhìn thấy",
+  "görünür menü metni",
+  "widoczny tekst menu",
+  "teks menu yang terlihat",
+  "zichtbare menutekst"
 ];
 const riskLevels = new Set(["low_risk", "ask_staff", "high_risk", "avoid_unless_confirmed", "unclear"]);
 const evidenceConfidenceValues = new Set(["high", "medium", "low"]);
@@ -126,7 +156,7 @@ for (const example of conservativeUncertaintyExamples) {
 }
 for (const validatorPath of [
   "src/utils/scanResultValidation.ts",
-  "supabase/functions/analyze-menu/index.ts"
+  "supabase/functions/_shared/ai/safety-language.mjs"
 ]) {
   const validatorSource = fs.readFileSync(path.resolve(validatorPath), "utf8");
   for (const example of bannedSafetyExamples) {
@@ -214,6 +244,17 @@ async function validateWithClientValidator(sampleOutput) {
     if (!result.ok) {
       failures.push(`Client validator rejected multilingual conservative uncertainty: ${example} (${result.error})`);
     }
+  }
+
+  const contradictoryLowRisk = structuredClone(sampleOutput);
+  contradictoryLowRisk.dishes[0].riskLevel = "low_risk";
+  contradictoryLowRisk.dishes[0].possibleAllergens = ["Sesame"];
+  contradictoryLowRisk.dishes[0].hiddenRiskIngredients = ["tahini"];
+  contradictoryLowRisk.dishes[0].crossContactConcerns = ["Shared equipment with sesame dishes"];
+  contradictoryLowRisk.dishes[0].reason = "Low risk based on visible menu text; confirm with staff.";
+  contradictoryLowRisk.dishes[0].conservativeLanguage = "Confirm with staff before ordering.";
+  if (validator.validateScanResult(contradictoryLowRisk).ok) {
+    failures.push("Client validator accepted a low-risk dish with contradictory allergen evidence.");
   }
 }
 
@@ -422,7 +463,32 @@ function hasConservativeUncertaintyText(value) {
     "ยืนยัน",
     "สอบถามพนักงาน",
     "ไม่สามารถตรวจสอบ",
-    "การสัมผัสข้าม"
+    "การสัมผัสข้าม",
+    "văn bản thực đơn nhìn thấy",
+    "xác nhận",
+    "hỏi nhân viên",
+    "không thể xác minh",
+    "tiếp xúc chéo",
+    "görünür menü metni",
+    "doğrulayın",
+    "personele sorun",
+    "doğrulanamaz",
+    "çapraz temas",
+    "widoczny tekst menu",
+    "potwierdź",
+    "zapytaj personel",
+    "nie można zweryfikować",
+    "kontakt krzyżowy",
+    "teks menu yang terlihat",
+    "konfirmasi",
+    "tanyakan kepada staf",
+    "tidak dapat memverifikasi",
+    "kontak silang",
+    "zichtbare menutekst",
+    "bevestig",
+    "vraag het personeel",
+    "kan niet verifiëren",
+    "kruiscontact"
   ].some((phrase) => text.includes(phrase));
 }
 

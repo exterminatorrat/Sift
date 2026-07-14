@@ -2,13 +2,13 @@ import React, { useEffect, useRef } from "react";
 import { LoadingAnalysis } from "../components/LoadingAnalysis";
 
 type AnalysisLoadingScreenProps = {
-  imageUri?: string | null;
+  imageUris?: string[];
   onAnalyze: () => void;
 };
 
-export function AnalysisLoadingScreen({ imageUri, onAnalyze }: AnalysisLoadingScreenProps) {
+export function AnalysisLoadingScreen({ imageUris = [], onAnalyze }: AnalysisLoadingScreenProps) {
   const didStart = useRef(false);
-  const stableImageUri = useRef(imageUri ?? null).current;
+  const stableImageUris = useRef(imageUris).current;
 
   useEffect(() => {
     if (didStart.current) {
@@ -19,5 +19,11 @@ export function AnalysisLoadingScreen({ imageUri, onAnalyze }: AnalysisLoadingSc
     onAnalyze();
   }, [onAnalyze]);
 
-  return <LoadingAnalysis imageUri={stableImageUri} showTopBar />;
+  return (
+    <LoadingAnalysis
+      imageCount={stableImageUris.length}
+      imageUri={stableImageUris[0] ?? null}
+      showTopBar
+    />
+  );
 }

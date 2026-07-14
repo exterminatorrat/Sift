@@ -105,19 +105,75 @@ export type TranslationKey =
   | "scanCapture.body"
   | "scanCapture.takePhoto"
   | "scanCapture.uploadPhoto"
+  | "cameraGuide.skip"
+  | "cameraGuide.openCamera"
+  | "cameraGuide.visibleOnly"
+  | "cameraGuide.stepOneStatus"
+  | "cameraGuide.stepOneTitle"
+  | "cameraGuide.stepOneTipOne"
+  | "cameraGuide.stepOneTipTwo"
+  | "cameraGuide.stepOneTipThree"
+  | "cameraGuide.stepTwoStatus"
+  | "cameraGuide.stepTwoTitle"
+  | "cameraGuide.stepTwoTipOne"
+  | "cameraGuide.stepTwoTipTwo"
+  | "cameraGuide.stepTwoTipThree"
+  | "cameraGuide.stepThreeStatus"
+  | "cameraGuide.stepThreeTitle"
+  | "cameraGuide.stepThreeTipOne"
+  | "cameraGuide.stepThreeTipTwo"
+  | "cameraGuide.stepThreeTipThree"
+  | "cameraGuide.permissionTitle"
+  | "cameraGuide.permissionBody"
+  | "cameraGuide.allowCamera"
+  | "cameraGuide.cameraTitle"
+  | "cameraGuide.frameInstruction"
+  | "cameraGuide.steadyHint"
+  | "cameraGuide.turnFlashOff"
+  | "cameraGuide.turnFlashOn"
+  | "cameraGuide.photoLibrary"
+  | "cameraGuide.takePhoto"
+  | "cameraGuide.photoTips"
+  | "cameraGuide.captureError"
+  | "cameraGuide.cameraError"
+  | "cameraGuide.sessionTooLarge"
+  | "cameraGuide.maxPagesReached"
+  | "cameraGuide.pageAdded"
+  | "cameraGuide.pagesCaptured"
+  | "cameraGuide.removePage"
+  | "cameraGuide.reviewPages"
+  | "cameraGuide.addPageSlot"
+  | "cameraGuide.previewPage"
+  | "cameraGuide.fullscreenPage"
+  | "cameraGuide.previousPage"
+  | "cameraGuide.nextPage"
   | "imagePreview.title"
   | "imagePreview.body"
   | "imagePreview.noImage"
   | "imagePreview.usePhoto"
   | "imagePreview.retake"
   | "imagePreview.rechoose"
+  | "imagePreview.pagesTitle"
+  | "imagePreview.pagesBody"
+  | "imagePreview.pageCount"
+  | "imagePreview.removePage"
+  | "imagePreview.selectPage"
+  | "imagePreview.noPages"
+  | "imagePreview.analyzePages"
+  | "imagePreview.addPage"
   | "analysis.title"
   | "analysis.subtitle"
+  | "analysis.pageCount"
   | "results.title"
   | "results.heroSubtitle"
   | "results.imageReadability"
   | "results.viewPhoto"
+  | "results.viewPhotos"
   | "results.menuPhoto"
+  | "results.menuPhotos"
+  | "results.previousPhoto"
+  | "results.nextPhoto"
+  | "results.photoCount"
   | "results.readability.clear"
   | "results.readability.partiallyClear"
   | "results.readability.poor"
@@ -481,30 +537,91 @@ const en = {
     "Sift needs your allergies and severity before it can structure menu risks.",
   "home.editProfile": "Edit profile",
   "home.scanMenu": "Scan Menu",
-  "home.scanBody": "Analyze ingredients instantly",
-  "home.scanHint": "For best results, photograph the menu vertically from above.",
-  "home.uploadPhoto": "Upload Photo",
+  "home.scanBody": "Analyze up to four menu pages",
+  "home.scanHint": "Photograph one clear page at a time and include dish descriptions.",
+  "home.uploadPhoto": "Upload Photos",
   "home.recentScans": "Recent Scans",
   "home.viewAll": "View All",
   "home.menuScan": "Menu scan",
   "home.emptyRecent": "Scans you save on this device will appear here.",
-  "scanCapture.title": "Capture one clear menu page.",
-  "scanCapture.body": "Keep the page flat, include dish descriptions when possible, and avoid glare.",
-  "scanCapture.takePhoto": "Take photo",
-  "scanCapture.uploadPhoto": "Upload photo",
+  "scanCapture.title": "Capture clear menu pages.",
+  "scanCapture.body":
+    "Photograph each page separately. Keep dish descriptions visible and avoid glare.",
+  "scanCapture.takePhoto": "Take photos",
+  "scanCapture.uploadPhoto": "Upload photos",
+  "cameraGuide.skip": "Skip",
+  "cameraGuide.openCamera": "Open camera",
+  "cameraGuide.visibleOnly":
+    "Sift can only assess menu text visible in the photo. Ingredients and preparation still need staff confirmation.",
+  "cameraGuide.stepOneStatus": "Whole section visible",
+  "cameraGuide.stepOneTitle": "Capture one menu section",
+  "cameraGuide.stepOneTipOne": "Fill the frame with one page or menu section.",
+  "cameraGuide.stepOneTipTwo": "Keep each dish name beside its description.",
+  "cameraGuide.stepOneTipThree": "Do not crop the first or last line.",
+  "cameraGuide.stepTwoStatus": "Text is sharp",
+  "cameraGuide.stepTwoTitle": "Make every word readable",
+  "cameraGuide.stepTwoTipOne": "Hold your phone parallel to the menu.",
+  "cameraGuide.stepTwoTipTwo": "Hold still until the smallest text looks sharp.",
+  "cameraGuide.stepTwoTipThree": "Move away from glare, shadows, and reflections.",
+  "cameraGuide.stepThreeStatus": "One page per photo",
+  "cameraGuide.stepThreeTitle": "Check before Sift reads it",
+  "cameraGuide.stepThreeTipOne": "Review the photo before starting analysis.",
+  "cameraGuide.stepThreeTipTwo": "Retake anything blurred, dim, or cut off.",
+  "cameraGuide.stepThreeTipThree": "Photograph each additional page separately.",
+  "cameraGuide.permissionTitle": "Use Sift's camera",
+  "cameraGuide.permissionBody":
+    "Sift only accesses the camera when you choose to photograph a menu.",
+  "cameraGuide.allowCamera": "Allow camera",
+  "cameraGuide.cameraTitle": "Menu pages",
+  "cameraGuide.frameInstruction": "Keep all menu text inside the frame",
+  "cameraGuide.steadyHint": "Hold steady and avoid glare",
+  "cameraGuide.turnFlashOff": "Turn flash off",
+  "cameraGuide.turnFlashOn": "Turn flash on",
+  "cameraGuide.photoLibrary": "Choose menu photos",
+  "cameraGuide.takePhoto": "Take menu page",
+  "cameraGuide.photoTips": "Open photo tips",
+  "cameraGuide.captureError": "Photo failed. Hold steady and try again.",
+  "cameraGuide.cameraError": "Camera preview unavailable.",
+  "cameraGuide.sessionTooLarge":
+    "This scan is too large. Review or remove a page before continuing.",
+  "cameraGuide.maxPagesReached": "All {max} pages are ready. Review to continue.",
+  "cameraGuide.pageAdded": "Page {count} added. Capture the next page or review.",
+  "cameraGuide.pagesCaptured": "{count} of {max} pages",
+  "cameraGuide.removePage": "Remove page {page}",
+  "cameraGuide.reviewPages": "Review captured menu pages",
+  "cameraGuide.addPageSlot": "Add menu page {page}",
+  "cameraGuide.previewPage": "Preview menu page {page}",
+  "cameraGuide.fullscreenPage": "Menu page {current} of {count}",
+  "cameraGuide.previousPage": "Previous menu page",
+  "cameraGuide.nextPage": "Next menu page",
   "imagePreview.title": "Use this menu photo?",
   "imagePreview.body": "If text is cut off or blurry, retake it before analysis.",
   "imagePreview.noImage": "No image selected.",
   "imagePreview.usePhoto": "Use photo",
   "imagePreview.retake": "Retake",
   "imagePreview.rechoose": "Rechoose",
+  "imagePreview.pagesTitle": "Review menu pages",
+  "imagePreview.pagesBody":
+    "Check every page for sharp text, complete descriptions, and minimal glare before analysis.",
+  "imagePreview.pageCount": "Page {current} of {count}",
+  "imagePreview.removePage": "Remove page {page}",
+  "imagePreview.selectPage": "View page {page}",
+  "imagePreview.noPages": "Add at least one clear menu page before analysis.",
+  "imagePreview.analyzePages": "Analyze {count} pages",
+  "imagePreview.addPage": "Add another page",
+  "analysis.pageCount": "{count} pages",
   "analysis.title": "Reading menu\ningredients...",
   "analysis.subtitle": "Scanning for traces and hidden\naliases",
   "results.title": "Scan Results",
   "results.heroSubtitle": "{restaurantName} for {profileName}",
   "results.imageReadability": "Image readability: {readability}",
   "results.viewPhoto": "View photo",
+  "results.viewPhotos": "View photos",
   "results.menuPhoto": "Menu photo",
+  "results.menuPhotos": "Menu photos",
+  "results.previousPhoto": "Previous menu photo",
+  "results.nextPhoto": "Next menu photo",
+  "results.photoCount": "Photo {current} of {count}",
   "results.readability.clear": "clear",
   "results.readability.partiallyClear": "partially clear",
   "results.readability.poor": "poor",

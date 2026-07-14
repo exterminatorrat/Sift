@@ -63,7 +63,22 @@ const bannedSafetyLanguage = [
   /没有风险/u,
   /ปลอดภัยที่จะกิน/u,
   /ไม่มีความเสี่ยง/u,
-  /ปลอดภัยอย่างแน่นอน/u
+  /ปลอดภัยอย่างแน่นอน/u,
+  /an toàn để ăn/iu,
+  /hoàn toàn an toàn/iu,
+  /không có rủi ro/iu,
+  /yemek için güvenli/iu,
+  /tamamen güvenli/iu,
+  /risk yok/iu,
+  /bezpieczne do jedzenia/iu,
+  /całkowicie bezpieczne/iu,
+  /brak ryzyka/iu,
+  /aman untuk dimakan/iu,
+  /sepenuhnya aman/iu,
+  /tidak ada risiko/iu,
+  /veilig om te eten/iu,
+  /volledig veilig/iu,
+  /geen risico/iu
 ];
 
 export type ScanResultValidation =
@@ -94,6 +109,13 @@ export function validateScanResult(value: unknown): ScanResultValidation {
     return scanSummary;
   }
 
+  const pageAssessments = validatePageAssessments(value.pageAssessments);
+  if (!pageAssessments.ok) {
+    return pageAssessments;
+  }
+  const pageCount = pageAssessments.value?.length ?? null;
+  const allowEmptySourcePages = pageAssessments.value?.every((page) => page.readability === "poor") ?? false;
+
   if (!Array.isArray(value.dishes) || value.dishes.length === 0) {
     return invalid("Response must include at least one dish.");
   }
@@ -101,7 +123,7 @@ export function validateScanResult(value: unknown): ScanResultValidation {
   const dishes = [];
   const seenDishIds = new Map<string, number>();
   for (const dish of value.dishes) {
-    const validatedDish = validateDish(dish);
+    const validatedDish = validateDish(dish, pageCount, allowEmptySourcePages);
     if (!validatedDish.ok) {
       return validatedDish;
     }
@@ -117,6 +139,26 @@ export function validateScanResult(value: unknown): ScanResultValidation {
   const imageQuality = validateImageQuality(value.imageQuality);
   if (!imageQuality.ok) {
     return imageQuality;
+  }
+
+  if (pageAssessments.value) {
+    const expectedAggregateReadability = pageAssessments.value.some((page) => page.readability === "poor")
+      ? "poor"
+      : pageAssessments.value.some((page) => page.readability === "partially_clear")
+        ? "partially_clear"
+        : "clear";
+    if (imageQuality.value.readability !== expectedAggregateReadability) {
+      return invalid("Aggregate image readability does not match the page assessments.");
+    }
+  }
+
+  if (
+    imageQuality.value.readability === "poor" &&
+    (imageQuality.value.needsRetake !== true ||
+      scanSummary.value.overallRisk !== "unclear" ||
+      dishes.some((dish) => dish.riskLevel === "low_risk"))
+  ) {
+    return invalid("Poor-image results must require a retake and cannot contain low-risk dishes.");
   }
 
   const restaurantMessage = validateRestaurantMessage(value.restaurantMessage);
@@ -141,12 +183,14 @@ export function validateScanResult(value: unknown): ScanResultValidation {
       id,
       createdAt,
       imageUri: readOptionalString(value.imageUri),
+      imageUris: readOptionalStringArray(value.imageUris, 8),
       restaurantName: readOptionalString(value.restaurantName),
       profileId,
       analysisLanguage: readOptionalString(value.analysisLanguage),
       analysisSource: normalizedSource,
       analysisModel: readOptionalString(value.analysisModel),
       analysisRequestId: readOptionalString(value.analysisRequestId),
+      pageAssessments: pageAssessments.value,
       scanSummary: scanSummary.value,
       dishes,
       restaurantMessage: restaurantMessage.value,
@@ -154,6 +198,17 @@ export function validateScanResult(value: unknown): ScanResultValidation {
       transparency
     }
   };
+}
+
+function readOptionalStringArray(value: unknown, maximum = Number.POSITIVE_INFINITY): string[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const strings = value
+    .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    .slice(0, maximum);
+  return strings.length > 0 ? strings : undefined;
 }
 
 export function containsBannedSafetyLanguage(value: unknown): boolean {
@@ -195,7 +250,11 @@ function validateScanSummary(value: unknown): Validation<ScanResult["scanSummary
   };
 }
 
-function validateDish(value: unknown): Validation<ScanResult["dishes"][number]> {
+function validateDish(
+  value: unknown,
+  pageCount: number | null,
+  allowEmptySourcePages: boolean
+): Validation<ScanResult["dishes"][number]> {
   if (!isRecord(value)) {
     return invalid("Dish entry was not an object.");
   }
@@ -205,13 +264,14 @@ function validateDish(value: unknown): Validation<ScanResult["dishes"][number]> 
   const riskLevel = readRiskLevel(value.riskLevel);
   const reason = readString(value.reason);
   const conservativeLanguage = readString(value.conservativeLanguage);
-  const possibleAllergens = readStringArray(value.possibleAllergens);
-  const hiddenRiskIngredients = readStringArray(value.hiddenRiskIngredients);
-  const crossContactConcerns = readStringArray(value.crossContactConcerns);
+  const possibleAllergens = readStringArray(value.possibleAllergens, 12);
+  const hiddenRiskIngredients = readStringArray(value.hiddenRiskIngredients, 12);
+  const crossContactConcerns = readStringArray(value.crossContactConcerns, 8);
   const evidenceConfidence = readEvidenceConfidence(value.evidenceConfidence);
   const riskBasis = readRiskBasisArray(value.riskBasis);
-  const questionsToAsk = readStringArray(value.questionsToAsk);
-  const questionsToAskUserLanguage = readStringArray(value.questionsToAskUserLanguage);
+  const questionsToAsk = readStringArray(value.questionsToAsk, 6);
+  const questionsToAskUserLanguage = readStringArray(value.questionsToAskUserLanguage, 6);
+  const sourcePageNumbers = readPageNumbers(value.sourcePageNumbers, pageCount);
 
   if (!id || !dishName || !riskLevel || !reason || !conservativeLanguage) {
     return invalid("Dish entry is missing required text fields.");
@@ -225,12 +285,26 @@ function validateDish(value: unknown): Validation<ScanResult["dishes"][number]> 
     return invalid("Dish entry has malformed arrays.");
   }
 
+  if (
+    riskLevel === "low_risk" &&
+    (possibleAllergens.length > 0 || hiddenRiskIngredients.length > 0 || crossContactConcerns.length > 0)
+  ) {
+    return invalid("Low-risk dish contains contradictory allergen or preparation concerns.");
+  }
+
   if (questionsToAsk.length === 0) {
     return invalid("Dish entry must include staff questions.");
   }
 
   if (!questionsToAskUserLanguage || questionsToAskUserLanguage.length === 0) {
     return invalid("Dish entry must include user-language staff questions.");
+  }
+
+  if (
+    pageCount !== null &&
+    (sourcePageNumbers === undefined || (!allowEmptySourcePages && sourcePageNumbers.length === 0))
+  ) {
+    return invalid("Dish entry must include valid source page numbers.");
   }
 
   const transparency = validateDishTransparency(value.transparency);
@@ -244,6 +318,7 @@ function validateDish(value: unknown): Validation<ScanResult["dishes"][number]> 
       id,
       dishName,
       menuDescription: readOptionalString(value.menuDescription),
+      sourcePageNumbers,
       riskLevel,
       possibleAllergens,
       hiddenRiskIngredients,
@@ -259,15 +334,57 @@ function validateDish(value: unknown): Validation<ScanResult["dishes"][number]> 
   };
 }
 
+function validatePageAssessments(
+  value: unknown
+): Validation<ScanResult["pageAssessments"]> {
+  if (value === undefined) {
+    return { ok: true, value: undefined };
+  }
+  if (!Array.isArray(value) || value.length < 1 || value.length > 4) {
+    return invalid("pageAssessments must contain between one and four pages.");
+  }
+  const pages: NonNullable<ScanResult["pageAssessments"]> = [];
+  for (let index = 0; index < value.length; index += 1) {
+    const page = value[index];
+    if (!isRecord(page)) {
+      return invalid("pageAssessments contains a malformed page.");
+    }
+    const readability = readString(page.readability);
+    const issues = readStringArray(page.issues, 8);
+    if (page.pageNumber !== index + 1 || !readabilityValues.has(readability) || !issues) {
+      return invalid("pageAssessments must be ordered and contain valid readability data.");
+    }
+    pages.push({
+      pageNumber: index + 1,
+      readability: readability as ScanResult["imageQuality"]["readability"],
+      issues
+    });
+  }
+  return { ok: true, value: pages };
+}
+
+function readPageNumbers(value: unknown, pageCount: number | null): number[] | undefined {
+  if (value === undefined && pageCount === null) return undefined;
+  if (!Array.isArray(value)) return undefined;
+  const maximum = pageCount ?? 4;
+  if (
+    value.some((pageNumber) => !Number.isInteger(pageNumber) || pageNumber < 1 || pageNumber > maximum) ||
+    new Set(value).size !== value.length
+  ) {
+    return undefined;
+  }
+  return value as number[];
+}
+
 function validateDishTransparency(value: unknown): ScanResult["dishes"][number]["transparency"] {
   if (!isRecord(value)) {
     return undefined;
   }
 
-  const visibleMenuText = readStringArray(value.visibleMenuText);
-  const profileFactors = readStringArray(value.profileFactors);
-  const commonRiskPatterns = readStringArray(value.commonRiskPatterns);
-  const uncertainty = readStringArray(value.uncertainty);
+  const visibleMenuText = readStringArray(value.visibleMenuText, 5);
+  const profileFactors = readStringArray(value.profileFactors, 5);
+  const commonRiskPatterns = readStringArray(value.commonRiskPatterns, 5);
+  const uncertainty = readStringArray(value.uncertainty, 5);
 
   if (!visibleMenuText || !profileFactors || !commonRiskPatterns || !uncertainty) {
     return undefined;
@@ -286,9 +403,9 @@ function validateScanTransparency(value: unknown): ScanResult["transparency"] {
     return undefined;
   }
 
-  const checked = readStringArray(value.checked);
-  const limitations = readStringArray(value.limitations);
-  const webSearchQueries = readStringArray(value.webSearchQueries);
+  const checked = readStringArray(value.checked, 6);
+  const limitations = readStringArray(value.limitations, 6);
+  const webSearchQueries = readStringArray(value.webSearchQueries, 12);
   const sourceReferences = Array.isArray(value.sourceReferences)
     ? value.sourceReferences
         .filter(isRecord)
@@ -298,6 +415,7 @@ function validateScanTransparency(value: unknown): ScanResult["transparency"] {
           source: readOptionalString(source.source)
         }))
         .filter((source) => source.title && isSafeSourceReferenceUrl(source.uri))
+        .slice(0, 12)
     : null;
 
   if (!checked || !limitations || !sourceReferences) {
@@ -318,7 +436,7 @@ function validateImageQuality(value: unknown): Validation<ScanResult["imageQuali
   }
 
   const readability = readString(value.readability);
-  const issues = readStringArray(value.issues);
+  const issues = readStringArray(value.issues, 8);
 
   if (!readabilityValues.has(readability) || !issues) {
     return invalid("imageQuality is malformed.");
@@ -411,7 +529,7 @@ function readRiskBasisArray(value: unknown): RiskBasis[] {
   return riskBasis.length > 0 ? Array.from(new Set(riskBasis)) : ["unknown_ingredient"];
 }
 
-function readStringArray(value: unknown): string[] | null {
+function readStringArray(value: unknown, maximum = Number.POSITIVE_INFINITY): string[] | null {
   if (!Array.isArray(value)) {
     return null;
   }
@@ -419,7 +537,8 @@ function readStringArray(value: unknown): string[] | null {
   return value
     .filter((item): item is string => typeof item === "string")
     .map((item) => item.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .slice(0, maximum);
 }
 
 export function isSafeSourceReferenceUrl(value: string) {
@@ -503,6 +622,31 @@ function hasConservativeUncertaintyText(value: string) {
     "ยืนยัน",
     "สอบถามพนักงาน",
     "ไม่สามารถตรวจสอบ",
-    "การสัมผัสข้าม"
+    "การสัมผัสข้าม",
+    "văn bản thực đơn nhìn thấy",
+    "xác nhận",
+    "hỏi nhân viên",
+    "không thể xác minh",
+    "tiếp xúc chéo",
+    "görünür menü metni",
+    "doğrulayın",
+    "personele sorun",
+    "doğrulanamaz",
+    "çapraz temas",
+    "widoczny tekst menu",
+    "potwierdź",
+    "zapytaj personel",
+    "nie można zweryfikować",
+    "kontakt krzyżowy",
+    "teks menu yang terlihat",
+    "konfirmasi",
+    "tanyakan kepada staf",
+    "tidak dapat memverifikasi",
+    "kontak silang",
+    "zichtbare menutekst",
+    "bevestig",
+    "vraag het personeel",
+    "kan niet verifiëren",
+    "kruiscontact"
   ].some((phrase) => text.includes(phrase));
 }
