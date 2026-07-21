@@ -589,7 +589,7 @@
       "responsibleLayer": "holdout-integrity",
       "holdoutRetirementRequired": false,
       "resolution": {
-        "summary": "Require exactly 12 reviewed licensed or user-captured cases and an externally completed perceptual-hash plus visual duplicate audit bound into frozen lineage.",
+        "summary": "Require exactly 12 reviewed licensed or user-captured cases, a byte-bound tool-computed perceptual-hash report, and independently completed visual duplicate review bound into frozen lineage.",
         "fromVersion": "holdout-exact-hash-only-v2",
         "toVersion": "holdout-promotion-policy-2026-07-14.3",
         "regressionPath": "scripts/ai-evals/promote-holdout.mjs",
