@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Animated, Easing, Linking, StyleSheet } from "react-native";
+import { Alert, Animated, Easing, Linking, StyleSheet, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -25,7 +25,7 @@ import { RootStackParamList } from "./src/types/navigation";
 import { ScanResult } from "./src/types/scan";
 import { AuthSession } from "./src/types/auth";
 import { SubscriptionPlanId } from "./src/types/subscription";
-import { LoadingAnalysis } from "./src/components/LoadingAnalysis";
+import { colors } from "./src/constants/colors";
 import {
   defaultSubscriptionPlanId,
   getMonthlyScanCount,
@@ -190,7 +190,7 @@ export default function App() {
     return (
       <SafeAreaProvider>
         <StatusBar style="dark" />
-        <LoadingAnalysis />
+        <View style={styles.launchScreen} />
       </SafeAreaProvider>
     );
   }
@@ -941,6 +941,10 @@ function MainTabTransition({ activeTab, tabs }: MainTabTransitionProps) {
 }
 
 const styles = StyleSheet.create({
+  launchScreen: {
+    backgroundColor: colors.background,
+    flex: 1
+  },
   mainTabHost: {
     flex: 1
   },

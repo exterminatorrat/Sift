@@ -99,7 +99,6 @@ export function HomeScreen({
             </View>
             <Text style={styles.scanTitle}>{t("home.scanMenu")}</Text>
             <Text style={styles.scanBody}>{t("home.scanBody")}</Text>
-            <Text style={styles.scanHint}>{t("home.scanHint")}</Text>
           </AnimatedPressable>
           <AnimatedPressable accessibilityRole="button" onPress={onUploadPhoto} style={styles.uploadLink}>
             <Upload color={colors.primaryDark} size={15} strokeWidth={2} />
@@ -306,13 +305,6 @@ const styles = StyleSheet.create({
     color: colors.inkMuted,
     ...typography.body,
     maxWidth: 220,
-    textAlign: "center"
-  },
-  scanHint: {
-    color: colors.inkSubtle,
-    ...typography.caption,
-    marginTop: 10,
-    maxWidth: 214,
     textAlign: "center"
   },
   uploadLink: {
