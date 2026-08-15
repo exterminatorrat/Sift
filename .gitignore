@@ -17,3 +17,5 @@ expo.log
 expo.err
 expo-web.log
 .playwright-cli/
+.codex/
+.hermes/

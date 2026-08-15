@@ -685,6 +685,14 @@ function testAutomatedQuestionIntentCoverage() {
 function testHoldoutLanguageQuestionIntentCoverage() {
   const samples = [
     {
+      language: "English",
+      allergen: "Sesame",
+      questions: [
+        "Does this dish contain sesame?",
+        "Can you use clean utensils for sesame?"
+      ]
+    },
+    {
       language: "Japanese",
       allergen: "Sesame",
       questions: [
@@ -705,7 +713,7 @@ function testHoldoutLanguageQuestionIntentCoverage() {
       allergen: "Sesame",
       questions: [
         "这道菜含有芝麻吗？",
-        "这道菜有与芝麻交叉接触的风险吗？"
+        "可以用干净、未接触过芝麻的锅具单独制作吗？"
       ]
     },
     {
